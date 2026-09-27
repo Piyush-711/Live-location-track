@@ -14,13 +14,13 @@ import {
   MOCK_PLACES, 
   EMERGENCY_DOSSIERS, 
   COUNTRY_BRIEFINGS, 
-  MOCK_RATES, 
   MOCK_WEATHER, 
   MOCK_KYOTO_ROUTE,
   CITIES 
 } from '../data/mockData';
 import { storage } from './storage';
 import { osmService } from './osmService';
+import { fxService } from './fxService';
 
 class ApiService {
   private baseUrl: string = '/v1';
@@ -279,11 +279,11 @@ class ApiService {
   }
 
   // GET /v1/fx
-  public async getFXRates(): Promise<CurrencyRates> {
+  public async getFXRates(forceRefresh = false): Promise<CurrencyRates> {
     return this.safeFetch(
       '/fx',
       { method: 'GET' },
-      () => MOCK_RATES
+      () => fxService.getRates(forceRefresh)
     );
   }
 

@@ -129,6 +129,9 @@ export interface CurrencyRates {
   asOf: string;
   source: string;
   rates: Record<string, number>;
+  lastFetched?: number;
+  nextUpdate?: string;
+  isLive?: boolean;
 }
 
 export interface WeatherReport {
