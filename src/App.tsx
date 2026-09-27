@@ -13,8 +13,9 @@ import { TravelToolkitView } from './views/TravelToolkitView';
 import { ReportCorrectionModal } from './components/ReportCorrectionModal';
 import { CityPickerModal } from './components/CityPickerModal';
 import { SavedPlacesDrawer } from './components/SavedPlacesDrawer';
-import { Place, RouteResponse } from './types';
+import { Place, RouteResponse, WeatherReport } from './types';
 import { storage } from './services/storage';
+import { api } from './services/api';
 import { useLiveLocation } from './hooks/useLiveLocation';
 
 export const App: React.FC = () => {
@@ -33,6 +34,21 @@ export const App: React.FC = () => {
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [showSavedDrawer, setShowSavedDrawer] = useState(false);
   const [reportingPlace, setReportingPlace] = useState<Place | null>(null);
+  const [currentTemp, setCurrentTemp] = useState<number | null>(null);
+
+  // Live atmospheric temperature fetch for current location
+  React.useEffect(() => {
+    let isCurrent = true;
+    api.getWeather(activeCityId, location.coords, location.cityName)
+      .then((w: WeatherReport) => {
+        if (isCurrent && w && typeof w.tempC === 'number') {
+          setCurrentTemp(w.tempC);
+        }
+      })
+      .catch(() => {});
+
+    return () => { isCurrent = false; };
+  }, [location.coords.latitude, location.coords.longitude, location.cityName, activeCityId]);
 
   // Switch City
   const handleSelectCity = (cityId: string) => {
@@ -55,11 +71,12 @@ export const App: React.FC = () => {
   return (
     <ResponsiveLayout location={location} onRequestGPS={requestLiveGPS}>
       <div className="w-full flex-1 flex flex-col relative select-none">
-        {/* Top Header with live location badge */}
+        {/* Top Header with live location and temperature badge */}
         <Header
           cityName={location.cityName}
           gpsStatus={location.status}
           isCustom={location.isCustom}
+          tempC={currentTemp}
           onOpenCityPicker={() => setShowCityPicker(true)}
           onOpenOfflineVault={() => setActiveTab('offline')}
           onOpenProfile={() => setShowSavedDrawer(true)}
@@ -90,7 +107,11 @@ export const App: React.FC = () => {
           )}
 
           {activeTab === 'toolkit' && (
-            <TravelToolkitView activeCityId={activeCityId} liveCountryCode={location.countryCode} />
+            <TravelToolkitView 
+              activeCityId={activeCityId} 
+              liveCountryCode={location.countryCode} 
+              location={location}
+            />
           )}
         </main>
 

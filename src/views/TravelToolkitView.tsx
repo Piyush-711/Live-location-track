@@ -3,10 +3,12 @@ import { CountryBriefing, CurrencyRates, WeatherReport } from '../types';
 import { api } from '../services/api';
 import { CITIES } from '../data/mockData';
 import { fxService, POPULAR_CURRENCIES } from '../services/fxService';
+import { LiveLocationState } from '../hooks/useLiveLocation';
 
 interface TravelToolkitViewProps {
   activeCityId: string;
   liveCountryCode?: string;
+  location?: LiveLocationState;
 }
 
 const PAYMENT_GUIDES: Record<string, {
@@ -60,13 +62,17 @@ const PAYMENT_GUIDES: Record<string, {
   }
 };
 
-export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCityId, liveCountryCode }) => {
+export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCityId, liveCountryCode, location }) => {
   const activeCity = CITIES.find(c => c.id === activeCityId) || CITIES[0];
-  const effectiveCountry = liveCountryCode || activeCity.countryCode;
+  const effectiveCountry = liveCountryCode || (location?.countryCode) || activeCity.countryCode;
+  const effectiveCityName = location?.cityName || activeCity.name;
+  const effectiveCoords = location?.coords;
 
   const [briefing, setBriefing] = useState<CountryBriefing | null>(null);
   const [rates, setRates] = useState<CurrencyRates | null>(null);
   const [weather, setWeather] = useState<WeatherReport | null>(null);
+  const [isRefreshingWeather, setIsRefreshingWeather] = useState(false);
+  const [weatherFeedback, setWeatherFeedback] = useState<string | null>(null);
 
   // Live 12-hour sync state
   const [isRefreshingRates, setIsRefreshingRates] = useState(false);
@@ -118,10 +124,26 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
     }
   }, []);
 
+  const loadWeather = useCallback(async (force = false) => {
+    try {
+      if (force) setIsRefreshingWeather(true);
+      const data = await api.getWeather(activeCityId, effectiveCoords, effectiveCityName, force);
+      setWeather(data);
+      if (force) {
+        setWeatherFeedback('Weather updated with live atmospheric station data!');
+        setTimeout(() => setWeatherFeedback(null), 3000);
+      }
+    } catch (e) {
+      console.warn('Failed to load live weather', e);
+    } finally {
+      if (force) setIsRefreshingWeather(false);
+    }
+  }, [activeCityId, effectiveCoords, effectiveCityName]);
+
   useEffect(() => {
     api.getCountryBriefing(effectiveCountry).then(setBriefing);
     loadRates(false);
-    api.getWeather(activeCityId).then(setWeather);
+    loadWeather(false);
 
     // Update target currency to match country
     if (effectiveCountry === 'JP') setToCurrency('JPY');
@@ -130,7 +152,7 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
     else if (effectiveCountry === 'AU') setToCurrency('AUD');
     else if (effectiveCountry === 'CA') setToCurrency('CAD');
     else setToCurrency('EUR');
-  }, [activeCityId, effectiveCountry, loadRates]);
+  }, [activeCityId, effectiveCountry, loadRates, loadWeather]);
 
   // Periodic 12-hour timer update and auto-sync check
   useEffect(() => {
@@ -459,18 +481,49 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
           <div className="rounded-[22px] bg-surface p-4 shadow-tactile border border-[#eae6df] flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-extrabold uppercase text-outline">Live Conditions</span>
+                <span className="text-[11px] font-extrabold uppercase text-outline flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Live Atmospheric Station</span>
+                </span>
                 <h3 className="text-[16px] font-extrabold text-on-surface">{weather.city}</h3>
               </div>
-              <div className="flex items-center gap-1.5 text-primary">
-                <span className="material-symbols-outlined text-[28px]">wb_sunny</span>
-                <span className="text-[26px] font-black">{weather.tempC}°C</span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => loadWeather(true)}
+                  disabled={isRefreshingWeather}
+                  className={`p-1.5 rounded-xl bg-surface-container shadow-tactile-sm active:scale-95 text-primary flex items-center text-[10px] font-bold transition-all ${
+                    isRefreshingWeather ? 'opacity-60 cursor-not-allowed' : ''
+                  }`}
+                  title="Force Sync Live Weather"
+                >
+                  <span className={`material-symbols-outlined text-[15px] ${isRefreshingWeather ? 'animate-spin' : ''}`}>
+                    sync
+                  </span>
+                </button>
+                <div className="flex items-center gap-1.5 text-primary">
+                  <span className="material-symbols-outlined text-[28px]">
+                    {(weather as any).conditionIcon || 'wb_sunny'}
+                  </span>
+                  <span className="text-[26px] font-black">{weather.tempC}°C</span>
+                </div>
               </div>
             </div>
 
+            {weatherFeedback && (
+              <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold flex items-center gap-1.5 animate-fadeIn">
+                <span className="material-symbols-outlined text-[15px] text-emerald-600">check_circle</span>
+                <span>{weatherFeedback}</span>
+              </div>
+            )}
+
             <div className="flex items-center justify-between text-[11px] text-on-surface-variant font-semibold pt-1 border-t border-[#eae6df]/70">
-              <span>{weather.condition}</span>
-              <span>H: {weather.highC}°C • L: {weather.lowC}°C • Humidity {weather.humidity}%</span>
+              <span className="font-extrabold text-primary">{weather.condition}</span>
+              <span>
+                H: {weather.highC}°C • L: {weather.lowC}°C • Humidity {weather.humidity}%
+                {(weather as any).feelsLikeC !== undefined && (
+                  <span className="text-outline"> • Feels {(weather as any).feelsLikeC}°C</span>
+                )}
+              </span>
             </div>
 
             {/* Hourly Pills */}

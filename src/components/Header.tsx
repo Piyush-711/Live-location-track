@@ -4,6 +4,7 @@ interface HeaderProps {
   cityName: string;
   gpsStatus: 'acquiring' | 'fixed' | 'denied' | 'unsupported' | 'fallback';
   isCustom?: boolean;
+  tempC?: number | null;
   onOpenCityPicker: () => void;
   onOpenOfflineVault: () => void;
   onOpenProfile: () => void;
@@ -13,6 +14,7 @@ export const Header: React.FC<HeaderProps> = ({
   cityName,
   gpsStatus,
   isCustom,
+  tempC,
   onOpenCityPicker,
   onOpenOfflineVault,
   onOpenProfile
@@ -48,6 +50,19 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Offline Vault & Profile Actions */}
         <div className="flex items-center gap-2 md:gap-3">
+          {/* Real-time Temperature Pill */}
+          {tempC !== null && tempC !== undefined && (
+            <div 
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-800 shadow-tactile-inset-sm font-extrabold text-[11px]"
+              title={`Live Temperature in ${cityName}: ${tempC}°C`}
+            >
+              <span className="material-symbols-outlined text-[14px] text-amber-600">
+                device_thermostat
+              </span>
+              <span>{tempC}°C</span>
+            </div>
+          )}
+
           {/* Offline Pack Status Pill */}
           <button 
             onClick={onOpenOfflineVault}

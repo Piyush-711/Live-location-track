@@ -14,19 +14,19 @@ import {
   MOCK_PLACES, 
   EMERGENCY_DOSSIERS, 
   COUNTRY_BRIEFINGS, 
-  MOCK_WEATHER, 
   MOCK_KYOTO_ROUTE,
   CITIES 
 } from '../data/mockData';
 import { storage } from './storage';
 import { osmService } from './osmService';
 import { fxService } from './fxService';
+import { weatherService } from './weatherService';
 
 class ApiService {
   private baseUrl: string = '/v1';
 
   // Helper fetch with timeout and fallback
-  private async safeFetch<T>(endpoint: string, options?: RequestInit, fallback?: () => T): Promise<T> {
+  private async safeFetch<T>(endpoint: string, options?: RequestInit, fallback?: () => T | Promise<T>): Promise<T> {
     // If running on a static host (like GitHub Pages) where Spring Boot backend is not mounted, use certified fallback
     const isStaticDeploy = typeof window !== 'undefined' && (
       window.location.hostname.includes('github.io') ||
@@ -34,7 +34,7 @@ class ApiService {
     );
 
     if (isStaticDeploy && fallback) {
-      return fallback();
+      return await fallback();
     }
 
     try {
@@ -57,7 +57,7 @@ class ApiService {
       throw new Error(`HTTP error ${res.status}`);
     } catch {
       // Offline / Network fail-over to local certified vault
-      if (fallback) return fallback();
+      if (fallback) return await fallback();
       throw this.buildRFC9457Error('DEPENDENCY_UNAVAILABLE', 'Backend Unreachable', 503, 'Falling back to local offline storage.');
     }
   }
@@ -288,14 +288,25 @@ class ApiService {
   }
 
   // POST /v1/weather
-  public async getWeather(areaId: string): Promise<WeatherReport> {
+  public async getWeather(
+    areaId: string,
+    coords?: LocationCoordinates,
+    cityName?: string,
+    forceRefresh = false
+  ): Promise<WeatherReport> {
     return this.safeFetch(
       '/weather',
       {
         method: 'POST',
-        body: JSON.stringify({ areaId })
+        body: JSON.stringify({ areaId, coords, cityName })
       },
-      () => MOCK_WEATHER[areaId] || MOCK_WEATHER['kyoto']
+      async () => {
+        if (coords) {
+          return await weatherService.getLiveWeather(coords.latitude, coords.longitude, cityName, forceRefresh);
+        }
+        const city = CITIES.find(c => c.id === areaId) || CITIES[0];
+        return await weatherService.getLiveWeather(city.lat, city.lng, cityName || city.name, forceRefresh);
+      }
     );
   }
 
