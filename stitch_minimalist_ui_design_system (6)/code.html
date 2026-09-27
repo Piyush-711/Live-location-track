@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#006194",
+        "primary-container": "#007bb9",
+        "primary-fixed": "#cce5ff",
+        "primary-fixed-dim": "#93ccff",
+        "on-primary": "#ffffff",
+        "on-primary-container": "#fdfcff",
+        "on-primary-fixed": "#001d31",
+        "on-primary-fixed-variant": "#004b73",
+        "secondary": "#006399",
+        "secondary-container": "#7bc2ff",
+        "secondary-fixed": "#cde5ff",
+        "secondary-fixed-dim": "#94ccff",
+        "on-secondary": "#ffffff",
+        "on-secondary-container": "#004f7b",
+        "tertiary": "#006387",
+        "tertiary-container": "#007da9",
+        "tertiary-fixed": "#c4e7ff",
+        "tertiary-fixed-dim": "#7bd0ff",
+        "on-tertiary": "#ffffff",
+        "on-tertiary-container": "#fcfcff",
+        "error": "#dc2626",
+        "error-container": "#fee2e2",
+        "on-error": "#ffffff",
+        "surface": "#fbf9f5",
+        "surface-bright": "#fbf9f5",
+        "surface-dim": "#dbdad6",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#f5f3ef",
+        "surface-container": "#efeeea",
+        "surface-container-high": "#eae8e4",
+        "surface-container-highest": "#e4e2de",
+        "surface-variant": "#e4e2de",
+        "on-surface": "#1b1c1a",
+        "on-surface-variant": "#3f4850",
+        "outline": "#707881",
+        "outline-variant": "#bfc7d2",
+        "background": "#fbf9f5",
+        "on-background": "#1b1c1a"
+      },
+      borderRadius: {
+        "DEFAULT": "0.25rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "2xl": "1rem",
+        "full": "9999px"
+      },
+      spacing: {
+        "space-2xs": "0.25rem",
+        "space-xs": "0.5rem",
+        "space-sm": "0.75rem",
+        "space-md": "1rem",
+        "space-lg": "1.5rem",
+        "space-xl": "2rem",
+        "space-2xl": "3rem",
+        "margin-mobile": "1rem",
+        "screen-edge-mobile": "1rem"
+      },
+      fontFamily: {
+        "body-sm": ["Plus Jakarta Sans"],
+        "body-md": ["Plus Jakarta Sans"],
+        "body-lg": ["Plus Jakarta Sans"],
+        "label-sm": ["Plus Jakarta Sans"],
+        "label-md": ["Plus Jakarta Sans"],
+        "label-lg": ["Plus Jakarta Sans"],
+        "headline-sm": ["Plus Jakarta Sans"],
+        "headline-md": ["Plus Jakarta Sans"],
+        "headline-lg": ["Plus Jakarta Sans"],
+        "headline-lg-mobile": ["Plus Jakarta Sans"],
+        "display-lg": ["Plus Jakarta Sans"],
+        "display-lg-mobile": ["Plus Jakarta Sans"]
+      },
+      fontSize: {
+        "body-sm": ["12px", { lineHeight: "18px", letterSpacing: "0.01em", fontWeight: "400" }],
+        "body-md": ["14px", { lineHeight: "22px", letterSpacing: "0em", fontWeight: "400" }],
+        "body-lg": ["16px", { lineHeight: "24px", letterSpacing: "-0.005em", fontWeight: "400" }],
+        "label-sm": ["11px", { lineHeight: "14px", letterSpacing: "0.06em", fontWeight: "700" }],
+        "label-md": ["12px", { lineHeight: "16px", letterSpacing: "0.04em", fontWeight: "600" }],
+        "label-lg": ["14px", { lineHeight: "20px", letterSpacing: "0.01em", fontWeight: "600" }],
+        "headline-sm": ["18px", { lineHeight: "26px", letterSpacing: "-0.01em", fontWeight: "600" }],
+        "headline-md": ["22px", { lineHeight: "30px", letterSpacing: "-0.015em", fontWeight: "600" }],
+        "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "600" }],
+        "headline-lg-mobile": ["26px", { lineHeight: "34px", letterSpacing: "-0.015em", fontWeight: "600" }],
+        "display-lg": ["48px", { lineHeight: "56px", letterSpacing: "-0.03em", fontWeight: "700" }],
+        "display-lg-mobile": ["36px", { lineHeight: "44px", letterSpacing: "-0.025em", fontWeight: "700" }]
+      }
+    }
+  }
+};</script><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#fbf9f5;}body{overscroll-behavior-y:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/90 backdrop-blur-xl shadow-[0_4px_16px_rgba(200,195,185,0.25)]"><div class="h-20 px-screen-edge-mobile flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs"><img alt="Local Brand Mark" class="h-9 w-9 object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VOefXQtWgZnEgEDxDkxHdXbqgIZlaF7_5pQCQN59AcPbzgker7g7RXETteLFWEJPBt7CgenCQepknpgaPgPjPNzt6W2WkHnNzseUjs891V0V6CWoTfmtzIlGaR3oNrL6tE1BvgRSUCujclpnEEV7T5De42pTeKWcd6EkwQE5FjfeNJ4GMeLTMyMKKHlMjTJguyElbMds-cL_g2YAiZbz22IsK_51Fg-Gq6dJoBKi401sPL2cxWEl3xaGU"/><div class="flex flex-col"><span class="font-headline-md text-headline-md tracking-tight text-on-surface leading-none font-bold">Local</span><span class="font-label-sm text-label-sm text-sky-700 flex items-center gap-1 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-sky-600 animate-pulse"></span>Kyoto, Japan • GPS Synced</span></div></div><div class="flex items-center gap-space-xs"><div class="hidden xs:flex items-center gap-1.5 px-space-sm py-1 rounded-full bg-sky-50 border border-sky-200/80 shadow-[inset_1px_1px_3px_rgba(2,132,199,0.15)]"><span class="material-symbols-outlined text-[15px] text-sky-600">offline_pin</span><span class="font-label-sm text-label-sm text-sky-800 font-bold">42 MB</span></div><div class="w-11 h-11 rounded-full p-0.5 bg-surface shadow-[-3px_-3px_7px_rgba(255,255,255,0.95),3px_4px_8px_rgba(200,195,185,0.4)] flex items-center justify-center"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1UVIomhpKNmwnwjnuCOvaKapyvU48zCuUgh1jfNK6Ihi1X4_fCWCXjBTXKF92-dDHIoARwVFRIbxX1-Kj3lBjgA7Z59-VK95_g8ZzUSz7DrW0GBcfH4uXPC9ySvQ67xxtwZsOIlwMsp-ccJGItz7h3XO0DpYN5xsoM-GQ4XAffU_bc_7-mMhuOF0YIHxK96KgdXzGXQDLYWJrRoZcFi5dOJp6TuDvQ1dBvb1lkEFSRuZFruNgovt1YXBA0"/></div></div></div></header><main class="flex-1 flex flex-col w-full bg-surface pt-20 pb-28"><div class="flex flex-col w-full">
+<!-- Interactive Toast Notification -->
+<div class="fixed top-24 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 pointer-events-none opacity-0 translate-y-[-8px]" id="statusToast">
+<div class="px-space-md py-space-xs rounded-full bg-surface-container-lowest shadow-[0_8px_20px_rgba(2,132,199,0.2)] border border-sky-100 flex items-center gap-space-xs text-sky-700 font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px] text-sky-600">verified</span>
+<span id="toastMessage">Coordinates copied to clipboard</span>
+</div>
+</div>
+<div class="px-margin-mobile flex flex-col gap-space-lg pb-space-2xl">
+<!-- Top System & GPS Status Banner -->
+<div class="w-full rounded-2xl bg-surface-container-low p-space-md shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex flex-col gap-space-sm">
+<div class="flex items-center justify-between gap-space-xs">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-sky-600 animate-ping"></span>
+<span class="font-label-sm text-label-sm tracking-wider uppercase text-on-surface-variant font-bold">Pilot Country: Japan</span>
+</div>
+<div class="flex items-center gap-1 px-space-xs py-0.5 rounded-full bg-sky-100 text-sky-700 font-label-sm text-label-sm border border-sky-200/60 shadow-[inset_1px_1px_2px_rgba(2,132,199,0.15)] font-bold">
+<span class="material-symbols-outlined text-[13px]">offline_pin</span>
+<span>100% OFFLINE</span>
+</div>
+</div>
+<!-- Tactile Position Tile -->
+<div class="rounded-xl bg-surface-container p-space-sm shadow-[inset_3px_3px_6px_rgba(204,195,178,0.55),inset_-3px_-3px_6px_rgba(255,255,255,0.9)] flex items-center justify-between gap-space-xs">
+<div class="flex items-start gap-space-xs min-w-0">
+<div class="w-8 h-8 rounded-full bg-sky-600 text-on-primary flex items-center justify-center shrink-0 shadow-[-2px_-2px_5px_rgba(255,255,255,0.8),2px_3px_6px_rgba(2,132,199,0.35)]">
+<span class="material-symbols-outlined text-[18px]">near_me</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-bold truncate">Higashiyama Ward, Kyoto</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant font-mono">35.0037° N • 135.7772° E</span>
+</div>
+</div>
+<button aria-label="Copy GPS Coordinates" class="px-space-sm py-1.5 rounded-lg bg-surface-container-low text-sky-700 font-label-md text-label-md shrink-0 shadow-[-3px_-3px_7px_rgba(255,255,255,0.95),3px_3px_8px_rgba(214,206,190,0.65)] active:shadow-[inset_2px_2px_4px_rgba(204,195,178,0.6)] flex items-center gap-1 transition-all border border-sky-100" onclick="navigator.clipboard?.writeText('35.0037, 135.7772'); triggerToast('GPS coordinates copied');">
+<span class="material-symbols-outlined text-[15px]">content_copy</span>
+<span>Copy</span>
+</button>
+</div>
+</div>
+<!-- Direct National Triggers -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">National Hotlines</span>
+<span class="font-label-sm text-label-sm text-sky-700 uppercase font-bold tracking-wider">No Cellular Data Needed</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm">
+<!-- 110 Police -->
+<div class="rounded-2xl bg-surface-container-low p-space-md shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex flex-col justify-between">
+<div class="flex flex-col">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase font-bold text-on-surface-variant">Police • 警察</span>
+<span class="w-2 h-2 rounded-full bg-red-600"></span>
+</div>
+<span class="font-display-lg-mobile text-display-lg-mobile text-red-600 tracking-tight font-extrabold mt-1">110</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant leading-snug mt-1">Free instant call. 24/7 English relay translation.</span>
+</div>
+<a class="mt-space-md w-full py-2.5 rounded-xl bg-red-600 text-white font-label-md text-label-md flex items-center justify-center gap-1.5 shadow-[-3px_-3px_8px_rgba(255,255,255,0.7),4px_5px_12px_rgba(220,38,38,0.35)] active:shadow-[inset_2px_2px_5px_rgba(153,27,27,0.6)] transition-all" href="tel:110">
+<span class="material-symbols-outlined text-[18px]">call</span>
+<span>Call 110</span>
+</a>
+</div>
+<!-- 119 Fire / EMS -->
+<div class="rounded-2xl bg-surface-container-low p-space-md shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex flex-col justify-between">
+<div class="flex flex-col">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase font-bold text-red-600">Fire &amp; EMS • 救急</span>
+<span class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
+</div>
+<span class="font-display-lg-mobile text-display-lg-mobile text-red-600 tracking-tight font-extrabold mt-1">119</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant leading-snug mt-1">Ambulance trauma, acute illness, &amp; severe fire rescue.</span>
+</div>
+<a class="mt-space-md w-full py-2.5 rounded-xl bg-red-600 text-white font-label-md text-label-md flex items-center justify-center gap-1.5 shadow-[-3px_-3px_8px_rgba(255,255,255,0.7),4px_5px_12px_rgba(220,38,38,0.35)] active:shadow-[inset_2px_2px_5px_rgba(153,27,27,0.6)] transition-all" href="tel:119">
+<span class="material-symbols-outlined text-[18px]">e911_emergency</span>
+<span>Call 119</span>
+</a>
+</div>
+</div>
+<!-- Japan Visitor Hotline (JNTO) -->
+<div class="rounded-2xl bg-surface-container-low p-space-md shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex items-center justify-between gap-space-sm">
+<div class="flex items-start gap-space-sm min-w-0">
+<div class="w-10 h-10 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 border border-sky-200/80 shadow-[-2px_-2px_6px_rgba(255,255,255,0.9),2px_3px_7px_rgba(2,132,199,0.2)]">
+<span class="material-symbols-outlined text-[22px]">support_agent</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface font-bold truncate">Japan Visitor Hotline (JNTO)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">050-3816-2720 • 24/7 English, 中文, 한국어</span>
+</div>
+</div>
+<a class="px-space-md py-2 rounded-xl bg-sky-50 text-sky-700 font-label-md text-label-md shrink-0 border border-sky-200 shadow-[-3px_-3px_7px_rgba(255,255,255,0.95),3px_3px_8px_rgba(214,206,190,0.65)] active:shadow-[inset_2px_2px_4px_rgba(186,230,253,0.6)] flex items-center gap-1 transition-all" href="tel:05038162720">
+<span class="material-symbols-outlined text-[16px]">call</span>
+<span>Call</span>
+</a>
+</div>
+</div>
+<!-- Nearest Verified Responders -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Nearest Verified Responders</span>
+<span class="font-label-sm text-label-sm text-sky-700 font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">sensors</span> Live Proximity
+        </span>
+</div>
+<!-- Kyoto University Hospital ER -->
+<div class="rounded-2xl bg-surface-container-low p-space-md shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex flex-col gap-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-label-sm text-label-sm font-bold">Trauma Level 1</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold">24/7 Open</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold mt-1">Kyoto University Hospital ER</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">54 Shogoin Kawahara-cho, Sakyo-ku, Kyoto</span>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<span class="font-headline-sm text-headline-sm text-sky-700 font-extrabold">1.2 km</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">14 min walk</span>
+</div>
+</div>
+<div class="rounded-xl bg-surface-container p-space-xs shadow-[inset_2px_2px_4px_rgba(204,195,178,0.5),inset_-2px_-2px_4px_rgba(255,255,255,0.8)] flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[18px] text-sky-600 shrink-0">explore</span>
+<span class="truncate">Orientation: Head North along Kamo River • 350° N bearing</span>
+</div>
+<div class="grid grid-cols-2 gap-space-xs mt-0.5">
+<a class="py-2.5 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 font-label-md text-label-md flex items-center justify-center gap-1 shadow-[-3px_-3px_7px_rgba(255,255,255,0.95),3px_3px_8px_rgba(214,206,190,0.65)] active:shadow-[inset_2px_2px_4px_rgba(186,230,253,0.6)] transition-all" href="tel:0757513111">
+<span class="material-symbols-outlined text-[17px]">call</span>
+<span>Call ER Direct</span>
+</a>
+<button class="py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-sky-700 text-white font-label-md text-label-md flex items-center justify-center gap-1 shadow-[-3px_-3px_8px_rgba(255,255,255,0.7),4px_5px_12px_rgba(2,132,199,0.35)] active:shadow-[inset_2px_2px_5px_rgba(3,105,161,0.6)] transition-all" onclick="triggerToast('Opening offline routing compass to Kyoto Univ Hospital');">
+<span class="material-symbols-outlined text-[17px]">directions</span>
+<span>Direct Route</span>
+</button>
+</div>
+</div>
+<!-- Gion Police Box (Koban) -->
+<div class="rounded-2xl bg-surface-container-low p-space-md shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex flex-col gap-space-sm">
+<div class="flex items-start justify-between gap-space-xs">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-label-sm text-label-sm font-bold">Officer on Post</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold">Koban (交番)</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold mt-1">Gion Police Box (祇園交番)</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Shijo-dori Yamatooji Higashi-iru, Higashiyama-ku</span>
+</div>
+<div class="flex flex-col items-end shrink-0">
+<span class="font-headline-sm text-headline-sm text-sky-700 font-extrabold">210 m</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3 min walk</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-space-xs mt-0.5">
+<button class="py-2.5 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 font-label-md text-label-md flex items-center justify-center gap-1 shadow-[-3px_-3px_7px_rgba(255,255,255,0.95),3px_3px_8px_rgba(214,206,190,0.65)] active:shadow-[inset_2px_2px_4px_rgba(186,230,253,0.6)] transition-all" onclick="triggerToast('Loaded Gion Koban bilingual phrasecard');">
+<span class="material-symbols-outlined text-[17px]">map</span>
+<span>English Map</span>
+</button>
+<button class="py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-sky-700 text-white font-label-md text-label-md flex items-center justify-center gap-1 shadow-[-3px_-3px_8px_rgba(255,255,255,0.7),4px_5px_12px_rgba(2,132,199,0.35)] active:shadow-[inset_2px_2px_5px_rgba(3,105,161,0.6)] transition-all" onclick="triggerToast('Navigating 210m to Gion Koban');">
+<span class="material-symbols-outlined text-[17px]">turn_right</span>
+<span>Direct Route</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Show to Local Bystanders (Flashcards) -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Show to Bystanders</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tap card to expand full-screen or speak</span>
+</div>
+<div class="w-8 h-8 rounded-full bg-sky-100 text-sky-700 border border-sky-200/70 flex items-center justify-center shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_6px_rgba(2,132,199,0.2)]">
+<span class="material-symbols-outlined text-[18px]">record_voice_over</span>
+</div>
+</div>
+<!-- Bystander Flashcard 1 -->
+<div class="cursor-pointer transition-all duration-300 rounded-2xl bg-surface-container-low p-space-md shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex flex-col gap-space-xs" id="flashcard1" onclick="toggleExpandCard('flashcard1')">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-label-sm text-label-sm font-bold">Ambulance Request</span>
+<div class="flex items-center gap-space-xs">
+<button aria-label="Play audio pronunciation" class="w-8 h-8 rounded-full bg-sky-50 text-sky-700 border border-sky-200/80 flex items-center justify-center shadow-[-2px_-2px_4px_rgba(255,255,255,0.9),2px_2px_5px_rgba(214,206,190,0.6)] active:shadow-[inset_1px_1px_3px_rgba(186,230,253,0.6)]" onclick="event.stopPropagation(); playPronunciation('Kyūkyūsha o yonde kudasai');">
+<span class="material-symbols-outlined text-[18px]">volume_up</span>
+</button>
+<span class="material-symbols-outlined text-outline text-[18px]">open_in_full</span>
+</div>
+</div>
+<div class="rounded-xl bg-surface-container p-space-sm shadow-[inset_3px_3px_6px_rgba(204,195,178,0.5),inset_-3px_-3px_6px_rgba(255,255,255,0.9)] my-1">
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-extrabold text-on-surface block tracking-wide">
+            救急車を呼んでください
+          </span>
+<span class="font-label-md text-label-md text-sky-700 font-mono block mt-1 font-semibold">
+            Kyūkyūsha o yonde kudasai
+          </span>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant font-medium">
+          "Please call an ambulance for me immediately."
+        </span>
+</div>
+<!-- Bystander Flashcard 2 -->
+<div class="cursor-pointer transition-all duration-300 rounded-2xl bg-surface-container-low p-space-md shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex flex-col gap-space-xs" id="flashcard2" onclick="toggleExpandCard('flashcard2')">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-label-sm text-label-sm font-bold">Medical Language Triage</span>
+<div class="flex items-center gap-space-xs">
+<button aria-label="Play audio pronunciation" class="w-8 h-8 rounded-full bg-sky-50 text-sky-700 border border-sky-200/80 flex items-center justify-center shadow-[-2px_-2px_4px_rgba(255,255,255,0.9),2px_2px_5px_rgba(214,206,190,0.6)] active:shadow-[inset_1px_1px_3px_rgba(186,230,253,0.6)]" onclick="event.stopPropagation(); playPronunciation('Eigo o hanasu ishi ga hitsuyō desu');">
+<span class="material-symbols-outlined text-[18px]">volume_up</span>
+</button>
+<span class="material-symbols-outlined text-outline text-[18px]">open_in_full</span>
+</div>
+</div>
+<div class="rounded-xl bg-surface-container p-space-sm shadow-[inset_3px_3px_6px_rgba(204,195,178,0.5),inset_-3px_-3px_6px_rgba(255,255,255,0.9)] my-1">
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-extrabold text-on-surface block tracking-wide">
+            英語を話す医師が必要です
+          </span>
+<span class="font-label-md text-label-md text-sky-700 font-mono block mt-1 font-semibold">
+            Eigo o hanasu ishi ga hitsuyō desu
+          </span>
+</div>
+<span class="font-body-md text-body-md text-on-surface-variant font-medium">
+          "I urgently require a doctor who speaks English."
+        </span>
+</div>
+</div>
+<!-- Diplomatic & Consular Support -->
+<div class="flex flex-col gap-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Diplomatic &amp; Consular Support</span>
+<div class="rounded-2xl bg-surface-container-low p-space-md shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex flex-col gap-space-sm">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-sky-700 font-bold uppercase tracking-wide">Jurisdiction: Kansai Region (Kyoto, Osaka, Nara)</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold mt-0.5">U.S. Consulate General Osaka-Kobe</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">2-11-5, Nishitenma, Kita-ku, Osaka 530-8543</span>
+</div>
+<div class="px-2 py-1 rounded-lg bg-sky-50 text-sky-800 border border-sky-200 font-label-sm text-label-sm shadow-[inset_1px_1px_3px_rgba(186,230,253,0.4)] shrink-0 font-bold">
+            48m Keihan Line
+          </div>
+</div>
+<div class="grid grid-cols-2 gap-space-xs mt-0.5">
+<a class="py-2.5 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 font-label-md text-label-md flex items-center justify-center gap-1.5 shadow-[-3px_-3px_7px_rgba(255,255,255,0.95),3px_3px_8px_rgba(214,206,190,0.65)] active:shadow-[inset_2px_2px_4px_rgba(186,230,253,0.6)] transition-all font-semibold" href="tel:0663155400">
+<span class="material-symbols-outlined text-[17px]">call</span>
+<span>06-6315-5400</span>
+</a>
+<button class="py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-sky-700 text-white font-label-md text-label-md flex items-center justify-center gap-1 shadow-[-3px_-3px_8px_rgba(255,255,255,0.7),4px_5px_12px_rgba(2,132,199,0.35)] active:shadow-[inset_2px_2px_5px_rgba(3,105,161,0.6)] transition-all" onclick="triggerToast('Offline transit steps: Keihan Line from Gion-Shijo to Yodoyabashi');">
+<span class="material-symbols-outlined text-[17px]">train</span>
+<span>Transit Guide</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Trust & Verification Footer -->
+<div class="rounded-2xl bg-surface-container p-space-md shadow-[inset_3px_3px_6px_rgba(204,195,178,0.55),inset_-3px_-3px_6px_rgba(255,255,255,0.9)] flex flex-col gap-space-xs text-center items-center">
+<div class="flex items-center gap-1 text-sky-700 font-label-md text-label-md font-bold">
+<span class="material-symbols-outlined text-[16px]">verified_user</span>
+<span>Verified by 2 human reviewers on Oct 14, 2024</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-sm">
+        Stored locally on device via encrypted SQLite. Emergency protocols operate without active cellular connectivity or SIM card authentication.
+      </p>
+<div class="flex items-center gap-2 mt-1 text-outline font-label-sm text-label-sm">
+<span>OpenStreetMap ODbL Contributors</span>
+<span>•</span>
+<span>FDMA Japan Guidelines</span>
+</div>
+</div>
+</div>
+</div>
+<script>
+  function triggerToast(message) {
+    const toast = document.getElementById('statusToast');
+    const toastMsg = document.getElementById('toastMessage');
+    if (!toast || !toastMsg) return;
+    toastMsg.textContent = message;
+    toast.classList.remove('opacity-0', 'translate-y-[-8px]');
+    toast.classList.add('opacity-100', 'translate-y-0');
+    setTimeout(() => {
+      toast.classList.remove('opacity-100', 'translate-y-0');
+      toast.classList.add('opacity-0', 'translate-y-[-8px]');
+    }, 2400);
+  }
+
+  function playPronunciation(phrase) {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(phrase);
+      utterance.lang = 'ja-JP';
+      utterance.rate = 0.85;
+      window.speechSynthesis.speak(utterance);
+      triggerToast('Playing audio: ' + phrase);
+    } else {
+      triggerToast('Audio speech synthesis not available in this browser');
+    }
+  }
+
+  function toggleExpandCard(cardId) {
+    const el = document.getElementById(cardId);
+    if (!el) return;
+    const isExpanded = el.getAttribute('data-expanded') === 'true';
+    if (isExpanded) {
+      el.setAttribute('data-expanded', 'false');
+      el.classList.remove('scale-[1.02]');
+    } else {
+      el.setAttribute('data-expanded', 'true');
+      el.classList.add('scale-[1.02]');
+      triggerToast('Card enlarged for clear viewing');
+    }
+  }
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe pointer-events-none"><div class="px-screen-edge-mobile pb-space-sm pt-space-xs"><div class="pointer-events-auto mx-auto max-w-md h-16 rounded-full bg-surface/95 backdrop-blur-xl shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_8px_18px_rgba(180,172,158,0.45)] flex items-center justify-around px-space-xs"><a class="min-w-[44px] min-h-[44px] px-3 py-1.5 rounded-full flex flex-col items-center justify-center text-slate-500 hover:text-sky-600 transition-all" data-path="explore" href="#"><span class="material-symbols-outlined text-[22px]">explore</span><span class="font-label-sm text-label-sm mt-0.5">Explore</span></a><a aria-current="page" class="min-w-[44px] min-h-[44px] px-3.5 py-1.5 rounded-full flex flex-col items-center justify-center transition-all bg-sky-100 shadow-[inset_2px_3px_5px_rgba(2,132,199,0.2),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] text-sky-700 font-bold" data-path="emergency" href="#"><span class="material-symbols-outlined text-[22px] text-sky-600">health_and_safety</span><span class="font-label-sm text-label-sm mt-0.5 text-sky-700">Emergency</span></a><a class="min-w-[44px] min-h-[44px] px-3 py-1.5 rounded-full flex flex-col items-center justify-center text-slate-500 hover:text-sky-600 transition-all" data-path="offline-vault" href="#"><span class="material-symbols-outlined text-[22px]">download_for_offline</span><span class="font-label-sm text-label-sm mt-0.5">Offline</span></a><a class="min-w-[44px] min-h-[44px] px-3 py-1.5 rounded-full flex flex-col items-center justify-center text-slate-500 hover:text-sky-600 transition-all" data-path="travel-toolkit" href="#"><span class="material-symbols-outlined text-[22px]">home_repair_service</span><span class="font-label-sm text-label-sm mt-0.5">Toolkit</span></a></div></div></nav></body></html>

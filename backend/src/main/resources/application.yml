@@ -1,0 +1,16 @@
+server:
+  port: 8080
+  shutdown: graceful
+
+spring:
+  application:
+    name: local-travel-service
+  lifecycle:
+    timeout-per-shutdown-phase: 15s
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    com.local.travel: DEBUG

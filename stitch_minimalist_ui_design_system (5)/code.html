@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'primary': '#0284C7',
+        'primary-container': '#E0F2FE',
+        'secondary': '#0369A1',
+        'secondary-container': '#BAE6FD',
+        'surface': '#FBF9F5',
+        'surface-bright': '#FFFFFF',
+        'surface-dim': '#E8E5DF',
+        'surface-container-lowest': '#FFFFFF',
+        'surface-container-low': '#F5F3EF',
+        'surface-container': '#ECEAE5',
+        'surface-container-high': '#E4E1DC',
+        'surface-container-highest': '#DDD9D3',
+        'surface-variant': '#E2E0DB',
+        'on-primary': '#FFFFFF',
+        'on-primary-container': '#0369A1',
+        'on-secondary': '#FFFFFF',
+        'on-secondary-container': '#004B74',
+        'on-surface': '#1B1C1A',
+        'on-surface-variant': '#64748B',
+        'on-background': '#1B1C1A',
+        'background': '#FBF9F5',
+        'outline': '#94A3B8',
+        'outline-variant': '#CBD5E1',
+        'error': '#BA1A1A',
+        'error-container': '#FFDAD6',
+        'on-error': '#FFFFFF',
+        'on-error-container': '#93000A'
+      },
+      borderRadius: {
+        'DEFAULT': '0.25rem',
+        'lg': '0.5rem',
+        'xl': '0.75rem',
+        '2xl': '1rem',
+        'full': '9999px'
+      },
+      spacing: {
+        'space-2xs': '0.25rem',
+        'space-xs': '0.5rem',
+        'space-sm': '0.75rem',
+        'space-md': '1rem',
+        'space-lg': '1.25rem',
+        'space-xl': '1.5rem',
+        'space-2xl': '2rem',
+        'space-3xl': '2.5rem',
+        'screen-edge-mobile': '1.25rem',
+        'screen-edge-tablet': '2rem'
+      },
+      fontFamily: {
+        'body-md': ['Plus Jakarta Sans', 'sans-serif'],
+        'body-sm': ['Plus Jakarta Sans', 'sans-serif'],
+        'body-lg': ['Plus Jakarta Sans', 'sans-serif'],
+        'label-md': ['Plus Jakarta Sans', 'sans-serif'],
+        'label-sm': ['Plus Jakarta Sans', 'sans-serif'],
+        'label-lg': ['Plus Jakarta Sans', 'sans-serif'],
+        'headline-sm': ['Plus Jakarta Sans', 'sans-serif'],
+        'headline-md': ['Plus Jakarta Sans', 'sans-serif'],
+        'headline-lg': ['Plus Jakarta Sans', 'sans-serif'],
+        'headline-lg-mobile': ['Plus Jakarta Sans', 'sans-serif']
+      },
+      fontSize: {
+        'body-md': ['14px', { lineHeight: '20px', letterSpacing: '0em', fontWeight: '500' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.03em', fontWeight: '700' }],
+        'headline-lg': ['26px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'label-lg': ['14px', { lineHeight: '18px', letterSpacing: '0.01em', fontWeight: '700' }],
+        'headline-lg-mobile': ['22px', { lineHeight: '28px', letterSpacing: '-0.015em', fontWeight: '700' }],
+        'headline-md': ['19px', { lineHeight: '25px', letterSpacing: '-0.01em', fontWeight: '600' }],
+        'headline-sm': ['17px', { lineHeight: '23px', letterSpacing: '-0.01em', fontWeight: '700' }],
+        'body-lg': ['16px', { lineHeight: '24px', letterSpacing: '-0.005em', fontWeight: '500' }],
+        'label-sm': ['11px', { lineHeight: '14px', letterSpacing: '0.04em', fontWeight: '700' }],
+        'body-sm': ['12px', { lineHeight: '17px', letterSpacing: '0.01em', fontWeight: '500' }]
+      }
+    }
+  }
+};</script><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#FBF9F5;}body{overscroll-behavior-y:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/90 backdrop-blur-xl shadow-[0_4px_16px_rgba(180,172,158,0.25)]"><div class="h-20 px-screen-edge-mobile flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-xs"><img alt="Local Brand Mark" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VOefXQtWgZnEgEDxDkxHdXbqgIZlaF7_5pQCQN59AcPbzgker7g7RXETteLFWEJPBt7CgenCQepknpgaPgPjPNzt6W2WkHnNzseUjs891V0V6CWoTfmtzIlGaR3oNrL6tE1BvgRSUCujclpnEEV7T5De42pTeKWcd6EkwQE5FjfeNJ4GMeLTMyMKKHlMjTJguyElbMds-cL_g2YAiZbz22IsK_51Fg-Gq6dJoBKi401sPL2cxWEl3xaGU"/><div class="flex flex-col"><span class="font-headline-md text-headline-md tracking-tight text-on-surface leading-none">Local</span><span class="font-label-sm text-label-sm text-primary flex items-center gap-1 mt-0.5"><span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>Kyoto, Japan • GPS Synced</span></div></div><div class="flex items-center gap-space-xs"><div class="hidden xs:flex items-center gap-1.5 px-space-sm py-1 rounded-full bg-surface-container shadow-[inset_2px_2px_4px_rgba(180,172,158,0.35),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]"><span class="material-symbols-outlined text-[15px] text-primary">offline_pin</span><span class="font-label-sm text-label-sm text-secondary font-bold">42 MB</span></div><div class="w-11 h-11 rounded-full p-0.5 bg-surface shadow-[-3px_-3px_7px_rgba(255,255,255,0.95),3px_4px_8px_rgba(180,172,158,0.45)] flex items-center justify-center"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1UVIomhpKNmwnwjnuCOvaKapyvU48zCuUgh1jfNK6Ihi1X4_fCWCXjBTXKF92-dDHIoARwVFRIbxX1-Kj3lBjgA7Z59-VK95_g8ZzUSz7DrW0GBcfH4uXPC9ySvQ67xxtwZsOIlwMsp-ccJGItz7h3XO0DpYN5xsoM-GQ4XAffU_bc_7-mMhuOF0YIHxK96KgdXzGXQDLYWJrRoZcFi5dOJp6TuDvQ1dBvb1lkEFSRuZFruNgovt1YXBA0"/></div></div></div></header><main class="flex-1 flex flex-col w-full bg-surface pt-20 pb-28"><div class="flex flex-col w-full px-screen-edge-mobile space-y-space-lg pb-space-2xl">
+<!-- Brand & Identity Status Bar -->
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded-full p-1 bg-surface shadow-[-4px_-4px_10px_rgba(255,255,255,0.95),4px_5px_12px_rgba(214,206,190,0.6)] flex items-center justify-center">
+<img alt="Local Tactile Blue Pin" class="w-9 h-9 object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VOefXQtWgZnEgEDxDkxHdXbqgIZlaF7_5pQCQN59AcPbzgker7g7RXETteLFWEJPBt7CgenCQepknpgaPgPjPNzt6W2WkHnNzseUjs891V0V6CWoTfmtzIlGaR3oNrL6tE1BvgRSUCujclpnEEV7T5De42pTeKWcd6EkwQE5FjfeNJ4GMeLTMyMKKHlMjTJguyElbMds-cL_g2YAiZbz22IsK_51Fg-Gq6dJoBKi401sPL2cxWEl3xaGU"/>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-on-surface leading-tight">Local</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full bg-primary-container text-secondary font-label-sm text-label-sm font-bold">v4.2 PRO</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Offline Storage &amp; Regional Packs</span>
+</div>
+</div>
+<div class="w-11 h-11 rounded-full p-0.5 bg-surface shadow-[-3px_-3px_8px_rgba(255,255,255,0.95),3px_4px_10px_rgba(214,206,190,0.5)] flex items-center justify-center">
+<img alt="Active Traveler Profile" class="w-9 h-9 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1UVIomhpKNmwnwjnuCOvaKapyvU48zCuUgh1jfNK6Ihi1X4_fCWCXjBTXKF92-dDHIoARwVFRIbxX1-Kj3lBjgA7Z59-VK95_g8ZzUSz7DrW0GBcfH4uXPC9ySvQ67xxtwZsOIlwMsp-ccJGItz7h3XO0DpYN5xsoM-GQ4XAffU_bc_7-mMhuOF0YIHxK96KgdXzGXQDLYWJrRoZcFi5dOJp6TuDvQ1dBvb1lkEFSRuZFruNgovt1YXBA0"/>
+</div>
+</div>
+<!-- Primary Storage Meter Card -->
+<div class="rounded-xl p-space-lg bg-surface-container-low shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex flex-col space-y-space-md">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase text-primary font-bold tracking-wider">Device Allocation</span>
+<div class="flex items-baseline gap-1.5 mt-0.5">
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">1.42 GB</span>
+<span class="font-body-md text-body-md text-on-surface-variant">of 128 GB used</span>
+</div>
+</div>
+<div class="w-9 h-9 rounded-full bg-[#E0F2FE] shadow-[inset_2px_2px_4px_rgba(2,132,199,0.2),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center justify-center">
+<span class="material-symbols-outlined text-[#0284C7] text-[20px]">sd_card</span>
+</div>
+</div>
+<!-- Tactile Multi-segment Progress Meter -->
+<div class="flex flex-col space-y-2">
+<div class="h-3.5 w-full rounded-full bg-surface-container-highest p-0.5 shadow-[inset_3px_3px_6px_rgba(204,195,178,0.6),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center overflow-hidden">
+<div class="h-full rounded-l-full bg-[#0284C7]" style="width: 59%;"></div>
+<div class="h-full bg-[#38BDF8]" style="width: 22%;"></div>
+<div class="h-full bg-[#0EA5E9]" style="width: 11%;"></div>
+<div class="h-full rounded-r-full bg-[#BAE6FD]" style="width: 8%;"></div>
+</div>
+<!-- Meter Legend Pills -->
+<div class="grid grid-cols-2 gap-x-space-md gap-y-2 pt-1">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#0284C7] shadow-sm shrink-0"></span>
+<div class="flex justify-between flex-1 min-w-0">
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Vector Basemaps</span>
+<span class="font-label-sm text-label-sm text-on-surface ml-1">840 MB</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#38BDF8] shadow-sm shrink-0"></span>
+<div class="flex justify-between flex-1 min-w-0">
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Search &amp; POIs</span>
+<span class="font-label-sm text-label-sm text-on-surface ml-1">320 MB</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#0EA5E9] shadow-sm shrink-0"></span>
+<div class="flex justify-between flex-1 min-w-0">
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Neural TTS Voice</span>
+<span class="font-label-sm text-label-sm text-on-surface ml-1">160 MB</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#BAE6FD] shadow-sm shrink-0"></span>
+<div class="flex justify-between flex-1 min-w-0">
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Cached Images</span>
+<span class="font-label-sm text-label-sm text-on-surface ml-1">100 MB</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Active City Pack Card -->
+<div class="flex flex-col space-y-space-sm">
+<div class="flex items-center justify-between px-1">
+<span class="font-headline-sm text-headline-sm text-on-surface">Installed Regional Pack</span>
+<span class="font-label-sm text-label-sm text-[#0284C7] flex items-center gap-1 font-semibold">
+<span class="w-2 h-2 rounded-full bg-[#0284C7] animate-pulse"></span> Active Region
+      </span>
+</div>
+<div class="rounded-xl p-space-lg bg-surface-container-low shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex flex-col space-y-space-md">
+<!-- Title & Pill -->
+<div class="flex flex-col space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-headline-md text-headline-md text-on-surface">Kyoto Prefecture</span>
+<span class="inline-flex items-center px-space-xs py-0.5 rounded-full bg-[#E0F2FE] text-[#0369A1] font-label-sm text-label-sm font-bold shadow-[inset_1px_1px_2px_rgba(2,132,199,0.15)]">
+            v4.2 COMPLETE
+          </span>
+</div>
+<div class="inline-flex items-center self-start gap-1.5 px-space-sm py-1 rounded-full bg-[#F0F9FF] text-[#0284C7] border border-[#BAE6FD] font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">cloud_done</span>
+<span>UPDATED TODAY • 100% READY OFFLINE</span>
+</div>
+</div>
+<!-- Detail Matrix -->
+<div class="rounded-lg p-space-sm bg-surface-container shadow-[inset_2px_2px_4px_rgba(204,195,178,0.45),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] grid grid-cols-2 gap-space-xs">
+<div class="flex flex-col p-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Coverage Area</span>
+<span class="font-body-sm text-body-sm text-on-surface mt-0.5 font-bold">Gion, Arashiyama, Higashiyama</span>
+</div>
+<div class="flex flex-col p-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Routing Engine</span>
+<span class="font-body-sm text-body-sm text-on-surface mt-0.5 font-bold">OSRM Validated (Walk + Train)</span>
+</div>
+<div class="flex flex-col p-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Search Directory</span>
+<span class="font-body-sm text-body-sm text-on-surface mt-0.5 font-bold">12,480 Offline POIs</span>
+</div>
+<div class="flex flex-col p-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Emergency Safe-Zones</span>
+<span class="font-body-sm text-body-sm text-on-surface mt-0.5 font-bold">Registry Cached</span>
+</div>
+</div>
+<!-- Action Row -->
+<div class="grid grid-cols-2 gap-space-sm pt-1">
+<button class="w-full py-2.5 px-space-sm rounded-lg bg-surface font-label-lg text-label-lg text-[#0284C7] shadow-[-4px_-4px_8px_rgba(255,255,255,0.95),4px_4px_10px_rgba(214,206,190,0.5)] active:shadow-[inset_2px_2px_4px_rgba(204,195,178,0.6)] flex items-center justify-center gap-1.5 transition-all" id="updatePackBtn" type="button">
+<span class="material-symbols-outlined text-[18px] text-[#0284C7]">sync</span>
+<span>Check Updates</span>
+</button>
+<button class="w-full py-2.5 px-space-sm rounded-lg bg-surface font-label-lg text-label-lg text-on-surface shadow-[-4px_-4px_8px_rgba(255,255,255,0.95),4px_4px_10px_rgba(214,206,190,0.5)] active:shadow-[inset_2px_2px_4px_rgba(204,195,178,0.6)] flex items-center justify-center gap-1.5 transition-all" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+<span>Sub-districts</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Auto-Download & Storage Sync Settings -->
+<div class="flex flex-col space-y-space-sm">
+<span class="font-headline-sm text-headline-sm text-on-surface px-1">Storage Management &amp; Sync</span>
+<div class="rounded-xl p-space-md bg-surface-container-low shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex flex-col space-y-space-sm">
+<!-- Toggle 1 -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-high transition-colors">
+<div class="flex flex-col pr-space-sm">
+<span class="font-label-lg text-label-lg text-on-surface">Auto-update packs on Wi-Fi</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Downloads delta revisions seamlessly overnight</span>
+</div>
+<button aria-checked="true" class="toggle-btn w-12 h-6 rounded-full bg-[#0284C7] shadow-[inset_1px_1px_3px_rgba(0,40,70,0.3)] p-0.5 flex items-center justify-end transition-all" role="switch" type="button">
+<div class="w-5 h-5 rounded-full bg-white shadow-md"></div>
+</button>
+</div>
+<!-- Toggle 2 -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-high transition-colors">
+<div class="flex flex-col pr-space-sm">
+<span class="font-label-lg text-label-lg text-on-surface">Background delta sync</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Refreshes temporary transit schedule amendments</span>
+</div>
+<button aria-checked="true" class="toggle-btn w-12 h-6 rounded-full bg-[#0284C7] shadow-[inset_1px_1px_3px_rgba(0,40,70,0.3)] p-0.5 flex items-center justify-end transition-all" role="switch" type="button">
+<div class="w-5 h-5 rounded-full bg-white shadow-md"></div>
+</button>
+</div>
+<!-- Retention Selector -->
+<div class="flex flex-col space-y-1.5 p-2 pt-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant font-bold">Cache Expiration Rule</span>
+<div class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container shadow-[inset_3px_3px_6px_rgba(204,195,178,0.5),inset_-2px_-2px_4px_rgba(255,255,255,0.9)]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-[#0284C7]">auto_delete</span>
+<span class="font-body-sm text-body-sm text-on-surface font-medium">Keep packs for 30 days after trip</span>
+</div>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">unfold_more</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Available Regional Destination Packs -->
+<div class="flex flex-col space-y-space-sm">
+<div class="flex items-center justify-between px-1">
+<span class="font-headline-sm text-headline-sm text-on-surface">Available Regional Packs</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3 Nearby</span>
+</div>
+<!-- Pack 1: Osaka -->
+<div class="rounded-xl p-space-md bg-surface-container-low shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-lg bg-[#E0F2FE] shadow-[inset_1px_1px_3px_rgba(2,132,199,0.2),inset_-1px_-1px_3px_rgba(255,255,255,0.9)] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[#0284C7] text-[22px]">location_city</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Osaka Metropolitan Area</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">1.1 GB • High-speed rail + Metro lines</span>
+</div>
+</div>
+<button class="shrink-0 px-space-md py-2 rounded-lg bg-white border border-[#E0F2FE] font-label-sm text-label-sm text-[#0284C7] shadow-sm hover:bg-[#F0F9FF] active:shadow-[inset_1px_1px_3px_rgba(2,132,199,0.2)] flex items-center gap-1 transition-all" type="button">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span>Get Pack</span>
+</button>
+</div>
+<!-- Pack 2: Tokyo -->
+<div class="rounded-xl p-space-md bg-surface-container-low shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-lg bg-[#E0F2FE] shadow-[inset_1px_1px_3px_rgba(2,132,199,0.2),inset_-1px_-1px_3px_rgba(255,255,255,0.9)] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[#0284C7] text-[22px]">subway</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Tokyo Central &amp; Yamanote</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">2.4 GB • Complete Kanto Grid</span>
+</div>
+</div>
+<button class="shrink-0 px-space-md py-2 rounded-lg bg-white border border-[#E0F2FE] font-label-sm text-label-sm text-[#0284C7] shadow-sm hover:bg-[#F0F9FF] active:shadow-[inset_1px_1px_3px_rgba(2,132,199,0.2)] flex items-center gap-1 transition-all" type="button">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span>Get Pack</span>
+</button>
+</div>
+<!-- Pack 3: Nara -->
+<div class="rounded-xl p-space-md bg-surface-container-low shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_6px_16px_rgba(214,206,190,0.65)] flex items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-11 h-11 rounded-lg bg-[#E0F2FE] shadow-[inset_1px_1px_3px_rgba(2,132,199,0.2),inset_-1px_-1px_3px_rgba(255,255,255,0.9)] flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[#0284C7] text-[22px]">temple_buddhist</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-lg text-label-lg text-on-surface truncate">Nara Historic Heritage</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">420 MB • Ancient Trails &amp; Deer Park</span>
+</div>
+</div>
+<button class="shrink-0 px-space-md py-2 rounded-lg bg-white border border-[#E0F2FE] font-label-sm text-label-sm text-[#0284C7] shadow-sm hover:bg-[#F0F9FF] active:shadow-[inset_1px_1px_3px_rgba(2,132,199,0.2)] flex items-center gap-1 transition-all" type="button">
+<span class="material-symbols-outlined text-[16px]">download</span>
+<span>Get Pack</span>
+</button>
+</div>
+</div>
+<!-- Bottom Legal & Open-Source Attribution -->
+<div class="p-space-md rounded-xl bg-surface-container-low shadow-[inset_2px_2px_4px_rgba(204,195,178,0.3),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-[#0284C7] text-[20px] shrink-0 mt-0.5">verified_user</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+      Map data © OpenStreetMap contributors (ODbL), routing powered by self-hosted OSRM binary engine. Zero cloud telemetry and strict local-first privacy when offline.
+    </p>
+</div>
+</div>
+<script>
+  (function() {
+    // Interactive toggles with tactile depressed state
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const isChecked = btn.getAttribute('aria-checked') === 'true';
+        btn.setAttribute('aria-checked', !isChecked);
+        if (isChecked) {
+          btn.classList.remove('bg-[#0284C7]', 'justify-end');
+          btn.classList.add('bg-surface-container-highest', 'justify-start');
+        } else {
+          btn.classList.remove('bg-surface-container-highest', 'justify-start');
+          btn.classList.add('bg-[#0284C7]', 'justify-end');
+        }
+      });
+    });
+
+    // Check updates button micro-feedback
+    const updateBtn = document.getElementById('updatePackBtn');
+    if (updateBtn) {
+      updateBtn.addEventListener('click', () => {
+        const icon = updateBtn.querySelector('.material-symbols-outlined');
+        if (icon) {
+          icon.classList.add('animate-spin');
+          setTimeout(() => {
+            icon.classList.remove('animate-spin');
+          }, 1200);
+        }
+      });
+    }
+  })();
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe pointer-events-none"><div class="px-screen-edge-mobile pb-space-sm pt-space-xs"><div class="pointer-events-auto mx-auto max-w-md h-16 rounded-full bg-surface/95 backdrop-blur-xl shadow-[-6px_-6px_14px_rgba(255,255,255,0.95),6px_8px_18px_rgba(180,172,158,0.45)] flex items-center justify-around px-space-xs"><a class="min-w-[44px] min-h-[44px] px-3 py-1.5 rounded-full flex flex-col items-center justify-center text-[#64748B] hover:text-[#0284C7] transition-all" data-path="explore" href="#"><span class="material-symbols-outlined text-[22px]">explore</span><span class="font-label-sm text-label-sm mt-0.5">Explore</span></a><a class="min-w-[44px] min-h-[44px] px-3 py-1.5 rounded-full flex flex-col items-center justify-center text-[#64748B] hover:text-[#0284C7] transition-all" data-path="emergency" href="#"><span class="material-symbols-outlined text-[22px]">health_and_safety</span><span class="font-label-sm text-label-sm mt-0.5">Emergency</span></a><a aria-current="page" class="min-w-[44px] min-h-[44px] px-3.5 py-1.5 rounded-full flex flex-col items-center justify-center transition-all bg-[#E0F2FE] text-[#0284C7] font-bold shadow-[inset_1px_1px_3px_rgba(2,132,199,0.25),inset_-1px_-1px_3px_rgba(255,255,255,0.9)]" data-path="offline-vault" href="#"><span class="material-symbols-outlined text-[22px] text-[#0284C7]" style="font-variation-settings: 'FILL' 1;">download_for_offline</span><span class="font-label-sm text-label-sm mt-0.5 text-[#0284C7]">Offline</span></a><a class="min-w-[44px] min-h-[44px] px-3 py-1.5 rounded-full flex flex-col items-center justify-center text-[#64748B] hover:text-[#0284C7] transition-all" data-path="travel-toolkit" href="#"><span class="material-symbols-outlined text-[22px]">home_repair_service</span><span class="font-label-sm text-label-sm mt-0.5">Toolkit</span></a></div></div></nav></body></html>

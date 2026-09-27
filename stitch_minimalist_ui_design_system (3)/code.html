@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+
+<html lang="en" style=""><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { colors: { 'tertiary-container': '#946e1d', 'inverse-on-surface': '#f4f1e7', 'secondary-fixed-dim': '#a1d2a8', 'outline-variant': '#dfc0b7', 'on-secondary-fixed': '#00210b', 'primary-fixed': '#ffdbd1', 'secondary-fixed': '#bcefc3', 'on-tertiary': '#ffffff', 'surface-container-high': '#ebe8df', 'surface-bright': '#fcf9f0', 'surface-tint': '#a73918', 'primary-container': '#c54f2c', 'secondary': '#3b6845', 'surface': '#fcf9f0', 'outline': '#8b716a', 'secondary-container': '#bcefc3', 'surface-variant': '#e5e2d9', 'primary': '#a43716', 'on-primary': '#ffffff', 'surface-container-low': '#f7f3ea', 'on-secondary': '#ffffff', 'inverse-primary': '#ffb5a0', 'tertiary-fixed': '#ffdea4', 'on-primary-fixed': '#3b0900', 'on-tertiary-fixed-variant': '#5d4200', 'on-tertiary-container': '#fffbff', 'on-secondary-fixed-variant': '#23502f', 'error': '#ba1a1a', 'surface-container-highest': '#e5e2d9', 'on-primary-container': '#fffbff', 'surface-container': '#f1eee5', 'background': '#fcf9f0', 'on-background': '#1c1c17', 'on-surface-variant': '#58423c', 'error-container': '#ffdad6', 'on-error': '#ffffff', 'tertiary-fixed-dim': '#eec067', 'primary-fixed-dim': '#ffb5a0', 'on-error-container': '#93000a', 'surface-dim': '#dddad1', 'surface-container-lowest': '#ffffff', 'on-secondary-container': '#416e4b', 'tertiary': '#785600', 'on-primary-fixed-variant': '#862201', 'on-surface': '#1c1c17', 'on-tertiary-fixed': '#261900', 'inverse-surface': '#31312b' }, borderRadius: { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, spacing: { 'space-4xl': '3.5rem', 'screen-edge-tablet': '2rem', 'gutter-default': '1rem', 'space-md': '1rem', 'space-lg': '1.25rem', 'space-xl': '1.5rem', 'space-xxs': '0.25rem', 'space-2xl': '2rem', 'space-xs': '0.5rem', 'space-sm': '0.75rem', 'space-3xl': '2.5rem', 'screen-edge-mobile': '1.25rem' }, fontFamily: { 'body-md': ['Plus Jakarta Sans'], 'headline-display': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'], 'headline-lg': ['Plus Jakarta Sans'], 'label-lg': ['Plus Jakarta Sans'], 'headline-lg-mobile': ['Plus Jakarta Sans'], 'headline-md': ['Plus Jakarta Sans'], 'body-lg': ['Plus Jakarta Sans'], 'label-sm': ['Plus Jakarta Sans'], 'headline-display-mobile': ['Plus Jakarta Sans'], 'body-sm': ['Plus Jakarta Sans'] }, fontSize: { 'body-md': ['14px', { lineHeight: '20px', letterSpacing: '0em', fontWeight: '500' }], 'headline-display': ['38px', { lineHeight: '44px', letterSpacing: '-0.03em', fontWeight: '800' }], 'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.03em', fontWeight: '700' }], 'headline-lg': ['26px', { lineHeight: '32px', letterSpacing: '-0.02em', fontWeight: '700' }], 'label-lg': ['14px', { lineHeight: '18px', letterSpacing: '0.01em', fontWeight: '700' }], 'headline-lg-mobile': ['22px', { lineHeight: '28px', letterSpacing: '-0.015em', fontWeight: '700' }], 'headline-md': ['19px', { lineHeight: '25px', letterSpacing: '-0.01em', fontWeight: '600' }], 'body-lg': ['16px', { lineHeight: '24px', letterSpacing: '-0.005em', fontWeight: '500' }], 'label-sm': ['10px', { lineHeight: '13px', letterSpacing: '0.05em', fontWeight: '700' }], 'headline-display-mobile': ['30px', { lineHeight: '36px', letterSpacing: '-0.025em', fontWeight: '800' }], 'body-sm': ['12px', { lineHeight: '17px', letterSpacing: '0.01em', fontWeight: '500' }] } } } };</script><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#fcf9f0;}body{overscroll-behavior-y:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/90 backdrop-blur-xl shadow-[0_4px_16px_rgba(180,172,158,0.25)]"><div class="h-20 px-screen-edge-mobile flex items-center justify-between gap-space-sm"><div class="flex items-center gap-space-sm"><button class="w-11 h-11 rounded-full bg-surface shadow-[-3px_-3px_7px_rgba(255,255,255,0.95),3px_4px_8px_rgba(180,172,158,0.45)] active:shadow-[inset_2px_3px_5px_rgba(180,172,158,0.45),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center justify-center text-on-surface" onclick="history.back()"><span class="material-symbols-outlined text-[20px]">arrow_back</span></button><img alt="Local Brand Mark" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VOefXQtWgZnEgEDxDkxHdXbqgIZlaF7_5pQCQN59AcPbzgker7g7RXETteLFWEJPBt7CgenCQepknpgaPgPjPNzt6W2WkHnNzseUjs891V0V6CWoTfmtzIlGaR3oNrL6tE1BvgRSUCujclpnEEV7T5De42pTeKWcd6EkwQE5FjfeNJ4GMeLTMyMKKHlMjTJguyElbMds-cL_g2YAiZbz22IsK_51Fg-Gq6dJoBKi401sPL2cxWEl3xaGU"/><h1 class="font-headline-md text-headline-md tracking-tight text-on-surface">Place Details</h1></div><div class="flex items-center gap-space-xs"><div class="w-11 h-11 rounded-full p-0.5 bg-surface shadow-[-3px_-3px_7px_rgba(255,255,255,0.95),3px_4px_8px_rgba(180,172,158,0.45)] flex items-center justify-center"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1UVIomhpKNmwnwjnuCOvaKapyvU48zCuUgh1jfNK6Ihi1X4_fCWCXjBTXKF92-dDHIoARwVFRIbxX1-Kj3lBjgA7Z59-VK95_g8ZzUSz7DrW0GBcfH4uXPC9ySvQ67xxtwZsOIlwMsp-ccJGItz7h3XO0DpYN5xsoM-GQ4XAffU_bc_7-mMhuOF0YIHxK96KgdXzGXQDLYWJrRoZcFi5dOJp6TuDvQ1dBvb1lkEFSRuZFruNgovt1YXBA0"/></div></div></div></header><main class="flex-1 flex flex-col w-full bg-surface pt-20 pb-safe"><div class="flex flex-col w-full relative">
+<!-- Dimmed Real-Time Navigation Canvas Underlay -->
+<div class="relative w-full h-40 overflow-hidden select-none bg-surface-dim pointer-events-none">
+<div class="w-full h-full bg-cover bg-center filter blur-sm scale-105 opacity-65" data-location="Gion, Kyoto, Japan" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBHYP4ux-n5Lb6UwmVQUC2DYH-A4hmJxb8JhUN4pIoOUmPMsGpIOeYeJyJCmUkjyxDYg2VAufA3uAy4r4MFEQLZqG3GVq3YJMJvY48wrwfb1HSSad5hTy7JwyeZ_Qbc1qxxKq0Tn_Z4rfGZe8VW6SZUjpqdLgSOewu2wjxTrRGhuA1g7EIcU5YIUzGM6_smrIP6sVjzn17qOcbH98hC7EEAb0ZyIYXPSqyhssAUonEMinzi2Jgn_Nop');"></div>
+<div class="absolute inset-0 bg-surface/75"></div>
+<!-- Visual cue of active route behind modal -->
+<div class="absolute top-4 left-5 right-5 flex items-center justify-between">
+<div class="flex items-center gap-space-xs px-3 py-1.5 rounded-full bg-surface shadow-[-2px_-2px_6px_rgba(255,255,255,0.9),2px_3px_6px_rgba(180,172,158,0.4)]">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Route Active</span>
+</div>
+<div class="px-3 py-1 rounded-full bg-surface shadow-[-2px_-2px_6px_rgba(255,255,255,0.9),2px_3px_6px_rgba(180,172,158,0.4)] text-on-surface font-label-md text-label-md">
+        Shinbashi-dori • 210m
+      </div>
+</div>
+</div>
+<!-- Neumorphic Modal Sheet Body -->
+<div class="-mt-8 w-full bg-surface rounded-t-[28px] shadow-[-6px_-8px_20px_rgba(255,255,255,0.95),0px_-10px_28px_rgba(180,172,158,0.35)] px-screen-edge-mobile pt-3 pb-8 flex flex-col gap-space-xl">
+<!-- Drag Handle and Header Strip -->
+<div class="flex flex-col items-center gap-space-sm pt-1">
+<div class="w-12 h-1.5 rounded-full bg-surface-container-high shadow-[inset_1px_1px_2px_rgba(180,172,158,0.5),inset_-1px_-1px_2px_rgba(255,255,255,0.9)]"></div>
+<div class="w-full flex items-start justify-between gap-space-sm mt-1">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]" style='font-variation-settings: "FILL" 1; color: rgb(2, 132, 199);'>volume_up</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface tracking-tight">Audio &amp; Voice Engine</h2>
+</div>
+<!-- Tactile Offline Reassurance Stamp -->
+<div class="inline-flex items-center gap-1.5 self-start px-2.5 py-1 rounded-full bg-surface-container shadow-[inset_2px_2px_4px_rgba(180,172,158,0.35),inset_-2px_-2px_3px_rgba(255,255,255,0.85)]"><span class="material-symbols-outlined text-[14px]" style="color: rgb(2, 132, 199);">offline_pin</span><span class="font-label-sm text-label-sm uppercase tracking-wide" style="color: rgb(2, 132, 199);">100% Offline Neural TTS</span></div>
+</div>
+<!-- Tactile Round Close Button -->
+<button aria-label="Close audio settings" class="w-10 h-10 rounded-full bg-surface shadow-[-3px_-3px_7px_rgba(255,255,255,0.95),3px_4px_8px_rgba(180,172,158,0.45)] active:shadow-[inset_2px_3px_5px_rgba(180,172,158,0.45),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] active:scale-95 transition-all flex items-center justify-center text-on-surface" id="closeModalBtn">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+<!-- Section 1: Master Output & Volume Stepper -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface uppercase tracking-wider">Voice Volume &amp; Master Output</span>
+<span class="font-body-sm text-body-sm text-secondary font-semibold" id="loudnessLabel" style="color: rgb(2, 132, 199);">Outdoor Boost (+6dB)</span>
+</div>
+<!-- Neumorphic Recessed Stepper Container -->
+<div class="w-full p-1.5 rounded-[20px] bg-surface-container shadow-[inset_3px_3px_6px_rgba(180,172,158,0.4),inset_-3px_-3px_6px_rgba(255,255,255,0.9)] flex items-center gap-1"><button class="vol-btn flex-1 py-2.5 rounded-[16px] text-center font-label-md text-label-md transition-all text-on-surface-variant hover:text-on-surface" data-vol="low" type="button">Low</button><button class="vol-btn flex-1 py-2.5 rounded-[16px] text-center font-label-md text-label-md transition-all text-on-surface-variant hover:text-on-surface" data-vol="normal" type="button">Standard</button><button class="vol-btn flex-1 py-2.5 rounded-[16px] text-center font-label-md text-label-md transition-all font-bold shadow-[-2px_-2px_5px_rgba(255,255,255,0.95),2px_3px_6px_rgba(2,132,199,0.35)]" data-vol="boost" style="background-color: #0284c7; color: #ffffff;" type="button">Outdoor Boost</button></div>
+<!-- Sound Wave Preview Card -->
+<div class="w-full p-4 rounded-[20px] bg-surface shadow-[-4px_-4px_10px_rgba(255,255,255,0.9),4px_6px_14px_rgba(180,172,158,0.38)] flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-full bg-surface shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_3px_6px_rgba(180,172,158,0.4)] flex items-center justify-center text-primary" style="color: rgb(2, 132, 199);">
+<span class="material-symbols-outlined text-[20px]">spatial_audio</span>
+</div>
+<div>
+<p class="font-body-md text-body-md font-semibold text-on-surface">Acoustic Prompt Sample</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Speaker &amp; canal compensation active</p>
+</div>
+</div>
+<!-- Play sample interactive pebble -->
+<button class="px-3.5 py-1.5 rounded-full bg-surface shadow-[-2px_-2px_6px_rgba(255,255,255,0.95),2px_3px_6px_rgba(180,172,158,0.4)] active:shadow-[inset_2px_2px_4px_rgba(180,172,158,0.4),inset_-2px_-2px_3px_rgba(255,255,255,0.85)] active:scale-98 transition-all flex items-center gap-1.5 text-primary" id="testAudioBtn" style="color: rgb(2, 132, 199);">
+<span class="material-symbols-outlined text-[16px]" id="playIcon">play_arrow</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Test Voice</span>
+</button>
+</div>
+<!-- Audio waveform visualization strip -->
+<div class="w-full h-8 rounded-[12px] bg-surface-container shadow-[inset_2px_2px_4px_rgba(180,172,158,0.35),inset_-2px_-2px_3px_rgba(255,255,255,0.85)] px-3 flex items-center justify-between"><div class="flex items-center gap-1.5 w-full"><span class="w-1 h-3 rounded-full" style="background-color: #bae6fd;"></span><span class="w-1 h-5 rounded-full" style="background-color: #38bdf8;"></span><span class="w-1 h-2 rounded-full" style="background-color: #bae6fd;"></span><span class="w-1 h-6 rounded-full animate-pulse" style="background-color: #0284c7;"></span><span class="w-1 h-4 rounded-full" style="background-color: #38bdf8;"></span><span class="w-1 h-3 rounded-full" style="background-color: #0284c7;"></span><span class="w-1 h-5 rounded-full" style="background-color: #0284c7;"></span><span class="w-1 h-2 rounded-full" style="background-color: #bae6fd;"></span><span class="w-1 h-4 rounded-full" style="background-color: #38bdf8;"></span><span class="w-1 h-5 rounded-full" style="background-color: #0284c7;"></span><span class="w-1 h-3 rounded-full" style="background-color: #bae6fd;"></span><span class="w-1 h-2 rounded-full" style="background-color: #bae6fd;"></span><span class="w-1 h-4 rounded-full" style="background-color: #38bdf8;"></span><span class="w-1 h-6 rounded-full" style="background-color: #0284c7;"></span><span class="w-1 h-3 rounded-full" style="background-color: #bae6fd;"></span></div><span class="font-label-sm text-label-sm text-on-surface-variant whitespace-nowrap pl-2">1.8s cue</span></div>
+</div>
+<!-- Toggle: Duck Media -->
+<div class="w-full p-4 rounded-[20px] bg-surface shadow-[-4px_-4px_10px_rgba(255,255,255,0.9),4px_6px_14px_rgba(180,172,158,0.38)] flex items-center justify-between gap-space-sm">
+<div class="flex flex-col pr-2">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Mute other media during cues</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Lowers podcasts &amp; music when instructions play</span>
+</div>
+<!-- Neumorphic Toggle Switch -->
+<button aria-checked="true" class="toggle-btn relative w-[52px] h-[30px] rounded-full shadow-[inset_2px_3px_5px_rgba(180,172,158,0.45),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center px-0.5 transition-colors" data-toggle="duck" role="switch" style="background-color: rgba(2, 132, 199, 0.25);" type="button"><span class="thumb w-6 h-6 rounded-full bg-surface shadow-[-2px_-2px_4px_rgba(255,255,255,0.9),2px_3px_5px_rgba(180,172,158,0.45)] transform translate-x-[22px] transition-transform flex items-center justify-center"><span class="w-1.5 h-1.5 rounded-full" style="background-color: #0284c7;"></span></span></button>
+</div>
+</div>
+<!-- Section 2: Downloaded Offline Voicepacks -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface uppercase tracking-wider">Downloaded Voice Engine</span>
+<span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-wider" style="color: rgb(2, 132, 199);">Storage 47.7 MB</span>
+</div>
+<div class="flex flex-col gap-space-sm" id="voiceList"><div class="voice-card cursor-pointer w-full p-4 rounded-[20px] bg-surface shadow-[-4px_-4px_10px_rgba(255,255,255,0.95),4px_6px_14px_rgba(2,132,199,0.2)] transition-all flex items-center justify-between" data-voice="us"><div class="flex items-center gap-3 min-w-0"><div class="radio-indicator w-6 h-6 rounded-full bg-surface shadow-[inset_2px_2px_4px_rgba(180,172,158,0.4),inset_-2px_-2px_3px_rgba(255,255,255,0.85)] flex items-center justify-center"><div class="w-3 h-3 rounded-full" style="background-color: #0284c7; box-shadow: 0 1px 3px rgba(2,132,199,0.4);"></div></div><div class="flex flex-col min-w-0"><div class="flex items-center gap-2"><span class="font-body-md text-body-md font-bold text-on-surface truncate">English (US) — Crisp Directional</span><span class="px-2 py-0.5 rounded-full text-[10px] font-label-sm uppercase font-bold" style="background-color: #e0f2fe; color: #0284c7;">Active</span></div><span class="font-body-sm text-body-sm text-on-surface-variant">Offline Neural • 15.0 MB • Concise phrases</span></div></div><span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1; color: rgb(2, 132, 199);">check_circle</span></div><div class="voice-card cursor-pointer w-full p-4 rounded-[20px] bg-surface shadow-[-3px_-3px_8px_rgba(255,255,255,0.9),3px_4px_10px_rgba(180,172,158,0.3)] transition-all flex items-center justify-between opacity-85 hover:opacity-100" data-voice="jp"><div class="flex items-center gap-3 min-w-0"><div class="radio-indicator w-6 h-6 rounded-full bg-surface shadow-[inset_2px_2px_4px_rgba(180,172,158,0.4),inset_-2px_-2px_3px_rgba(255,255,255,0.85)] flex items-center justify-center"><div class="w-3 h-3 rounded-full bg-transparent"></div></div><div class="flex flex-col min-w-0"><div class="flex items-center gap-1.5"><span class="font-body-md text-body-md font-semibold text-on-surface truncate">Japanese (日本語) — Dual Vernacular</span><span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface text-[10px] font-label-sm font-semibold">四条通</span></div><span class="font-body-sm text-body-sm text-on-surface-variant">Offline Neural • 18.5 MB • Native Kanji accent</span></div></div><span class="material-symbols-outlined text-on-surface-variant text-[20px]">radio_button_unchecked</span></div></div>
+<!-- Manage Voicepacks Pebble -->
+<button class="w-full py-3 rounded-[16px] bg-surface shadow-[-3px_-3px_7px_rgba(255,255,255,0.95),3px_4px_8px_rgba(180,172,158,0.4)] active:shadow-[inset_2px_3px_5px_rgba(180,172,158,0.45),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] active:scale-99 transition-all flex items-center justify-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-secondary text-[18px]" style="color: rgb(2, 132, 199);">add_circle</span>
+<span class="font-label-md text-label-md tracking-wide">Manage &amp; Download More Regional Packs</span>
+</button>
+</div>
+<!-- Section 3: Cadence & Detail Granularity -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-on-surface uppercase tracking-wider">Announcement Detail &amp; Frequency</span>
+</div>
+<!-- 3-Way Stepped Pill -->
+<div class="w-full p-1.5 rounded-[20px] bg-surface-container shadow-[inset_3px_3px_6px_rgba(180,172,158,0.4),inset_-3px_-3px_6px_rgba(255,255,255,0.9)] flex items-center gap-1"><button class="vol-btn flex-1 py-2.5 rounded-[16px] text-center font-label-md text-label-md transition-all text-on-surface-variant hover:text-on-surface" data-vol="low" type="button">Low</button><button class="vol-btn flex-1 py-2.5 rounded-[16px] text-center font-label-md text-label-md transition-all text-on-surface-variant hover:text-on-surface" data-vol="normal" type="button">Standard</button><button class="vol-btn flex-1 py-2.5 rounded-[16px] text-center font-label-md text-label-md transition-all font-bold shadow-[-2px_-2px_5px_rgba(255,255,255,0.95),2px_3px_6px_rgba(2,132,199,0.35)]" data-vol="boost" style="background-color: #0284c7; color: #ffffff;" type="button">Outdoor Boost</button></div>
+<!-- Granular Toggle Switches List -->
+<div class="flex flex-col gap-2.5 mt-1">
+<!-- Toggle 1: Landmark cues -->
+<div class="w-full p-3.5 rounded-[18px] bg-surface shadow-[-3px_-3px_8px_rgba(255,255,255,0.9),3px_4px_10px_rgba(180,172,158,0.35)] flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface shadow-[-2px_-2px_4px_rgba(255,255,255,0.9),2px_2px_5px_rgba(180,172,158,0.35)] flex items-center justify-center text-primary" style="color: rgb(2, 132, 199);">
+<span class="material-symbols-outlined text-[18px]">storefront</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Visual Landmark Markers</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">“Turn right past Lawson store”</span>
+</div>
+</div>
+<button aria-checked="true" class="toggle-btn w-[52px] h-[30px] rounded-full shadow-[inset_2px_3px_5px_rgba(180,172,158,0.45),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center px-0.5 transition-colors" role="switch" style="background-color: rgba(2, 132, 199, 0.25);" type="button"><span class="thumb w-6 h-6 rounded-full bg-surface shadow-[-2px_-2px_4px_rgba(255,255,255,0.9),2px_3px_5px_rgba(180,172,158,0.45)] transform translate-x-[22px] transition-transform flex items-center justify-center"><span class="w-1.5 h-1.5 rounded-full" style="background-color: #0284c7;"></span></span></button>
+</div>
+<!-- Toggle 2: Acoustic Crosswalk Chimes -->
+<div class="w-full p-3.5 rounded-[18px] bg-surface shadow-[-3px_-3px_8px_rgba(255,255,255,0.9),3px_4px_10px_rgba(180,172,158,0.35)] flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface shadow-[-2px_-2px_4px_rgba(255,255,255,0.9),2px_2px_5px_rgba(180,172,158,0.35)] flex items-center justify-center text-secondary" style="color: rgb(2, 132, 199);">
+<span class="material-symbols-outlined text-[18px]">notifications_active</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Acoustic Crosswalk Chimes</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Birdsong &amp; audio signal mimicry</span>
+</div>
+</div>
+<button aria-checked="true" class="toggle-btn w-[52px] h-[30px] rounded-full shadow-[inset_2px_3px_5px_rgba(180,172,158,0.45),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center px-0.5 transition-colors" role="switch" style="background-color: rgba(2, 132, 199, 0.25);" type="button"><span class="thumb w-6 h-6 rounded-full bg-surface shadow-[-2px_-2px_4px_rgba(255,255,255,0.9),2px_3px_5px_rgba(180,172,158,0.45)] transform translate-x-[22px] transition-transform flex items-center justify-center"><span class="w-1.5 h-1.5 rounded-full" style="background-color: #0284c7;"></span></span></button>
+</div>
+<!-- Toggle 3: Distance countdown alerts -->
+<div class="w-full p-3.5 rounded-[18px] bg-surface shadow-[-3px_-3px_8px_rgba(255,255,255,0.9),3px_4px_10px_rgba(180,172,158,0.35)] flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface shadow-[-2px_-2px_4px_rgba(255,255,255,0.9),2px_2px_5px_rgba(180,172,158,0.35)] flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined text-[18px]">straighten</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Progressive Proximity Cues</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Step alerts at 200m, 50m, and turn point</span>
+</div>
+</div>
+<button aria-checked="true" class="toggle-btn w-[52px] h-[30px] rounded-full shadow-[inset_2px_3px_5px_rgba(180,172,158,0.45),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center px-0.5 transition-colors" role="switch" style="background-color: rgba(2, 132, 199, 0.25);" type="button"><span class="thumb w-6 h-6 rounded-full bg-surface shadow-[-2px_-2px_4px_rgba(255,255,255,0.9),2px_3px_5px_rgba(180,172,158,0.45)] transform translate-x-[22px] transition-transform flex items-center justify-center"><span class="w-1.5 h-1.5 rounded-full" style="background-color: #0284c7;"></span></span></button>
+</div>
+<!-- Toggle 4: Adaptive walking speed (Currently OFF) -->
+<div class="w-full p-3.5 rounded-[18px] bg-surface shadow-[-3px_-3px_8px_rgba(255,255,255,0.9),3px_4px_10px_rgba(180,172,158,0.35)] flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface shadow-[-2px_-2px_4px_rgba(255,255,255,0.9),2px_2px_5px_rgba(180,172,158,0.35)] flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">sprint</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Pace-Adaptive Timing</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Cues play earlier if cycling or jogging</span>
+</div>
+</div>
+<button aria-checked="false" class="toggle-btn w-[52px] h-[30px] rounded-full bg-surface-container shadow-[inset_2px_3px_5px_rgba(180,172,158,0.45),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center px-0.5 transition-colors" role="switch" type="button">
+<span class="thumb w-6 h-6 rounded-full bg-surface shadow-[-2px_-2px_4px_rgba(255,255,255,0.9),2px_3px_5px_rgba(180,172,158,0.45)] transform translate-x-0 transition-transform flex items-center justify-center">
+<span class="w-1.5 h-1.5 rounded-full bg-on-surface-variant/40"></span>
+</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Section 4: Bilingual Local Pronunciation Assist -->
+<div class="w-full p-4 rounded-[22px] bg-surface-container-low shadow-[inset_2px_2px_5px_rgba(180,172,158,0.25),inset_-2px_-2px_4px_rgba(255,255,255,0.85)] flex flex-col gap-3">
+<div class="flex items-start gap-3">
+<div class="w-10 h-10 rounded-full bg-surface shadow-[-2px_-2px_5px_rgba(255,255,255,0.95),2px_3px_6px_rgba(180,172,158,0.35)] flex items-center justify-center text-primary flex-shrink-0" style="color: rgb(2, 132, 199);">
+<span class="material-symbols-outlined text-[20px]">translate</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md text-on-surface">Kanji Street Sign Assist</span>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm" style="background-color: rgb(224, 242, 254); color: rgb(2, 132, 199);">Kyoto Ready</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+            Reads indigenous street names alongside Romanized phonetics so you can cross-reference physical wooden and stone posts directly.
+          </p>
+</div>
+</div>
+<!-- Sub-Toggle for Kanji Voice Assist -->
+<div class="flex items-center justify-between pt-2">
+<span class="font-body-md text-body-md font-semibold text-on-surface">Vocalize Kanji Signage Names</span>
+<button aria-checked="true" class="toggle-btn w-[52px] h-[30px] rounded-full shadow-[inset_2px_3px_5px_rgba(180,172,158,0.45),inset_-2px_-2px_4px_rgba(255,255,255,0.9)] flex items-center px-0.5 transition-colors" role="switch" style="background-color: rgba(2, 132, 199, 0.25);" type="button"><span class="thumb w-6 h-6 rounded-full bg-surface shadow-[-2px_-2px_4px_rgba(255,255,255,0.9),2px_3px_5px_rgba(180,172,158,0.45)] transform translate-x-[22px] transition-transform flex items-center justify-center"><span class="w-1.5 h-1.5 rounded-full" style="background-color: #0284c7;"></span></span></button>
+</div>
+</div>
+<!-- Section 5: Modal Action Buttons -->
+<div class="flex flex-col gap-space-sm pt-2">
+<!-- Primary Save & Resume -->
+<button class="w-full py-4 rounded-[22px] bg-primary text-on-primary font-headline-md text-headline-md flex items-center justify-center gap-2 shadow-[-4px_-4px_12px_rgba(255,255,255,0.9),4px_6px_16px_rgba(164,55,22,0.4)] active:shadow-[inset_2px_3px_6px_rgba(0,0,0,0.35),inset_-2px_-2px_4px_rgba(255,255,255,0.3)] active:scale-98 transition-all" id="applyAudioBtn" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); box-shadow: -4px -4px 12px rgba(255, 255, 255, 0.9), 4px 6px 18px rgba(2, 132, 199, 0.45); color: #ffffff;">
+<span class="material-symbols-outlined text-[22px]">record_voice_over</span>
+<span class="">Apply &amp; Resume Navigation</span>
+</button>
+<!-- Secondary Reset Button -->
+<button class="w-full py-3 rounded-[18px] bg-surface text-on-surface-variant font-label-lg text-label-lg flex items-center justify-center gap-1.5 shadow-[-3px_-3px_8px_rgba(255,255,255,0.95),3px_4px_10px_rgba(180,172,158,0.35)] active:shadow-[inset_2px_2px_5px_rgba(180,172,158,0.4),inset_-2px_-2px_4px_rgba(255,255,255,0.85)] active:scale-99 transition-all" id="resetDefaultsBtn">
+<span class="material-symbols-outlined text-[18px]" style="color: rgb(2, 132, 199);">restart_alt</span>
+<span class="">Restore Recommended Settings</span>
+</button>
+</div>
+</div>
+</div>
+<script>
+  // Micro-interaction handlers for interactive tactile feel
+  (function() {
+    // Stepped Volume Selection
+    const volButtons = document.querySelectorAll('.vol-btn');
+    const loudnessLabel = document.getElementById('loudnessLabel');
+    const volLabels = {
+      'low': 'Quiet (-4dB) • Library & Garden',
+      'normal': 'Standard Level • Ambient Town',
+      'boost': 'Outdoor Boost (+6dB) • Traffic / Rain'
+    };
+
+    volButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        volButtons.forEach(b => {
+          b.className = 'vol-btn flex-1 py-2.5 rounded-[16px] text-center font-label-md text-label-md transition-all text-on-surface-variant hover:text-on-surface';
+        });
+        btn.className = 'vol-btn flex-1 py-2.5 rounded-[16px] text-center font-label-md text-label-md transition-all bg-surface text-primary font-bold shadow-[-2px_-2px_5px_rgba(255,255,255,0.95),2px_3px_6px_rgba(180,172,158,0.4)]';
+        const type = btn.getAttribute('data-vol');
+        if (loudnessLabel && volLabels[type]) {
+          loudnessLabel.textContent = volLabels[type];
+        }
+      });
+    });
+
+    // Voice Selection Radio Behavior
+    const voiceCards = document.querySelectorAll('.voice-card');
+    voiceCards.forEach(card => {
+      card.addEventListener('click', () => {
+        voiceCards.forEach(c => {
+          c.classList.remove('shadow-[-4px_-4px_10px_rgba(255,255,255,0.95),4px_6px_14px_rgba(180,172,158,0.45)]');
+          c.classList.add('shadow-[-3px_-3px_8px_rgba(255,255,255,0.9),3px_4px_10px_rgba(180,172,158,0.3)]', 'opacity-85');
+          const dot = c.querySelector('.radio-indicator div');
+          if (dot) dot.className = 'w-3 h-3 rounded-full bg-transparent';
+          const icon = c.querySelector('.material-symbols-outlined');
+          if (icon) {
+            icon.textContent = 'radio_button_unchecked';
+            icon.className = 'material-symbols-outlined text-on-surface-variant text-[20px]';
+          }
+        });
+        card.classList.add('shadow-[-4px_-4px_10px_rgba(255,255,255,0.95),4px_6px_14px_rgba(180,172,158,0.45)]');
+        card.classList.remove('opacity-85');
+        const dot = card.querySelector('.radio-indicator div');
+        if (dot) dot.className = 'w-3 h-3 rounded-full bg-primary shadow-[0_1px_3px_rgba(164,55,22,0.4)]';
+        const icon = card.querySelector('.material-symbols-outlined');
+        if (icon) {
+          icon.textContent = 'check_circle';
+          icon.className = 'material-symbols-outlined text-secondary text-[22px]';
+          icon.style.fontVariationSettings = "'FILL' 1";
+        }
+      });
+    });
+
+    // Cadence Pill Stepper
+    const cadenceButtons = document.querySelectorAll('.cadence-btn');
+    cadenceButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        cadenceButtons.forEach(b => {
+          b.className = 'cadence-btn flex-1 py-2.5 rounded-[16px] text-center font-label-md text-label-md transition-all text-on-surface-variant hover:text-on-surface';
+        });
+        btn.className = 'cadence-btn flex-1 py-2.5 rounded-[16px] text-center font-label-md text-label-md transition-all bg-surface text-secondary font-bold shadow-[-2px_-2px_5px_rgba(255,255,255,0.95),2px_3px_6px_rgba(180,172,158,0.4)]';
+      });
+    });
+
+    // Toggle Switch Interaction
+    const toggles = document.querySelectorAll('.toggle-btn');
+    toggles.forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const checked = toggle.getAttribute('aria-checked') === 'true';
+        const newState = !checked;
+        toggle.setAttribute('aria-checked', newState);
+        const thumb = toggle.querySelector('.thumb');
+        const core = thumb.querySelector('span');
+
+        if (newState) {
+          toggle.classList.remove('bg-surface-container');
+          toggle.classList.add('bg-secondary/25');
+          thumb.classList.remove('translate-x-0');
+          thumb.classList.add('translate-x-[22px]');
+          core.className = 'w-1.5 h-1.5 rounded-full bg-secondary';
+        } else {
+          toggle.classList.remove('bg-secondary/25');
+          toggle.classList.add('bg-surface-container');
+          thumb.classList.remove('translate-x-[22px]');
+          thumb.classList.add('translate-x-0');
+          core.className = 'w-1.5 h-1.5 rounded-full bg-on-surface-variant/40';
+        }
+      });
+    });
+
+    // Audio Test Simulation Button
+    const testBtn = document.getElementById('testAudioBtn');
+    const playIcon = document.getElementById('playIcon');
+    let playing = false;
+    if (testBtn && playIcon) {
+      testBtn.addEventListener('click', () => {
+        if (playing) return;
+        playing = true;
+        playIcon.textContent = 'graphic_eq';
+        testBtn.classList.add('text-secondary');
+        setTimeout(() => {
+          playIcon.textContent = 'play_arrow';
+          testBtn.classList.remove('text-secondary');
+          playing = false;
+        }, 1800);
+      });
+    }
+
+    // Modal Close and Action Handlers
+    const closeBtn = document.getElementById('closeModalBtn');
+    const applyBtn = document.getElementById('applyAudioBtn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        if (window.history.length > 1) {
+          window.history.back();
+        }
+      });
+    }
+    if (applyBtn) {
+      applyBtn.addEventListener('click', () => {
+        applyBtn.innerHTML = '<span class="material-symbols-outlined text-[20px] animate-spin">sync</span><span>Updating Audio Subsystem...</span>';
+        setTimeout(() => {
+          if (window.history.length > 1) {
+            window.history.back();
+          } else {
+            applyBtn.innerHTML = '<span class="material-symbols-outlined text-[22px]">check</span><span>Saved</span>';
+          }
+        }, 600);
+      });
+    }
+  })();
+</script></main>
+</body></html>

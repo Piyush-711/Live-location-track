@@ -1,0 +1,466 @@
+openapi: 3.0.3
+info:
+  title: Local Worldwide Travel Companion API
+  version: 8.0.0-final
+  description: >
+    Normative API field and wire contracts for Local, an offline-first,
+    high-reliability worldwide travel application. Adheres to RFC 9457 problem
+    details, strict validation, deterministic proximity ranking, and JWS ES256
+    signed offline packs.
+servers:
+  - url: https://api.localapp.internal/v1
+    description: Production Regional Gateway
+
+paths:
+  /coverage:
+    get:
+      summary: Retrieve published capabilities and dataset version for selected area
+      parameters:
+        - name: areaId
+          in: query
+          required: true
+          schema:
+            type: string
+            example: kyoto
+      responses:
+        '200':
+          description: Coverage and dataset version metadata
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoverageResponse'
+        '422':
+          description: Coverage unsupported for requested area
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/RFC9457Error'
+
+  /places/nearby:
+    post:
+      summary: Nearby essentials search ranked deterministically by distance then ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NearbyRequest'
+      responses:
+        '200':
+          description: Proximity-ranked places
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NearbyResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '422':
+          $ref: '#/components/responses/CoverageUnsupported'
+
+  /places/{id}:
+    get:
+      summary: Retrieve place details and provenance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /routes:
+    post:
+      summary: Point-to-point route computation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteRequest'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouteResponse'
+        '422':
+          $ref: '#/components/responses/CoverageUnsupported'
+
+  /content/{country}/{locale}:
+    get:
+      summary: Emergency numbers and verified facilities
+      parameters:
+        - name: country
+          in: path
+          required: true
+          schema:
+            type: string
+            example: JP
+        - name: locale
+          in: path
+          required: true
+          schema:
+            type: string
+            example: en-US
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentResponse'
+
+  /fx:
+    get:
+      summary: Latest approved foreign exchange baseline rates
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrencyRatesResponse'
+
+  /weather:
+    post:
+      summary: Coarse area weather snapshot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [areaId]
+              properties:
+                areaId:
+                  type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WeatherResponse'
+
+  /packs/{area}/manifest:
+    get:
+      summary: Active signed offline pack pointer and manifest
+      parameters:
+        - name: area
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PackManifestResponse'
+
+  /reports:
+    post:
+      summary: Submit correction report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CorrectionReport'
+      responses:
+        '202':
+          description: Accepted for two-person review queue
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reportId:
+                    type: string
+                  receivedAt:
+                    type: string
+                    format: date-time
+
+components:
+  responses:
+    ValidationError:
+      description: RFC 9457 Validation Failure
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/RFC9457Error'
+    NotFoundError:
+      description: RFC 9457 Resource Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/RFC9457Error'
+    CoverageUnsupported:
+      description: Area outside supported coverage
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/RFC9457Error'
+
+  schemas:
+    RFC9457Error:
+      type: object
+      required: [type, title, status, detail, instance, code]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
+          enum:
+            - VALIDATION_FAILED
+            - AUTH_REQUIRED
+            - ACCESS_DENIED
+            - OBJECT_NOT_FOUND
+            - VERSION_CONFLICT
+            - IDEMPOTENCY_MISMATCH
+            - SYNC_RESET_REQUIRED
+            - COVERAGE_UNSUPPORTED
+            - ROUTE_TOO_COMPLEX
+            - RATE_LIMITED
+            - DEPENDENCY_UNAVAILABLE
+
+    CoverageResponse:
+      type: object
+      required: [datasetVersion, coverage]
+      properties:
+        datasetVersion:
+          type: string
+        coverage:
+          type: object
+          properties:
+            areaId:
+              type: string
+            countryCode:
+              type: string
+            supported:
+              type: boolean
+            capabilities:
+              type: array
+              items:
+                type: string
+
+    NearbyRequest:
+      type: object
+      required: [areaId, origin, category, radiusMeters]
+      properties:
+        areaId:
+          type: string
+        origin:
+          type: object
+          required: [latitude, longitude]
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+        category:
+          type: string
+          enum: [hospital, pharmacy, police, atm, restaurant, cafe, hotel, transit_stop, supermarket, fuel]
+        radiusMeters:
+          type: integer
+          minimum: 100
+          maximum: 10000
+        limit:
+          type: integer
+          default: 20
+          maximum: 50
+        cursor:
+          type: string
+
+    NearbyResponse:
+      type: object
+      required: [items, datasetVersion, coverage, generatedAt, freshness, partial, nextCursor]
+      properties:
+        datasetVersion:
+          type: string
+        coverage:
+          type: object
+        generatedAt:
+          type: string
+          format: date-time
+        freshness:
+          type: string
+          enum: [fresh, stale, unknown]
+        partial:
+          type: boolean
+        nextCursor:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlaceResponse'
+
+    PlaceResponse:
+      type: object
+      required: [id, category, name, location, countryCode, datasetVersion, sourceUpdatedAt, freshness]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        localizedName:
+          type: string
+        category:
+          type: string
+        distanceMeters:
+          type: integer
+        location:
+          type: object
+          properties:
+            latitude:
+              type: number
+            longitude:
+              type: number
+        countryCode:
+          type: string
+        hours:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [open, closed, unknown]
+            raw:
+              type: string
+              nullable: true
+        source:
+          type: string
+        sourceUpdatedAt:
+          type: string
+          format: date-time
+        freshness:
+          type: string
+
+    RouteRequest:
+      type: object
+      required: [areaId, origin, destination, mode]
+      properties:
+        areaId:
+          type: string
+        origin:
+          type: object
+          properties:
+            latitude: { type: number }
+            longitude: { type: number }
+        destination:
+          type: object
+          properties:
+            latitude: { type: number }
+            longitude: { type: number }
+        mode:
+          type: string
+          enum: [walking, driving]
+
+    RouteResponse:
+      type: object
+      required: [graphVersion, profileVersion, mode, distanceMeters, durationSeconds, geometry, sourceUpdatedAt, coverageAreaId]
+      properties:
+        graphVersion:
+          type: string
+        profileVersion:
+          type: string
+        mode:
+          type: string
+        distanceMeters:
+          type: integer
+        durationSeconds:
+          type: integer
+        geometry:
+          type: object
+        sourceUpdatedAt:
+          type: string
+        coverageAreaId:
+          type: string
+
+    ContentResponse:
+      type: object
+      required: [countryCode, nationalHotlines, verifiedER]
+      properties:
+        countryCode:
+          type: string
+        nationalHotlines:
+          type: array
+          items:
+            type: object
+        verifiedER:
+          $ref: '#/components/schemas/PlaceResponse'
+
+    CurrencyRatesResponse:
+      type: object
+      required: [base, asOf, rates]
+      properties:
+        base:
+          type: string
+        asOf:
+          type: string
+        rates:
+          type: object
+          additionalProperties:
+            type: number
+
+    WeatherResponse:
+      type: object
+      required: [city, tempC, condition, observedAt]
+      properties:
+        city:
+          type: string
+        tempC:
+          type: number
+        condition:
+          type: string
+        observedAt:
+          type: string
+
+    PackManifestResponse:
+      type: object
+      required: [packId, areaId, version, schemaVersion, hashes, lengths, signature]
+      properties:
+        packId:
+          type: string
+        areaId:
+          type: string
+        version:
+          type: string
+        schemaVersion:
+          type: string
+        hashes:
+          type: object
+        lengths:
+          type: object
+        signature:
+          type: string
+
+    CorrectionReport:
+      type: object
+      required: [placeId, issueCategory, description]
+      properties:
+        placeId:
+          type: string
+        issueCategory:
+          type: string
+          enum: [hours, closed, location, phone, safety]
+        description:
+          type: string
+          maxLength: 2000

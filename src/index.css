@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    width: 100%;
+    min-height: 100%;
+    background-color: #fbf9f5;
+  }
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+  }
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top, 0px), 12px);
+  }
+}
+
+/* Clay & Tactile Neumorphic Utilities */
+.clay-surface {
+  background-color: #fbf9f5;
+}
+
+.tactile-card {
+  background-color: #fbf9f5;
+  box-shadow: -4px -4px 10px rgba(255, 255, 255, 0.95), 4px 6px 14px rgba(180, 172, 158, 0.45);
+}
+
+.tactile-card-elevated {
+  background-color: #f4f0e6;
+  box-shadow: -6px -6px 16px rgba(255, 255, 255, 0.95), 6px 8px 18px rgba(180, 172, 158, 0.45);
+}
+
+.tactile-well {
+  background-color: #efeeea;
+  box-shadow: inset 3px 4px 8px rgba(180, 172, 158, 0.40), inset -3px -3px 6px rgba(255, 255, 255, 0.85);
+}
+
+.tactile-well-sm {
+  background-color: #f1eee5;
+  box-shadow: inset 2px 2px 4px rgba(180, 172, 158, 0.35), inset -2px -2px 4px rgba(255, 255, 255, 0.90);
+}
+
+.tactile-btn-primary {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #ffffff;
+  box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.70), 3px 5px 12px rgba(2, 132, 199, 0.38);
+  transition: all 0.15s ease-in-out;
+}
+
+.tactile-btn-primary:active {
+  transform: scale(0.98);
+  box-shadow: inset 2px 2px 5px rgba(3, 105, 161, 0.50);
+}
+
+.tactile-btn-secondary {
+  background-color: #fbf9f5;
+  box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.95), 3px 4px 8px rgba(180, 172, 158, 0.45);
+  transition: all 0.15s ease-in-out;
+}
+
+.tactile-btn-secondary:active {
+  transform: scale(0.97);
+  box-shadow: inset 2px 3px 5px rgba(180, 172, 158, 0.45), inset -2px -2px 4px rgba(255, 255, 255, 0.90);
+}
+
+.tactile-pill-active {
+  background-color: #e0f2fe;
+  border: 1px solid #bae6fd;
+  color: #0284c7;
+  box-shadow: inset 1px 2px 3px rgba(2, 132, 199, 0.25);
+}
+
+.tactile-pill-inactive {
+  background-color: #fbf9f5;
+  color: #1b1c1a;
+  box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.95), 3px 4px 8px rgba(180, 172, 158, 0.45);
+}

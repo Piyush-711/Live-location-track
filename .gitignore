@@ -1,0 +1,23 @@
+# Node & Build
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.env.*
+
+# Maven & Java
+target/
+backend/target/
+*.class
+*.jar
+*.war
+.mvn/
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
