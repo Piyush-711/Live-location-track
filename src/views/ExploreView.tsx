@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Place, Category } from '../types';
+import { Place, Category, WeatherReport } from '../types';
 import { api } from '../services/api';
 import { storage } from '../services/storage';
 import { LiveLocationState, calculateDistanceMeters } from '../hooks/useLiveLocation';
 import { LiveLeafletMap } from '../components/LiveLeafletMap';
+import { fxService } from '../services/fxService';
 
 interface ExploreViewProps {
   location: LiveLocationState;
@@ -12,6 +13,75 @@ interface ExploreViewProps {
   onStartRoute: (place: Place) => void;
   onOpenEmergency: () => void;
   onRequestGPS: () => void;
+}
+
+function getLocalTimeInfo(countryCode: string): { timeStr: string; tzCode: string } {
+  const code = (countryCode || 'IN').toUpperCase();
+  let timeZone = 'Asia/Kolkata';
+  let tzCode = 'IST';
+
+  if (code === 'JP') {
+    timeZone = 'Asia/Tokyo';
+    tzCode = 'JST';
+  } else if (code === 'GB') {
+    timeZone = 'Europe/London';
+    tzCode = 'BST';
+  } else if (code === 'US') {
+    timeZone = 'America/New_York';
+    tzCode = 'EDT';
+  } else if (code === 'FR' || code === 'DE' || code === 'IT' || code === 'ES') {
+    timeZone = 'Europe/Paris';
+    tzCode = 'CEST';
+  } else if (code === 'AU') {
+    timeZone = 'Australia/Sydney';
+    tzCode = 'AEST';
+  } else if (code === 'AE') {
+    timeZone = 'Asia/Dubai';
+    tzCode = 'GST';
+  }
+
+  try {
+    const formatted = new Intl.DateTimeFormat('en-GB', {
+      timeZone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).format(new Date());
+    return { timeStr: formatted, tzCode };
+  } catch {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    return { timeStr: `${hh}:${mm}`, tzCode };
+  }
+}
+
+function getRibbonFXText(countryCode: string, rates: Record<string, number> | null): string {
+  if (!rates) return '$1 = ₹95.9';
+  const code = (countryCode || 'IN').toUpperCase();
+
+  if (code === 'JP' && rates.JPY) {
+    return `$1 = ${rates.JPY.toFixed(1)}¥`;
+  }
+  if (code === 'GB' && rates.GBP) {
+    return `$1 = £${rates.GBP.toFixed(2)}`;
+  }
+  if (code === 'US' && rates.EUR) {
+    return `€1 = $${(1 / rates.EUR).toFixed(2)}`;
+  }
+  if ((code === 'FR' || code === 'DE' || code === 'IT' || code === 'ES') && rates.EUR) {
+    return `$1 = ${rates.EUR.toFixed(2)}€`;
+  }
+  if (code === 'AU' && rates.AUD) {
+    return `$1 = A$${rates.AUD.toFixed(2)}`;
+  }
+  if (code === 'AE' && rates.AED) {
+    return `$1 = ${rates.AED.toFixed(2)} AED`;
+  }
+  if (rates.INR) {
+    return `$1 = ₹${rates.INR.toFixed(1)}`;
+  }
+  return '$1 = ₹95.9';
 }
 
 const CATEGORY_PILLS: { id: Category | 'all'; label: string; icon: string }[] = [
@@ -46,6 +116,56 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const [mobileViewMode, setMobileViewMode] = useState<'list' | 'map'>('list');
 
   const lastCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
+
+  // Ribbon live telemetry: weather, currency, local clock
+  const [ribbonWeather, setRibbonWeather] = useState<{
+    tempC: number;
+    condition: string;
+    icon: string;
+  } | null>(null);
+  const [ribbonRates, setRibbonRates] = useState<Record<string, number> | null>(null);
+  const [localTimeInfo, setLocalTimeInfo] = useState<{ timeStr: string; tzCode: string }>(() =>
+    getLocalTimeInfo(location.countryCode)
+  );
+
+  // Dynamic local clock
+  useEffect(() => {
+    const updateTime = () => setLocalTimeInfo(getLocalTimeInfo(location.countryCode));
+    updateTime();
+    const timer = setInterval(updateTime, 10000);
+    return () => clearInterval(timer);
+  }, [location.countryCode]);
+
+  // Real-time live temperature and weather for current location
+  useEffect(() => {
+    let isCurrent = true;
+    api.getWeather(activeCityId, location.coords, location.cityName)
+      .then((w: WeatherReport) => {
+        if (isCurrent && w && typeof w.tempC === 'number') {
+          const icon = (w as any).conditionIcon || 'wb_sunny';
+          setRibbonWeather({
+            tempC: w.tempC,
+            condition: w.condition,
+            icon
+          });
+        }
+      })
+      .catch(() => {});
+
+    return () => { isCurrent = false; };
+  }, [location.coords.latitude, location.coords.longitude, location.cityName, activeCityId]);
+
+  // Real-time live currency exchange rate
+  useEffect(() => {
+    let isCurrent = true;
+    fxService.getRates().then(r => {
+      if (isCurrent && r?.rates) {
+        setRibbonRates(r.rates);
+      }
+    }).catch(() => {});
+
+    return () => { isCurrent = false; };
+  }, []);
 
   // Load places pool based on city or live GPS coordinates
   useEffect(() => {
@@ -254,24 +374,35 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
           {/* Quick Utility Ribbon */}
           <div className="mt-4 pt-1">
             <div className="rounded-xl bg-surface-variant/80 p-2.5 shadow-tactile-inset flex items-center justify-between gap-2 overflow-x-auto text-[11px] font-semibold text-on-surface">
-              <div className="flex items-center gap-1.5 px-2 py-0.5 flex-shrink-0">
-                <span className="material-symbols-outlined text-primary text-[16px]">wb_sunny</span>
-                <span>21°C Clear</span>
+              {/* Dynamic Live Weather & Temperature */}
+              <div className="flex items-center gap-1.5 px-2 py-0.5 flex-shrink-0" title={`Current Temperature: ${ribbonWeather?.tempC ?? '--'}°C`}>
+                <span className="material-symbols-outlined text-primary text-[16px]">
+                  {ribbonWeather?.icon || 'wb_sunny'}
+                </span>
+                <span>
+                  {ribbonWeather ? `${ribbonWeather.tempC}°C ${ribbonWeather.condition}` : 'Loading weather...'}
+                </span>
               </div>
               <span className="w-[1px] h-3.5 bg-outline-variant/60 flex-shrink-0"></span>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 flex-shrink-0">
+
+              {/* Dynamic Real-Time Exchange Rate */}
+              <div className="flex items-center gap-1.5 px-2 py-0.5 flex-shrink-0" title="Live Market Currency Conversion">
                 <span className="material-symbols-outlined text-primary text-[16px]">currency_exchange</span>
-                <span>$1 = 152.4¥</span>
+                <span>{getRibbonFXText(location.countryCode, ribbonRates)}</span>
               </div>
               <span className="w-[1px] h-3.5 bg-outline-variant/60 flex-shrink-0"></span>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 flex-shrink-0">
+
+              {/* Dynamic Local Clock */}
+              <div className="flex items-center gap-1.5 px-2 py-0.5 flex-shrink-0" title="Local Timezone Clock">
                 <span className="material-symbols-outlined text-primary text-[16px]">schedule</span>
-                <span>14:32 JST</span>
+                <span>{localTimeInfo.timeStr} {localTimeInfo.tzCode}</span>
               </div>
               <span className="w-[1px] h-3.5 bg-outline-variant/60 flex-shrink-0"></span>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 flex-shrink-0">
+
+              {/* Storage & Engine Status */}
+              <div className="flex items-center gap-1.5 px-2 py-0.5 flex-shrink-0" title="Offline Spatial Storage Ready">
                 <span className="material-symbols-outlined text-primary text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  folder_zip
+                  database
                 </span>
                 <span>SQLite Ready</span>
               </div>

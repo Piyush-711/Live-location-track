@@ -134,7 +134,7 @@ export const CityPickerModal: React.FC<CityPickerModalProps> = ({
     }
   });
 
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Debounced forward geocoding search
   useEffect(() => {
