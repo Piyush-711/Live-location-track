@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Place, Category } from '../types';
 import { api } from '../services/api';
 import { storage } from '../services/storage';
@@ -40,9 +40,38 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [mobileViewMode, setMobileViewMode] = useState<'list' | 'map'>('list');
 
-  // Load places based on city or live GPS coordinates
+  const lastQueryRef = useRef<{
+    cityId: string;
+    cat: Category | 'all';
+    q: string;
+    lat: number;
+    lon: number;
+  } | null>(null);
+
+  // Load places based on city or live GPS coordinates (Optimized debounce)
   useEffect(() => {
     let isMounted = true;
+    const currentLat = location.coords.latitude;
+    const currentLon = location.coords.longitude;
+    const last = lastQueryRef.current;
+
+    if (last) {
+      const movedDistance = calculateDistanceMeters(currentLat, currentLon, last.lat, last.lon);
+      const sameParams = last.cityId === activeCityId && last.cat === selectedCategory && last.q === searchQuery;
+      // If user hasn't moved more than 200m and category/query hasn't changed, don't re-query network!
+      if (sameParams && movedDistance < 200) {
+        return;
+      }
+    }
+
+    lastQueryRef.current = {
+      cityId: activeCityId,
+      cat: selectedCategory,
+      q: searchQuery,
+      lat: currentLat,
+      lon: currentLon
+    };
+
     setLoading(true);
     api.getNearbyPlaces(activeCityId, selectedCategory, searchQuery, 3000, location.coords)
       .then(res => {

@@ -37,10 +37,11 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
       attributionControl: false
     });
 
-    // Clean CartoDB Positron tiles for the Tactile Cerulean aesthetic
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    // 100% Free OpenStreetMap standard tiles (Zero API key required, no watermarks)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      subdomains: 'abcd'
+      subdomains: ['a', 'b', 'c'],
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);

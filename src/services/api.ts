@@ -27,9 +27,19 @@ class ApiService {
 
   // Helper fetch with timeout and fallback
   private async safeFetch<T>(endpoint: string, options?: RequestInit, fallback?: () => T): Promise<T> {
+    // If running on a static host (like GitHub Pages) where Spring Boot backend is not mounted, use certified fallback
+    const isStaticDeploy = typeof window !== 'undefined' && (
+      window.location.hostname.includes('github.io') ||
+      window.location.protocol === 'file:'
+    );
+
+    if (isStaticDeploy && fallback) {
+      return fallback();
+    }
+
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1500); // 1.5s timeout for local Spring server
+      const timeoutId = setTimeout(() => controller.abort(), 1200); // 1.2s timeout for local Spring server
 
       const res = await fetch(`${this.baseUrl}${endpoint}`, {
         ...options,

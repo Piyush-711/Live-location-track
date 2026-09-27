@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { LocationCoordinates } from '../types';
 import { CITIES } from '../data/mockData';
 import { osmService } from '../services/osmService';
@@ -73,6 +73,8 @@ export function useLiveLocation(selectedCityId: string) {
     isSimulated: true
   });
 
+  const lastGeocodedRef = useRef<{ lat: number; lon: number } | null>(null);
+
   const requestLiveGPS = useCallback(() => {
     if (!('geolocation' in navigator)) {
       setLocation(prev => ({
@@ -105,15 +107,21 @@ export function useLiveLocation(selectedCityId: string) {
           isSimulated: false
         }));
 
-        // Dynamic OpenStreetMap reverse geocode resolution
-        osmService.reverseGeocode(latitude, longitude).then(geo => {
-          setLocation(prev => ({
-            ...prev,
-            cityName: geo.cityName,
-            countryCode: geo.countryCode,
-            lastUpdated: new Date().toISOString()
-          }));
-        }).catch(e => console.warn('Live geocode background warn:', e));
+        // Only reverse geocode if first time or moved > 500m
+        const shouldGeocode = !lastGeocodedRef.current || 
+          calculateDistanceMeters(latitude, longitude, lastGeocodedRef.current.lat, lastGeocodedRef.current.lon) > 500;
+
+        if (shouldGeocode) {
+          lastGeocodedRef.current = { lat: latitude, lon: longitude };
+          osmService.reverseGeocode(latitude, longitude).then(geo => {
+            setLocation(prev => ({
+              ...prev,
+              cityName: geo.cityName,
+              countryCode: geo.countryCode,
+              lastUpdated: new Date().toISOString()
+            }));
+          }).catch(e => console.warn('Live geocode background warn:', e));
+        }
       },
       (err) => {
         console.warn('Geolocation error or permission denied:', err.message);
