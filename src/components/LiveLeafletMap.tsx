@@ -1,6 +1,57 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Place, LocationCoordinates } from '../types';
+
+export type MapTileProvider = 'google_streets' | 'google_satellite' | 'google_terrain' | 'osm';
+
+interface TileConfig {
+  name: string;
+  shortLabel: string;
+  icon: string;
+  url: string;
+  subdomains?: string[];
+  maxZoom: number;
+  attribution: string;
+}
+
+const TILE_CONFIG: Record<MapTileProvider, TileConfig> = {
+  google_streets: {
+    name: 'Google Maps',
+    shortLabel: 'Google',
+    icon: '🗺️',
+    url: 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    maxZoom: 20,
+    attribution: '&copy; Google Maps'
+  },
+  google_satellite: {
+    name: 'Google Satellite',
+    shortLabel: 'Satellite',
+    icon: '🛰️',
+    url: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    maxZoom: 20,
+    attribution: '&copy; Google Satellite'
+  },
+  google_terrain: {
+    name: 'Google Terrain',
+    shortLabel: 'Terrain',
+    icon: '⛰️',
+    url: 'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+    maxZoom: 20,
+    attribution: '&copy; Google Terrain'
+  },
+  osm: {
+    name: 'OpenStreetMap',
+    shortLabel: 'OSM',
+    icon: '🌐',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    subdomains: ['a', 'b', 'c'],
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap contributors'
+  }
+};
 
 interface LiveLeafletMapProps {
   userLocation: LocationCoordinates;
@@ -9,6 +60,7 @@ interface LiveLeafletMapProps {
   routeGeometry?: { coordinates: [number, number][] } | null;
   onSelectPlace: (place: Place) => void;
   className?: string;
+  defaultTileProvider?: MapTileProvider;
 }
 
 export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
@@ -17,13 +69,21 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
   selectedPlace,
   routeGeometry,
   onSelectPlace,
-  className = "w-full h-full"
+  className = "w-full h-full",
+  defaultTileProvider
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const currentTileLayerRef = useRef<L.TileLayer | null>(null);
   const markersLayerRef = useRef<L.LayerGroup | null>(null);
   const routeLayerRef = useRef<L.Polyline | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
+
+  const [currentProvider, setCurrentProvider] = useState<MapTileProvider>(() => {
+    if (defaultTileProvider) return defaultTileProvider;
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('app_map_provider') : null;
+    return (saved === 'google_satellite' || saved === 'osm' || saved === 'google_terrain') ? saved : 'google_streets';
+  });
 
   // Initialize Map
   useEffect(() => {
@@ -37,13 +97,6 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
       attributionControl: false
     });
 
-    // 100% Free OpenStreetMap standard tiles (Zero API key required, no watermarks)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      subdomains: ['a', 'b', 'c'],
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
     const markersGroup = L.layerGroup().addTo(map);
@@ -55,6 +108,28 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
       mapInstanceRef.current = null;
     };
   }, []);
+
+  // Switch Tile Layer dynamically (Google Maps, Satellite, OSM)
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (currentTileLayerRef.current) {
+      map.removeLayer(currentTileLayerRef.current);
+      currentTileLayerRef.current = null;
+    }
+
+    const conf = TILE_CONFIG[currentProvider];
+    const layer = L.tileLayer(conf.url, {
+      maxZoom: conf.maxZoom,
+      subdomains: conf.subdomains || [],
+      attribution: conf.attribution
+    }).addTo(map);
+
+    layer.bringToBack();
+    currentTileLayerRef.current = layer;
+    localStorage.setItem('app_map_provider', currentProvider);
+  }, [currentProvider]);
 
   // Update User Marker
   useEffect(() => {
@@ -183,7 +258,35 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
 
   return (
     <div className={`relative overflow-hidden rounded-xl bg-[#e4e9ec] ${className}`}>
+      {/* Dynamic Map Layer Switcher */}
+      <div className="absolute top-3 right-3 z-[1000] flex items-center bg-white/95 backdrop-blur-md p-1 rounded-xl shadow-md border border-slate-200/90 gap-1 text-[11px] font-bold pointer-events-auto">
+        {(['google_streets', 'google_satellite', 'osm'] as MapTileProvider[]).map((prov) => {
+          const cfg = TILE_CONFIG[prov];
+          const isActive = currentProvider === prov;
+          return (
+            <button
+              key={prov}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentProvider(prov);
+              }}
+              className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                isActive
+                  ? 'bg-sky-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+              title={cfg.name}
+            >
+              <span>{cfg.icon}</span>
+              <span className="hidden sm:inline">{cfg.shortLabel}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <div ref={mapContainerRef} className="w-full h-full min-h-[300px]" />
     </div>
   );
 };
+

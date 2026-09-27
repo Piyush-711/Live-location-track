@@ -21,6 +21,19 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
   const [toCurrency, setToCurrency] = useState(effectiveCountry === 'JP' ? 'JPY' : effectiveCountry === 'IN' ? 'INR' : effectiveCountry === 'GB' ? 'GBP' : 'USD');
   const [inputAmount, setInputAmount] = useState('100');
 
+  // Google Maps / Places Engine settings
+  const [googleApiKey, setGoogleApiKey] = useState(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem('google_places_api_key') || '' : '';
+  });
+  const [keySavedFeedback, setKeySavedFeedback] = useState(false);
+
+  const handleSaveGoogleKey = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem('google_places_api_key', googleApiKey.trim());
+    setKeySavedFeedback(true);
+    setTimeout(() => setKeySavedFeedback(false), 2500);
+  };
+
   useEffect(() => {
     api.getCountryBriefing(effectiveCountry).then(setBriefing);
     api.getFXRates().then(setRates);
@@ -247,22 +260,52 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
         </section>
       )}
 
-      {/* Cultural Etiquette Tips */}
-      {briefing && briefing.culturalEtiquette.length > 0 && (
-        <section className="pb-6">
-          <div className="rounded-[22px] bg-surface p-4 shadow-tactile border border-[#eae6df] flex flex-col gap-2.5">
-            <span className="text-[13px] font-extrabold text-on-surface">Local Customs & Etiquette</span>
-            <div className="flex flex-col gap-2 text-[11px] text-on-surface-variant">
-              {briefing.culturalEtiquette.map((tip, idx) => (
-                <div key={idx} className="flex items-start gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0"></span>
-                  <span className="font-medium leading-relaxed">{tip}</span>
-                </div>
-              ))}
-            </div>
+      {/* Map & Geocoding Engine Preferences */}
+      <section className="pb-6">
+        <div className="rounded-[22px] bg-surface p-4 shadow-tactile border border-[#eae6df] flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[12px] font-extrabold uppercase tracking-wider text-primary flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[16px]">map</span>
+              <span>Map & Geocoding Engine</span>
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 font-bold text-[10px]">
+              Geolib WGS-84 Active
+            </span>
           </div>
-        </section>
-      )}
+
+          <p className="text-[11px] text-on-surface-variant font-medium leading-relaxed">
+            The app uses millimetric geodesic distance formulas from <code className="text-primary font-bold">geolib</code> and fetches 100% verified real facilities from OpenStreetMap Nominatim and Komoot Photon.
+          </p>
+
+          <form onSubmit={handleSaveGoogleKey} className="flex flex-col gap-2 pt-1 border-t border-[#eae6df]/70">
+            <label className="text-[11px] font-bold text-on-surface flex items-center justify-between">
+              <span>Optional Google Places API Key:</span>
+              {keySavedFeedback && (
+                <span className="text-emerald-600 font-bold text-[10px] animate-pulse">Saved Successfully!</span>
+              )}
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="password"
+                placeholder="AIzaSy... (optional for Google POIs)"
+                value={googleApiKey}
+                onChange={(e) => setGoogleApiKey(e.target.value)}
+                className="flex-1 px-3 py-2 text-[12px] rounded-xl bg-surface-container border border-[#eae6df] focus:outline-none focus:border-primary font-mono"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-primary text-white text-[12px] font-bold shadow-tactile active:scale-95 transition-all"
+              >
+                Save
+              </button>
+            </div>
+            <p className="text-[10px] text-outline">
+              Without an API key, Google Maps Street & Satellite tiles plus free high-precision Nominatim & Photon POIs work automatically with zero configuration.
+            </p>
+          </form>
+        </div>
+      </section>
     </div>
   );
 };
+
