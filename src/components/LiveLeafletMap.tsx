@@ -61,6 +61,7 @@ interface LiveLeafletMapProps {
   onSelectPlace: (place: Place) => void;
   className?: string;
   defaultTileProvider?: MapTileProvider;
+  isMapVisible?: boolean;
 }
 
 export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
@@ -70,7 +71,8 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
   routeGeometry,
   onSelectPlace,
   className = "w-full h-full",
-  defaultTileProvider
+  defaultTileProvider,
+  isMapVisible = true
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -131,10 +133,10 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
     localStorage.setItem('app_map_provider', currentProvider);
   }, [currentProvider]);
 
-  // Update User Marker
+  // Update User Marker and Relocate Map Dynamically on Location Change
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map) return;
+    if (!map || !userLocation || typeof userLocation.latitude !== 'number' || typeof userLocation.longitude !== 'number') return;
 
     const userIcon = L.divIcon({
       className: 'user-puck-icon',
@@ -169,7 +171,78 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
         zIndexOffset: 1000
       }).addTo(map);
     }
-  }, [userLocation]);
+
+    // Refresh Leaflet canvas viewport bounds
+    map.invalidateSize();
+
+    // If an active route geometry is plotted, respect route fitBounds
+    if (routeGeometry && routeGeometry.coordinates && routeGeometry.coordinates.length > 0) {
+      return;
+    }
+
+    // Relocate map viewport dynamically to user coordinates
+    const center = map.getCenter();
+    const latDiff = Math.abs(center.lat - userLocation.latitude);
+    const lngDiff = Math.abs(center.lng - userLocation.longitude);
+
+    if (latDiff > 0.0001 || lngDiff > 0.0001) {
+      const currentZoom = map.getZoom() || 15;
+      const targetZoom = currentZoom < 13 ? 15 : currentZoom;
+      map.flyTo([userLocation.latitude, userLocation.longitude], targetZoom, {
+        animate: true,
+        duration: (latDiff > 0.2 || lngDiff > 0.2) ? 1.0 : 0.6
+      });
+    }
+  }, [userLocation.latitude, userLocation.longitude, routeGeometry]);
+
+  // Handle visibility changes (e.g. switching between list/map on mobile)
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !mapContainerRef.current) return;
+
+    if (isMapVisible) {
+      map.invalidateSize();
+      const timer = setTimeout(() => {
+        map.invalidateSize();
+      }, 150);
+
+      // Relocate on become visible
+      if (userLocation && typeof userLocation.latitude === 'number') {
+        map.panTo([userLocation.latitude, userLocation.longitude]);
+      }
+
+      return () => clearTimeout(timer);
+    }
+  }, [isMapVisible, userLocation.latitude, userLocation.longitude]);
+
+  // Container Resize Observer
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !mapContainerRef.current) return;
+
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(() => {
+        map.invalidateSize();
+      });
+      observer.observe(mapContainerRef.current);
+    }
+
+    return () => {
+      if (observer) observer.disconnect();
+    };
+  }, []);
+
+  // Fly to selected place when user taps a POI
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !selectedPlace) return;
+
+    map.flyTo([selectedPlace.location.latitude, selectedPlace.location.longitude], 16, {
+      animate: true,
+      duration: 0.8
+    });
+  }, [selectedPlace]);
 
   // Update POI Markers
   useEffect(() => {
@@ -270,31 +343,51 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
 
   return (
     <div className={`relative overflow-hidden rounded-xl bg-[#e4e9ec] ${className}`}>
-      {/* Dynamic Map Layer Switcher */}
-      <div className="absolute top-3 right-3 z-[1000] flex items-center bg-white/95 backdrop-blur-md p-1 rounded-xl shadow-md border border-slate-200/90 gap-1 text-[11px] font-bold pointer-events-auto">
-        {(['google_streets', 'google_satellite', 'osm'] as MapTileProvider[]).map((prov) => {
-          const cfg = TILE_CONFIG[prov];
-          const isActive = currentProvider === prov;
-          return (
-            <button
-              key={prov}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setCurrentProvider(prov);
-              }}
-              className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
-                isActive
-                  ? 'bg-sky-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-              title={cfg.name}
-            >
-              <span>{cfg.icon}</span>
-              <span className="hidden sm:inline">{cfg.shortLabel}</span>
-            </button>
-          );
-        })}
+      {/* Dynamic Map Controls (Layer Switcher + Recenter) */}
+      <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5 pointer-events-auto">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (mapInstanceRef.current && userLocation) {
+              mapInstanceRef.current.flyTo([userLocation.latitude, userLocation.longitude], 15, {
+                animate: true,
+                duration: 0.8
+              });
+            }
+          }}
+          className="h-8 px-2.5 rounded-xl bg-white/95 backdrop-blur-md shadow-md border border-slate-200/90 flex items-center gap-1 text-[11px] font-bold text-primary active:scale-95 transition-all hover:bg-slate-50 cursor-pointer"
+          title="Recenter Map on Current Location"
+        >
+          <span className="material-symbols-outlined text-[16px]">my_location</span>
+          <span className="hidden sm:inline">Recenter</span>
+        </button>
+
+        <div className="flex items-center bg-white/95 backdrop-blur-md p-1 rounded-xl shadow-md border border-slate-200/90 gap-1 text-[11px] font-bold">
+          {(['google_streets', 'google_satellite', 'osm'] as MapTileProvider[]).map((prov) => {
+            const cfg = TILE_CONFIG[prov];
+            const isActive = currentProvider === prov;
+            return (
+              <button
+                key={prov}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentProvider(prov);
+                }}
+                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+                  isActive
+                    ? 'bg-sky-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+                title={cfg.name}
+              >
+                <span>{cfg.icon}</span>
+                <span className="hidden sm:inline">{cfg.shortLabel}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div ref={mapContainerRef} className="w-full h-full min-h-[300px]" />

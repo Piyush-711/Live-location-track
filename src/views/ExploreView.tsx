@@ -685,10 +685,10 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
               <button 
                 onClick={onRequestGPS}
                 className="px-2.5 py-1 rounded-full bg-surface text-primary border border-primary/30 shadow-tactile-sm flex items-center gap-1 text-[11px] font-bold active:scale-95 transition-transform"
-                title="Center on user GPS position"
+                title="Switch to live device GPS"
               >
                 <span className="material-symbols-outlined text-[14px]">my_location</span>
-                <span>Center GPS</span>
+                <span>{location.isCustom ? 'Switch to GPS' : 'Live GPS'}</span>
               </button>
             </div>
 
@@ -697,6 +697,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                 userLocation={location.coords}
                 places={dynamicPlaces}
                 onSelectPlace={onSelectPlace}
+                isMapVisible={mobileViewMode === 'map'}
                 className="w-full h-full"
               />
             </div>
