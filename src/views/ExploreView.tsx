@@ -335,97 +335,69 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 
   return (
     <div className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 pb-28 pt-2">
-      {/* Live Context Hero (Tactile Card) */}
+      {/* Human Editorial Destination Hero */}
       <section className="pt-2 pb-3">
-        <div className="relative overflow-hidden rounded-2xl bg-surface-container-low p-4 md:p-6 shadow-tactile border border-[#eae6df]/80">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5 mb-1">
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#E0F2FE] text-primary shadow-[-2px_-2px_5px_rgba(255,255,255,0.9),2px_2px_4px_rgba(180,172,158,0.35)]">
-                  <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    near_me
-                  </span>
-                </span>
-                <span className="text-[10px] uppercase tracking-wider text-primary font-extrabold">
-                  {location.status === 'fixed' ? 'Live GPS Positioning' : 'Simulated GPS Node'}
-                </span>
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-950 p-6 sm:p-7 text-white shadow-md">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-[11px] font-semibold text-sky-200 mb-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>{location.isCustom ? 'Custom Location' : location.status === 'fixed' ? 'Live GPS Active' : 'City Hub'}</span>
+                <span>•</span>
+                <span>{location.cityName.split(',')[0]}</span>
               </div>
-              <h1 className="text-[22px] sm:text-[28px] font-extrabold text-on-surface tracking-tight leading-tight">
-                {location.cityName}
+
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
+                Explore {location.cityName.split(',')[0]}
               </h1>
-              <p className="text-[12px] sm:text-[13px] text-on-surface-variant mt-0.5 font-medium">
-                {location.coords.latitude.toFixed(4)}° N, {location.coords.longitude.toFixed(4)}° E • High-Precision Triangulation
+              <p className="text-xs sm:text-sm text-slate-300 mt-1 font-medium max-w-xl">
+                Historic forts, palaces, museums, scenic beaches, local cafes & 24/7 emergency care.
               </p>
             </div>
-            
-            <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2">
-              <div className="px-3 py-1 rounded-full bg-surface-container shadow-tactile-inset-sm flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${location.status === 'fixed' ? 'bg-emerald-500 animate-ping' : 'bg-primary animate-pulse'}`}></span>
-                <span className="text-[11px] text-primary font-extrabold">
-                  {location.status === 'fixed' ? 'DEVICE GPS LOCKED' : 'L-BAND SIMULATED'}
-                </span>
-              </div>
-              <span className="text-[11px] text-on-surface-variant font-semibold">
-                Accuracy ±{location.accuracyMeters}m
-              </span>
-            </div>
-          </div>
 
-          {/* Quick Utility Ribbon */}
-          <div className="mt-4 pt-1">
-            <div className="rounded-xl bg-surface-variant/80 p-2.5 shadow-tactile-inset flex items-center justify-between gap-2 overflow-x-auto text-[11px] font-semibold text-on-surface">
-              {/* Dynamic Live Weather & Temperature */}
-              <div className="flex items-center gap-1.5 px-2 py-0.5 flex-shrink-0" title={`Current Temperature: ${ribbonWeather?.tempC ?? '--'}°C`}>
-                <span className="material-symbols-outlined text-primary text-[16px]">
+            {/* Travel Telemetry Strip */}
+            <div className="flex flex-wrap items-center gap-2 pt-1 md:pt-0">
+              {/* Weather Chip */}
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-xs font-semibold text-white">
+                <span className="material-symbols-outlined text-[17px] text-amber-400">
                   {ribbonWeather?.icon || 'wb_sunny'}
                 </span>
-                <span>
-                  {ribbonWeather ? `${ribbonWeather.tempC}°C ${ribbonWeather.condition}` : 'Loading weather...'}
-                </span>
+                <span>{ribbonWeather ? `${ribbonWeather.tempC}°C • ${ribbonWeather.condition}` : 'Loading weather...'}</span>
               </div>
-              <span className="w-[1px] h-3.5 bg-outline-variant/60 flex-shrink-0"></span>
 
-              {/* Dynamic Real-Time Exchange Rate */}
-              <div className="flex items-center gap-1.5 px-2 py-0.5 flex-shrink-0" title="Live Market Currency Conversion">
-                <span className="material-symbols-outlined text-primary text-[16px]">currency_exchange</span>
+              {/* Currency Chip */}
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-xs font-semibold text-white">
+                <span className="material-symbols-outlined text-[17px] text-emerald-400">currency_exchange</span>
                 <span>{getRibbonFXText(location.countryCode, ribbonRates)}</span>
               </div>
-              <span className="w-[1px] h-3.5 bg-outline-variant/60 flex-shrink-0"></span>
 
-              {/* Dynamic Local Clock */}
-              <div className="flex items-center gap-1.5 px-2 py-0.5 flex-shrink-0" title="Local Timezone Clock">
-                <span className="material-symbols-outlined text-primary text-[16px]">schedule</span>
+              {/* Local Clock Chip */}
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/10 text-xs font-semibold text-white">
+                <span className="material-symbols-outlined text-[17px] text-sky-300">schedule</span>
                 <span>{localTimeInfo.timeStr} {localTimeInfo.tzCode}</span>
-              </div>
-              <span className="w-[1px] h-3.5 bg-outline-variant/60 flex-shrink-0"></span>
-
-              {/* Storage & Engine Status */}
-              <div className="flex items-center gap-1.5 px-2 py-0.5 flex-shrink-0" title="Offline Spatial Storage Ready">
-                <span className="material-symbols-outlined text-primary text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  database
-                </span>
-                <span>SQLite Ready</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Inset Search Well */}
+      {/* Human Search Bar */}
       <section className="py-1">
-        <div className="flex items-center gap-2">
-          <div className="flex-1 relative flex items-center h-[52px] rounded-[18px] bg-surface-container-highest shadow-tactile-inset px-4 border border-[#eae6df]/40">
-            <span className="material-symbols-outlined text-outline text-[20px] mr-2.5 select-none">search</span>
+        <div className="flex items-center gap-2.5">
+          <div className="flex-1 relative flex items-center h-12 rounded-2xl bg-white border border-slate-200/90 shadow-sm px-4 focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500 transition-all">
+            <span className="material-symbols-outlined text-slate-400 text-[20px] mr-2.5 select-none">search</span>
             <input 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search nearby essentials or places..."
-              className="w-full bg-transparent border-none outline-none text-[13px] sm:text-[14px] text-on-surface placeholder:text-outline/80 font-medium"
+              placeholder="Search places, forts, museums, beaches, cafes, ATMs, hospitals..."
+              className="w-full bg-transparent border-none outline-none text-sm text-slate-900 placeholder:text-slate-400 font-medium"
             />
             {searchQuery && (
               <button 
                 onClick={() => setSearchQuery('')}
-                className="w-6 h-6 rounded-full flex items-center justify-center text-outline hover:text-on-surface"
+                className="w-6 h-6 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[16px]">close</span>
               </button>
@@ -436,18 +408,18 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
           <button 
             onClick={() => setMobileViewMode(mobileViewMode === 'list' ? 'map' : 'list')}
             aria-label="Toggle map view"
-            className="md:hidden w-[52px] h-[52px] rounded-[18px] bg-surface flex items-center justify-center text-on-surface shadow-tactile active:shadow-tactile-inset transition-all"
-            title={mobileViewMode === 'list' ? 'Switch to Map' : 'Switch to List'}
+            className="md:hidden h-12 px-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center gap-1.5 text-xs font-bold text-slate-700 active:scale-95 transition-all cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[20px] text-primary">
+            <span className="material-symbols-outlined text-[18px] text-sky-600">
               {mobileViewMode === 'list' ? 'map' : 'view_list'}
             </span>
+            <span>{mobileViewMode === 'list' ? 'Map' : 'List'}</span>
           </button>
         </div>
       </section>
 
-      {/* High-Value Category Filter Pills */}
-      <section className="pt-3 pb-2">
+      {/* Human Category Filter Chips */}
+      <section className="pt-2 pb-1">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
           {CATEGORY_PILLS.map((pill) => {
             const isActive = selectedCategory === pill.id;
@@ -455,13 +427,13 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
               <button
                 key={pill.id}
                 onClick={() => setSelectedCategory(pill.id)}
-                className={`flex items-center gap-1.5 h-8 px-3.5 rounded-full text-[11px] sm:text-[12px] font-bold flex-shrink-0 transition-all ${
+                className={`flex items-center gap-1.5 h-9 px-4 rounded-full text-xs font-bold flex-shrink-0 transition-all cursor-pointer ${
                   isActive
-                    ? 'tactile-pill-active'
-                    : 'tactile-pill-inactive active:scale-95'
+                    ? 'bg-sky-600 text-white shadow-sm ring-2 ring-sky-600/20'
+                    : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:border-slate-300'
                 }`}
               >
-                <span className="material-symbols-outlined text-[15px]">
+                <span className="material-symbols-outlined text-[16px]">
                   {pill.icon}
                 </span>
                 <span>{pill.label}</span>
@@ -477,222 +449,244 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
         <div className={`flex flex-col gap-3.5 md:col-span-7 ${mobileViewMode === 'map' ? 'hidden md:flex' : 'flex'}`}>
           <div className="flex items-center justify-between pb-1">
             <div className="flex items-baseline gap-2">
-              <span className="text-[18px] font-extrabold text-on-surface">Surroundings Stream</span>
-              <span className="text-[11px] font-semibold text-on-surface-variant">Live Proximity Ranked</span>
+              <span className="text-lg font-bold text-slate-900">Nearby Places</span>
+              <span className="text-xs font-medium text-slate-500">Sorted by distance</span>
             </div>
-            <span className="text-[11px] font-bold text-primary flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-              {dynamicPlaces.length} Verified
+            <span className="text-xs font-semibold text-sky-600 flex items-center gap-1.5 bg-sky-50 px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-600 animate-pulse"></span>
+              <span>{dynamicPlaces.length} Places Found</span>
             </span>
           </div>
 
           {loading ? (
-            <div className="p-12 text-center text-on-surface-variant text-[13px] font-medium">
-              Loading proximity-indexed catalogue...
+            <div className="p-12 text-center text-slate-500 text-sm font-medium flex items-center justify-center gap-2">
+              <span className="material-symbols-outlined text-[20px] animate-spin text-sky-600">progress_activity</span>
+              <span>Discovering verified places near {location.cityName.split(',')[0]}...</span>
             </div>
           ) : dynamicPlaces.length === 0 ? (
-            <div className="p-8 text-center rounded-2xl bg-surface shadow-tactile border border-[#eae6df]">
-              <span className="material-symbols-outlined text-[36px] text-outline">search_off</span>
-              <p className="text-[13px] font-bold text-on-surface mt-2">No matching verified places nearby</p>
-              <p className="text-[11px] text-on-surface-variant mt-1">Try clearing your search query or selecting "All Essentials"</p>
+            <div className="p-10 text-center rounded-2xl bg-white shadow-sm border border-slate-200/80 flex flex-col items-center gap-2">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
+                <span className="material-symbols-outlined text-[28px]">search_off</span>
+              </div>
+              <p className="text-sm font-bold text-slate-800 mt-1">No matching places found</p>
+              <p className="text-xs text-slate-500 max-w-xs">Try clearing your search filters or searching for another place in {location.cityName.split(',')[0]}.</p>
             </div>
           ) : (
             dynamicPlaces.map((place) => {
               const isSaved = savedIds.has(place.id);
+              const walkMins = Math.max(1, Math.round(place.distanceMeters / 75));
+              const distDisplay = place.distanceMeters >= 1000 
+                ? `${(place.distanceMeters / 1000).toFixed(1)} km` 
+                : `${place.distanceMeters} m`;
+
+              const catBadgeStyle = 
+                place.category === 'historic' ? 'bg-amber-50 text-amber-800 border-amber-200/80' :
+                place.category === 'museum' ? 'bg-purple-50 text-purple-800 border-purple-200/80' :
+                place.category === 'beach' ? 'bg-cyan-50 text-cyan-800 border-cyan-200/80' :
+                place.category === 'attraction' ? 'bg-rose-50 text-rose-800 border-rose-200/80' :
+                place.category === 'hospital' ? 'bg-red-50 text-red-700 border-red-200/80' :
+                place.category === 'pharmacy' ? 'bg-emerald-50 text-emerald-800 border-emerald-200/80' :
+                place.category === 'atm' ? 'bg-emerald-50 text-emerald-800 border-emerald-200/80' :
+                place.category === 'cafe' ? 'bg-orange-50 text-orange-800 border-orange-200/80' :
+                'bg-slate-50 text-slate-700 border-slate-200';
+
+              const catLabel = 
+                place.category === 'historic' ? 'Heritage & Palace' :
+                place.category === 'museum' ? 'Museum' :
+                place.category === 'beach' ? 'Beach' :
+                place.category === 'attraction' ? 'Attraction' :
+                place.category === 'hospital' ? 'Hospital / ER' :
+                place.category === 'pharmacy' ? 'Pharmacy' :
+                place.category === 'atm' ? 'ATM & Cash' :
+                place.category === 'cafe' ? 'Café & Dining' :
+                place.category === 'transit_stop' ? 'Transit Station' :
+                place.category;
+
               return (
                 <article 
                   key={place.id}
                   onClick={() => onSelectPlace(place)}
-                  className="cursor-pointer rounded-[22px] bg-surface p-4 shadow-tactile border border-[#eae6df]/80 flex flex-col gap-2.5 active:scale-[0.99] transition-all hover:border-primary/40"
+                  className="group cursor-pointer rounded-2xl bg-white p-4 sm:p-5 border border-slate-200/80 hover:border-sky-300 shadow-sm hover:shadow-md transition-all active:scale-[0.99] flex flex-col gap-3.5"
                 >
-                  <div className="flex items-start gap-3.5">
-                    {/* Photo or Category Glyph */}
-                    <div className="w-20 h-20 rounded-xl p-1 bg-surface-container shadow-tactile-inset flex-shrink-0 overflow-hidden flex items-center justify-center">
+                  <div className="flex items-start gap-4">
+                    {/* Thumbnail / Photo */}
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 relative shadow-inner">
                       {place.imageUrl ? (
                         <img 
                           alt={place.name} 
-                          className="w-full h-full object-cover rounded-lg"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           src={place.imageUrl}
                         />
                       ) : (
-                        <div className="w-full h-full rounded-lg bg-surface flex items-center justify-center text-primary">
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-sky-600 gap-1">
                           <span className="material-symbols-outlined text-[32px]">
-                            {place.category === 'hospital' ? 'local_hospital' :
-                             place.category === 'pharmacy' ? 'medication' :
-                             place.category === 'police' ? 'local_police' :
-                             place.category === 'atm' ? 'atm' :
-                             place.category === 'transit_stop' ? 'train' : 'place'}
+                            {place.category === 'historic' ? 'castle' :
+                             place.category === 'museum' ? 'museum' :
+                             place.category === 'beach' ? 'beach_access' :
+                             place.category === 'hospital' ? 'local_hospital' :
+                             place.category === 'atm' ? 'atm' : 'place'}
                           </span>
                         </div>
                       )}
                     </div>
 
-                    {/* Details Header */}
+                    {/* Details Column */}
                     <div className="flex-1 min-w-0 flex flex-col">
-                      <div className="flex items-center justify-between gap-1">
-                        <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-extrabold tracking-wide uppercase border ${
-                          place.hours.status === 'open' 
-                            ? 'bg-[#E0F2FE] text-primary border-[#BAE6FD]' 
-                            : 'bg-surface-container-high text-on-surface-variant border-[#eae6df]'
-                        }`}>
-                          {place.hours.formatted || (place.hours.status === 'open' ? 'Open Now' : 'Hours Unknown')}
-                        </span>
-                        
-                        <div className="flex items-center gap-1">
-                          <button 
-                            onClick={(e) => handleToggleSave(e, place)}
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-outline hover:text-red-500 active:scale-90 transition-transform"
-                            title={isSaved ? 'Saved to Offline List' : 'Save to Offline List'}
-                          >
-                            <span 
-                              className={`material-symbols-outlined text-[19px] ${isSaved ? 'text-red-500 fill' : ''}`}
-                              style={isSaved ? { fontVariationSettings: "'FILL' 1" } : undefined}
-                            >
-                              {isSaved ? 'favorite' : 'favorite_border'}
-                            </span>
-                          </button>
-                          <div className="flex items-center gap-0.5 text-on-surface-variant text-[11px] font-semibold">
-                            <span className="material-symbols-outlined text-[14px] text-primary">directions_walk</span>
-                            <span>{Math.max(1, Math.round(place.distanceMeters / 75))} min</span>
-                          </div>
+                      <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[11px] px-2.5 py-0.5 rounded-full font-bold border ${catBadgeStyle}`}>
+                            {catLabel}
+                          </span>
+                          <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
+                            place.hours.status === 'open' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                          }`}>
+                            {place.hours.status === 'open' ? 'Open now' : 'Hours not listed'}
+                          </span>
                         </div>
+
+                        {/* Save Bookmark */}
+                        <button 
+                          onClick={(e) => handleToggleSave(e, place)}
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-rose-500 active:scale-90 transition-all hover:bg-rose-50 cursor-pointer"
+                          title={isSaved ? 'Remove from Saved' : 'Save to Favorites'}
+                        >
+                          <span 
+                            className={`material-symbols-outlined text-[20px] ${isSaved ? 'text-rose-500 fill' : ''}`}
+                            style={isSaved ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                          >
+                            {isSaved ? 'favorite' : 'favorite_border'}
+                          </span>
+                        </button>
                       </div>
 
-                      <h2 className="text-[16px] font-extrabold text-on-surface truncate mt-1">
+                      <h2 className="text-base sm:text-lg font-bold text-slate-900 group-hover:text-sky-700 transition-colors truncate mt-1">
                         {place.name}
                       </h2>
                       
                       {place.localizedName && (
-                        <p className="text-[12px] text-on-surface-variant truncate font-medium">
+                        <p className="text-xs text-slate-500 truncate font-medium mt-0.5">
                           {place.localizedName}
                         </p>
                       )}
 
-                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                        <span className="text-[12px] text-primary font-bold">
-                          {place.distanceMeters}m away
+                      <div className="flex items-center gap-2 mt-2 text-xs font-semibold text-slate-600">
+                        <span className="flex items-center gap-1 text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md">
+                          <span className="material-symbols-outlined text-[14px]">directions_walk</span>
+                          <span>{distDisplay} • {walkMins} min</span>
                         </span>
-                        <span className="w-1 h-1 rounded-full bg-outline-variant"></span>
-                        <span className="text-[11px] text-on-surface-variant flex items-center gap-1 font-semibold truncate">
-                          {place.source === 'CURATED_REGISTRY' ? (
-                            <>
-                              <span className="material-symbols-outlined text-[13px] text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>
-                                verified
-                              </span>
-                              <span>Verified Registry</span>
-                            </>
-                          ) : (
-                            <span>OSM Validated</span>
-                          )}
+                        <span className="text-slate-400 truncate">•</span>
+                        <span className="text-slate-500 truncate text-[11px]">
+                          {place.address ? place.address.split(',')[0] : 'OpenStreetMap Verified'}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Sub-Banner / Triage Note */}
+                  {/* Highlights / Features Tip */}
                   {place.triageInfo && (
-                    <div className="rounded-xl bg-[#F0F9FF] p-2.5 shadow-tactile-inset-sm flex items-center justify-between text-[11px] font-medium text-on-surface-variant border border-[#E0F2FE]">
+                    <div className="rounded-xl bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 border border-slate-100 flex items-center justify-between gap-2">
                       <span className="flex items-center gap-1.5 truncate">
-                        <span className="material-symbols-outlined text-primary text-[15px] flex-shrink-0">
-                          {place.category === 'hospital' ? 'translate' : 'check_circle'}
+                        <span className="material-symbols-outlined text-sky-600 text-[16px] flex-shrink-0">
+                          {place.category === 'hospital' ? 'medical_services' : 'stars'}
                         </span>
                         <span className="truncate">{place.triageInfo}</span>
                       </span>
-                      <span className="text-[10px] text-primary font-bold flex-shrink-0 ml-1">
-                        {place.emergencyCapable ? 'Priority Tier 1' : 'Fast Access'}
-                      </span>
+                      {place.emergencyCapable && (
+                        <span className="text-[10px] text-red-600 font-bold px-1.5 py-0.5 rounded bg-red-50 flex-shrink-0">
+                          Emergency 24/7
+                        </span>
+                      )}
                     </div>
                   )}
 
-                  {/* Action Row */}
-                  <div className="flex items-center gap-2 pt-1">
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2 pt-1 border-t border-slate-100">
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
                         onStartRoute(place);
                       }}
-                      className="flex-1 h-10 rounded-full bg-primary text-white text-[12px] font-bold flex items-center justify-center gap-1.5 shadow-tactile-primary active:scale-[0.98] transition-all hover:bg-secondary"
+                      className="flex-1 h-9 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.98] transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[16px]">navigation</span>
-                      <span>Start Walking</span>
+                      <span>Directions</span>
                     </button>
-                    
-                    {place.phone ? (
+
+                    {place.phone && (
                       <a
                         href={`tel:${place.phone}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary shadow-tactile active:scale-95 transition-transform"
-                        title="Direct Phone Call"
+                        className="h-9 px-3 rounded-xl bg-slate-100 hover:bg-slate-200/70 text-slate-700 text-xs font-bold flex items-center justify-center gap-1 transition-all"
+                        title="Call"
                       >
-                        <span className="material-symbols-outlined text-[18px]">call</span>
+                        <span className="material-symbols-outlined text-[16px]">call</span>
+                        <span className="hidden sm:inline">Call</span>
                       </a>
-                    ) : (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectPlace(place);
-                        }}
-                        className="h-10 px-3.5 rounded-full bg-surface-container text-primary text-[11px] font-bold shadow-tactile active:scale-95 transition-transform flex items-center gap-1"
-                      >
-                        <span>Details</span>
-                        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-                      </button>
                     )}
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectPlace(place);
+                      }}
+                      className="h-9 px-3 rounded-xl bg-slate-100 hover:bg-slate-200/70 text-slate-700 text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                    >
+                      <span>Details</span>
+                      <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+                    </button>
                   </div>
                 </article>
               );
             })
           )}
 
-          {/* Persistent Tactile Emergency SOS Trigger */}
+          {/* Emergency SOS Quick Access Banner */}
           <section className="pt-2">
-            <div className="rounded-2xl p-0.5 bg-gradient-to-br from-primary to-secondary shadow-tactile-primary">
-              <button 
-                onClick={onOpenEmergency}
-                className="w-full py-3.5 px-4 rounded-[22px] bg-primary text-white flex items-center justify-between active:scale-[0.985] transition-transform select-none"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-[24px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
-                      health_and_safety
-                    </span>
-                  </div>
-                  <div className="flex flex-col text-left">
-                    <span className="text-[15px] font-extrabold text-white leading-tight">
-                      Emergency SOS {location.cityName.split(',')[0]}
-                    </span>
-                    <span className="text-[11px] text-white/90 font-medium">
-                      Hotlines & Instant Location Beacon
-                    </span>
-                  </div>
+            <button 
+              onClick={onOpenEmergency}
+              className="w-full p-4 rounded-2xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 text-white shadow-sm flex items-center justify-between active:scale-[0.99] transition-all cursor-pointer group"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                  <span className="material-symbols-outlined text-[22px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    emergency
+                  </span>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-[18px] text-white">arrow_forward</span>
+                <div className="flex flex-col text-left">
+                  <span className="text-sm font-bold text-white tracking-tight">
+                    Emergency Directory • {location.cityName.split(',')[0]}
+                  </span>
+                  <span className="text-xs text-rose-100 font-medium">
+                    Local Police, Ambulance & English-Speaking Hospitals
+                  </span>
                 </div>
-              </button>
-            </div>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center flex-shrink-0 group-hover:translate-x-0.5 transition-transform">
+                <span className="material-symbols-outlined text-[18px] text-white">arrow_forward</span>
+              </div>
+            </button>
           </section>
         </div>
 
         {/* Right Column (Interactive Live Leaflet Map - Visible permanently on Tablet/Desktop, toggled on mobile) */}
         <div className={`md:col-span-5 md:sticky md:top-20 flex-col gap-3 ${mobileViewMode === 'map' ? 'flex' : 'hidden md:flex'}`}>
-          <div className="rounded-2xl overflow-hidden border border-[#eae6df] shadow-tactile p-2 bg-surface flex flex-col gap-2">
+          <div className="rounded-2xl overflow-hidden border border-slate-200/90 shadow-sm p-3 bg-white flex flex-col gap-2.5">
             <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-primary">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>OpenStreetMap Live Layer</span>
+                <span>Live Interactive Map</span>
               </div>
               <button 
                 onClick={onRequestGPS}
-                className="px-2.5 py-1 rounded-full bg-surface text-primary border border-primary/30 shadow-tactile-sm flex items-center gap-1 text-[11px] font-bold active:scale-95 transition-transform"
+                className="px-3 py-1 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-sky-700 flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
                 title="Switch to live device GPS"
               >
-                <span className="material-symbols-outlined text-[14px]">my_location</span>
-                <span>{location.isCustom ? 'Switch to GPS' : 'Live GPS'}</span>
+                <span className="material-symbols-outlined text-[15px]">my_location</span>
+                <span>{location.isCustom ? 'Use GPS' : 'Live GPS'}</span>
               </button>
             </div>
 
-            <div className="relative w-full h-80 sm:h-96 md:h-[540px] rounded-xl overflow-hidden shadow-inner">
+            <div className="relative w-full h-80 sm:h-96 md:h-[540px] rounded-xl overflow-hidden border border-slate-100">
               <LiveLeafletMap
                 userLocation={location.coords}
                 places={dynamicPlaces}
@@ -702,22 +696,20 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
               />
             </div>
             
-            <div className="px-2 py-1 flex items-center justify-between text-[10px] text-on-surface-variant font-mono">
-              <span>{location.coords.latitude.toFixed(5)}°, {location.coords.longitude.toFixed(5)}°</span>
-              <span>{dynamicPlaces.length} OSM POIs Plotted</span>
+            <div className="px-1 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+              <span>{location.coords.latitude.toFixed(4)}°, {location.coords.longitude.toFixed(4)}°</span>
+              <span className="text-slate-600 font-semibold">{dynamicPlaces.length} places pinned</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Footer Notice */}
-      <footer className="pt-6 pb-6 text-center select-none">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container shadow-tactile-inset-sm">
-          <span className="material-symbols-outlined text-[13px] text-outline">map</span>
-          <span className="text-[10px] text-on-surface-variant font-medium">
-            Map data © OpenStreetMap contributors (ODbL) • No Remote User Tracking
-          </span>
-        </div>
+      <footer className="pt-8 pb-4 text-center select-none">
+        <p className="text-xs text-slate-400 font-medium flex items-center justify-center gap-1.5">
+          <span className="material-symbols-outlined text-[15px]">public</span>
+          <span>Map data from OpenStreetMap • Privacy-first, runs locally in your browser</span>
+        </p>
       </footer>
     </div>
   );

@@ -6,7 +6,11 @@
   html, body {
     width: 100%;
     min-height: 100%;
-    background-color: #fbf9f5;
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   .pb-safe {
     padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
@@ -16,63 +20,85 @@
   }
 }
 
-/* Clay & Tactile Neumorphic Utilities */
+/* Modern, Polished Human-Crafted Utilities */
 .clay-surface {
-  background-color: #fbf9f5;
+  background-color: #ffffff;
 }
 
 .tactile-card {
-  background-color: #fbf9f5;
-  box-shadow: -4px -4px 10px rgba(255, 255, 255, 0.95), 4px 6px 14px rgba(180, 172, 158, 0.45);
+  background-color: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .tactile-card-elevated {
-  background-color: #f4f0e6;
-  box-shadow: -6px -6px 16px rgba(255, 255, 255, 0.95), 6px 8px 18px rgba(180, 172, 158, 0.45);
+  background-color: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
 }
 
 .tactile-well {
-  background-color: #efeeea;
-  box-shadow: inset 3px 4px 8px rgba(180, 172, 158, 0.40), inset -3px -3px 6px rgba(255, 255, 255, 0.85);
+  background-color: #f1f5f9;
+  border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
 .tactile-well-sm {
-  background-color: #f1eee5;
-  box-shadow: inset 2px 2px 4px rgba(180, 172, 158, 0.35), inset -2px -2px 4px rgba(255, 255, 255, 0.90);
+  background-color: #f8fafc;
+  border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
 .tactile-btn-primary {
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
   color: #ffffff;
-  box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.70), 3px 5px 12px rgba(2, 132, 199, 0.38);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
   transition: all 0.15s ease-in-out;
+}
+
+.tactile-btn-primary:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
 }
 
 .tactile-btn-primary:active {
   transform: scale(0.98);
-  box-shadow: inset 2px 2px 5px rgba(3, 105, 161, 0.50);
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
 }
 
 .tactile-btn-secondary {
-  background-color: #fbf9f5;
-  box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.95), 3px 4px 8px rgba(180, 172, 158, 0.45);
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: all 0.15s ease-in-out;
 }
 
+.tactile-btn-secondary:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
 .tactile-btn-secondary:active {
-  transform: scale(0.97);
-  box-shadow: inset 2px 3px 5px rgba(180, 172, 158, 0.45), inset -2px -2px 4px rgba(255, 255, 255, 0.90);
+  transform: scale(0.98);
+  background-color: #f1f5f9;
 }
 
 .tactile-pill-active {
   background-color: #e0f2fe;
   border: 1px solid #bae6fd;
   color: #0284c7;
-  box-shadow: inset 1px 2px 3px rgba(2, 132, 199, 0.25);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(2, 132, 199, 0.1);
 }
 
 .tactile-pill-inactive {
-  background-color: #fbf9f5;
-  color: #1b1c1a;
-  box-shadow: -3px -3px 8px rgba(255, 255, 255, 0.95), 3px 4px 8px rgba(180, 172, 158, 0.45);
+  background-color: #ffffff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.tactile-pill-inactive:hover {
+  background-color: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
 }

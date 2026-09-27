@@ -47,17 +47,19 @@ export const VoiceSettingsModal: React.FC<VoiceSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-sm rounded-[24px] bg-surface p-5 shadow-tactile-xl border border-[#eae6df] flex flex-col gap-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-md animate-fadeIn">
+      <div className="w-full max-w-md rounded-3xl bg-white p-5 sm:p-6 shadow-2xl border border-slate-200 flex flex-col gap-4">
         {/* Header */}
-        <div className="flex items-center justify-between pb-2 border-b border-[#eae6df]">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[22px] text-primary">record_voice_over</span>
-            <span className="text-[15px] font-extrabold text-on-surface">Audio & Voice Engine</span>
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px]">record_voice_over</span>
+            </div>
+            <h2 className="text-base font-bold text-slate-900">Audio & Voice Guidance</h2>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-outline hover:text-on-surface active:scale-95 shadow-tactile-inset-sm"
+            className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
@@ -65,28 +67,28 @@ export const VoiceSettingsModal: React.FC<VoiceSettingsModalProps> = ({
 
         {/* Volume Profiles */}
         <div className="flex flex-col gap-2">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-on-surface-variant">
-            Acoustic Volume Level
+          <span className="text-xs font-semibold text-slate-500">
+            Audio Volume Level
           </span>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { id: 'low' as VolumeProfile, label: 'Low', desc: 'Indoor / Quiet' },
+              { id: 'low' as VolumeProfile, label: 'Quiet', desc: 'Indoor / Calm' },
               { id: 'standard' as VolumeProfile, label: 'Standard', desc: 'Urban Walk' },
-              { id: 'outdoor_boost' as VolumeProfile, label: 'Outdoor Boost', desc: 'Traffic / Transit' }
+              { id: 'outdoor_boost' as VolumeProfile, label: 'Boosted', desc: 'Street Traffic' }
             ].map(profile => {
               const active = settings.volumeMode === profile.id;
               return (
                 <button
                   key={profile.id}
                   onClick={() => handleSelectMode(profile.id)}
-                  className={`p-2.5 rounded-xl flex flex-col items-center text-center transition-all select-none ${
+                  className={`p-3 rounded-2xl flex flex-col items-center text-center transition-all select-none cursor-pointer ${
                     active
-                      ? 'bg-[#E0F2FE] border border-[#BAE6FD] text-primary shadow-tactile-inset-sm font-extrabold'
-                      : 'bg-surface border border-[#eae6df] text-on-surface shadow-tactile active:scale-95 font-semibold'
+                      ? 'bg-sky-50 border-sky-200 text-sky-900 ring-1 ring-sky-500/20 font-bold'
+                      : 'bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-medium'
                   }`}
                 >
-                  <span className="text-[12px]">{profile.label}</span>
-                  <span className="text-[9px] text-on-surface-variant mt-0.5">{profile.desc}</span>
+                  <span className="text-xs font-bold">{profile.label}</span>
+                  <span className="text-[10px] text-slate-400 mt-0.5">{profile.desc}</span>
                 </button>
               );
             })}
@@ -97,37 +99,37 @@ export const VoiceSettingsModal: React.FC<VoiceSettingsModalProps> = ({
         <button
           onClick={handleTestVoice}
           disabled={testingAudio}
-          className="w-full h-11 rounded-full tactile-btn-primary flex items-center justify-center gap-2 text-[13px] font-bold shadow-tactile-primary active:scale-98"
+          className="w-full h-11 rounded-xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center gap-2 text-xs font-bold shadow-sm active:scale-98 transition-all cursor-pointer"
         >
           <span className={`material-symbols-outlined text-[18px] ${testingAudio ? 'animate-spin' : ''}`}>
             {testingAudio ? 'graphic_eq' : 'play_arrow'}
           </span>
-          <span>{testingAudio ? 'Playing Guidance Sample...' : 'Test Voice Synthesis'}</span>
+          <span>{testingAudio ? 'Speaking Sample...' : 'Test Voice Synthesis'}</span>
         </button>
 
         {/* Chimes Toggle */}
         <div 
           onClick={handleToggleChimes}
-          className="flex items-center justify-between p-3 rounded-xl bg-surface shadow-tactile border border-[#eae6df] cursor-pointer"
+          className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 cursor-pointer hover:bg-slate-100 transition-colors"
         >
           <div className="flex flex-col">
-            <span className="text-[12px] font-extrabold text-on-surface">Acoustic Signal Chimes</span>
-            <span className="text-[10px] text-on-surface-variant">Play gentle tone before speaking turns</span>
+            <span className="text-xs font-bold text-slate-800">Turn Chimes</span>
+            <span className="text-[11px] text-slate-500">Play an alert chime right before each turn</span>
           </div>
-          <div className={`w-10 h-6 rounded-full p-0.5 transition-colors ${settings.chimesEnabled ? 'bg-primary' : 'bg-surface-variant'}`}>
+          <div className={`w-10 h-6 rounded-full p-0.5 transition-colors ${settings.chimesEnabled ? 'bg-sky-600' : 'bg-slate-300'}`}>
             <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${settings.chimesEnabled ? 'translate-x-4' : 'translate-x-0'}`} />
           </div>
         </div>
 
         {/* Language Selection */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-on-surface-variant">
+          <span className="text-xs font-semibold text-slate-500">
             Guidance Language
           </span>
           <select
             value={settings.language}
             onChange={(e) => handleLanguageChange(e.target.value)}
-            className="w-full h-10 px-3 rounded-xl bg-surface-container shadow-tactile-inset-sm border border-[#eae6df] text-[12px] font-bold text-on-surface outline-none"
+            className="w-full h-10 px-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 outline-none cursor-pointer"
           >
             <option value="en-US">English (United States)</option>
             <option value="en-GB">English (United Kingdom)</option>
@@ -141,10 +143,10 @@ export const VoiceSettingsModal: React.FC<VoiceSettingsModalProps> = ({
             onClose();
             onOpenOfflineVault();
           }}
-          className="w-full py-2.5 rounded-xl bg-surface-container-low text-primary text-[11px] font-bold flex items-center justify-center gap-1.5 border border-[#eae6df] shadow-tactile active:scale-98"
+          className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
         >
-          <span className="material-symbols-outlined text-[16px]">add_circle</span>
-          <span>Manage & Download More Regional Packs</span>
+          <span className="material-symbols-outlined text-[16px] text-sky-600">cloud_download</span>
+          <span>Download Offline Guides</span>
         </button>
       </div>
     </div>

@@ -102,345 +102,344 @@ export const OfflineVaultView: React.FC<OfflineVaultViewProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col w-full max-w-md mx-auto px-4 pb-28 pt-2">
-      {/* View Title */}
-      <div className="py-2 flex items-center justify-between">
+    <div className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-8 pb-28 pt-2">
+      {/* Header Banner */}
+      <div className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 mb-5">
         <div>
-          <h1 className="text-[20px] font-extrabold text-on-surface">Offline Storage & Packs</h1>
-          <p className="text-[11px] text-on-surface-variant font-medium">
-            Dynamic location matching • Cryptographically signed • ODbL
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Offline Maps & Guides</h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+            Download vector maps, place directories, and navigation guides for reliable offline travel without cellular data.
           </p>
         </div>
-        <span className="px-2.5 py-1 rounded-full bg-surface-container shadow-tactile-inset-sm text-primary font-bold text-[11px] flex items-center gap-1">
-          <span className="material-symbols-outlined text-[14px]">public</span>
-          <span>Location Sync</span>
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold text-xs border border-emerald-100">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>{installedPacks.length} Region{installedPacks.length === 1 ? '' : 's'} Ready</span>
+          </span>
+        </div>
       </div>
 
       {/* Target Search Regional Pack Spotlight */}
-      <section className="pt-2 pb-3">
-        <div className="rounded-[22px] bg-gradient-to-br from-primary/10 via-surface to-surface p-4 shadow-tactile border border-primary/20 flex flex-col gap-3">
+      <section className="mb-6">
+        <div className="rounded-2xl bg-gradient-to-br from-sky-50 via-white to-slate-50 p-5 sm:p-6 shadow-sm border border-sky-100 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[15px]">my_location</span>
-              <span>Pack For Current Search Location</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-sky-700 flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[17px]">near_me</span>
+              <span>Pack For Current Area</span>
             </span>
-            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-primary/15 text-primary">
-              {location?.cityName || 'Active Area'}
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800">
+              {location?.cityName || 'Active Location'}
             </span>
           </div>
 
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-[16px] font-black text-on-surface leading-tight">
+              <h2 className="text-lg font-bold text-slate-900 leading-tight">
                 {currentSearchPack?.name}
               </h2>
-              <p className="text-[12px] text-on-surface-variant font-medium mt-0.5">
-                {currentSearchPack?.country} • {currentSearchPack?.sizeFormatted}
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                {currentSearchPack?.country} • {currentSearchPack?.sizeFormatted} • Includes Places, Roads & Transit
               </p>
             </div>
-            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black flex items-center gap-1 flex-shrink-0 ${
+            <span className={`px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 self-start sm:self-auto ${
               currentSearchPack?.installed
-                ? 'bg-emerald-500/15 text-emerald-800 border border-emerald-500/25'
-                : 'bg-amber-500/15 text-amber-800 border border-amber-500/25'
+                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                : 'bg-amber-50 text-amber-800 border border-amber-200'
             }`}>
-              <span className="material-symbols-outlined text-[13px]">
+              <span className="material-symbols-outlined text-[15px]">
                 {currentSearchPack?.installed ? 'check_circle' : 'cloud_download'}
               </span>
-              <span>{currentSearchPack?.installed ? 'Offline Ready' : 'Download Needed'}</span>
+              <span>{currentSearchPack?.installed ? 'Downloaded & Ready' : 'Download Available'}</span>
             </span>
           </div>
 
-          {/* Action Row for Current Location Pack */}
-          <div className="flex items-center gap-2 pt-1">
+          {/* Action Row */}
+          <div className="flex items-center gap-3 pt-1 border-t border-slate-100">
             {currentSearchPack?.installed ? (
               <>
                 <button
                   onClick={() => setSelectedPackForVerify(currentSearchPack)}
-                  className="flex-1 py-2 rounded-xl bg-surface-container text-primary text-[11px] font-bold shadow-tactile active:scale-95 flex items-center justify-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[14px]">verified</span>
-                  <span>Verify Pack Hashes</span>
+                  <span className="material-symbols-outlined text-[16px] text-sky-600">verified</span>
+                  <span>Inspect Security Hashes</span>
                 </button>
                 <button
                   onClick={() => handleRemovePack(currentSearchPack.id)}
-                  className="py-2 px-3 rounded-xl bg-surface border border-red-200 text-red-600 text-[11px] font-bold shadow-tactile active:scale-95 flex items-center justify-center"
+                  className="px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer"
                   title="Remove offline pack"
                 >
-                  <span className="material-symbols-outlined text-[15px]">delete</span>
+                  <span className="material-symbols-outlined text-[16px]">delete</span>
+                  <span>Remove</span>
                 </button>
               </>
             ) : (
               <button
                 onClick={() => currentSearchPack && handleDownloadPack(currentSearchPack)}
                 disabled={downloadingId !== null}
-                className="w-full py-2.5 rounded-xl tactile-btn-primary flex items-center justify-center gap-2 text-[12px] font-bold shadow-tactile-primary active:scale-95 disabled:opacity-50"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center gap-2 text-xs font-bold shadow-sm active:scale-98 transition-all disabled:opacity-50 cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[16px]">download</span>
-                <span>Download & Activate {currentSearchPack?.sizeFormatted} Pack</span>
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                <span>Download {currentSearchPack?.sizeFormatted} Guide</span>
               </button>
             )}
-          </div>
-        </div>
-      </section>
-
-      {/* Storage Allocation Meter Card */}
-      <section className="pb-3">
-        <div className="rounded-2xl bg-surface p-4 shadow-tactile border border-[#eae6df] flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[13px] font-extrabold text-on-surface">Device Allocation</span>
-            <span className="text-[12px] font-bold text-primary">
-              {totalInstalledFormatted} of 128 GB
-            </span>
-          </div>
-
-          {/* Segmented Progress Bar */}
-          <div className="w-full h-3 rounded-full bg-surface-variant overflow-hidden flex shadow-tactile-inset-sm">
-            {totalMB > 0 ? (
-              <>
-                <div style={{ width: '58%' }} className="bg-[#0284c7]" title={`Vector Basemaps (${basemapMB} MB)`}></div>
-                <div style={{ width: '24%' }} className="bg-[#0369a1]" title={`Search & POIs (${poiMB} MB)`}></div>
-                <div style={{ width: '12%' }} className="bg-[#38bdf8]" title={`Neural TTS Voice (${ttsMB} MB)`}></div>
-                <div style={{ width: '6%' }} className="bg-[#78716c]" title={`Cached Images (${cachedImgMB} MB)`}></div>
-              </>
-            ) : (
-              <div style={{ width: '0%' }} className="bg-[#0284c7]"></div>
-            )}
-          </div>
-
-          {/* Legend */}
-          <div className="grid grid-cols-2 gap-2 text-[10px] font-semibold text-on-surface-variant pt-1">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
-              <span>Vector Basemaps ({basemapMB} MB)</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#0369a1]"></span>
-              <span>Search & POIs ({poiMB} MB)</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#38bdf8]"></span>
-              <span>Neural TTS Voice ({ttsMB} MB)</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#78716c]"></span>
-              <span>Cached Images ({cachedImgMB} MB)</span>
-            </div>
           </div>
         </div>
       </section>
 
       {/* Download Status Toast */}
       {statusMessage && (
-        <div className="mb-3 p-3 rounded-2xl bg-[#E0F2FE] border border-[#BAE6FD] text-primary shadow-tactile-sm flex flex-col gap-1.5 animate-fade-in">
-          <div className="flex items-center justify-between text-[11px] font-bold">
-            <span className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px] animate-spin">sync</span>
+        <div className="mb-6 p-4 rounded-2xl bg-sky-50 border border-sky-200 text-sky-900 shadow-sm flex flex-col gap-2 animate-fadeIn">
+          <div className="flex items-center justify-between text-xs font-bold">
+            <span className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] animate-spin text-sky-600">sync</span>
               <span>{statusMessage}</span>
             </span>
-            <span>{downloadProgress}%</span>
+            <span className="font-mono text-sky-700">{downloadProgress}%</span>
           </div>
-          <div className="w-full h-1.5 rounded-full bg-white overflow-hidden">
+          <div className="w-full h-2 rounded-full bg-sky-100 overflow-hidden">
             <div 
               style={{ width: `${downloadProgress}%` }} 
-              className="h-full bg-primary transition-all duration-300"
+              className="h-full bg-sky-600 transition-all duration-300 rounded-full"
             />
           </div>
         </div>
       )}
 
-      {/* Active Installed Regional Packs */}
-      <section className="flex flex-col gap-3 pt-1 pb-4">
-        <div className="flex items-center justify-between">
-          <span className="text-[14px] font-extrabold text-on-surface">Installed Regional Packs</span>
-          <span className="text-[11px] font-bold text-primary">{installedPacks.length} Installed</span>
-        </div>
-
-        {installedPacks.length === 0 ? (
-          <div className="p-4 rounded-[20px] bg-surface-container border border-dashed border-[#eae6df] text-center text-on-surface-variant text-[12px]">
-            No packs installed yet. Download the recommended pack for {location?.cityName || 'your region'} above.
-          </div>
-        ) : (
-          installedPacks.map(pack => {
-            const isTargetActive = pack.id === currentSearchPack?.id;
-            return (
-              <div 
-                key={pack.id} 
-                className={`rounded-[20px] bg-surface p-4 shadow-tactile border flex flex-col gap-2.5 ${
-                  isTargetActive ? 'border-primary/40 ring-1 ring-primary/20' : 'border-[#eae6df]'
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-1">
-                      {isTargetActive ? (
-                        <span className="px-2 py-0.5 rounded-full bg-primary text-white text-[10px] font-extrabold shadow-sm">
-                          Active For Current Search
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant text-[10px] font-bold">
-                          Cached Region
-                        </span>
-                      )}
-                      <span className="text-[10px] font-mono text-outline">{pack.version}</span>
-                    </div>
-                    <h2 className="text-[15px] font-extrabold text-on-surface">{pack.name}</h2>
-                    <p className="text-[11px] text-on-surface-variant font-medium">{pack.country}</p>
-                  </div>
-
-                  <span className="text-[14px] font-black text-primary">{pack.sizeFormatted}</span>
-                </div>
-
-                {/* Pack Manifest Verification Details */}
-                <div className="p-2.5 rounded-xl bg-surface-container shadow-tactile-inset-sm text-[10px] text-on-surface-variant flex flex-col gap-1 border border-[#eae6df]/70">
-                  <div className="flex items-center justify-between">
-                    <span>Cryptographic Envelope:</span>
-                    <span className="font-mono text-primary font-bold">ES256 (JWS Signed)</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Signer Key ID:</span>
-                    <span className="font-mono">{pack.manifest.keyId}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Licensing & Attribution:</span>
-                    <span>OpenStreetMap contributors (ODbL)</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 pt-1">
-                  <button 
-                    onClick={() => handleRemovePack(pack.id)}
-                    className="flex-1 py-2 rounded-xl bg-surface border border-red-200 text-red-600 text-[11px] font-bold shadow-tactile active:scale-95"
-                  >
-                    Remove Pack
-                  </button>
-                  <button 
-                    onClick={() => setSelectedPackForVerify(pack)}
-                    className="flex-1 py-2 rounded-xl bg-surface-container text-primary text-[11px] font-bold shadow-tactile active:scale-95 flex items-center justify-center gap-1"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">verified</span>
-                    <span>Verify Signature</span>
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </section>
-
-      {/* Available Regional Packs */}
-      <section className="flex flex-col gap-3 pb-4">
-        <div className="flex items-center justify-between">
-          <span className="text-[14px] font-extrabold text-on-surface">Available Regional Packs</span>
-          <span className="text-[11px] font-semibold text-outline">Certified Worldwide Hubs</span>
-        </div>
-
-        {availablePacks.map(pack => (
-          <div 
-            key={pack.id} 
-            className="rounded-[20px] bg-surface p-4 shadow-tactile border border-[#eae6df] flex items-center justify-between gap-3"
-          >
-            <div className="flex-1 min-w-0">
-              <h3 className="text-[14px] font-extrabold text-on-surface truncate">{pack.name}</h3>
-              <p className="text-[11px] text-on-surface-variant font-medium mt-0.5">
-                {pack.country} • {pack.sizeFormatted}
-              </p>
+      {/* Storage Allocation & Installed Packs Grid (2 cols on md+) */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Storage Meter & Installed Packs (7 cols) */}
+        <div className="flex flex-col gap-6 md:col-span-7">
+          {/* Storage Meter Card */}
+          <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-sm border border-slate-200/80 flex flex-col gap-3.5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[18px]">storage</span>
+                </span>
+                <span>Storage Utilization</span>
+              </h2>
+              <span className="text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg">
+                {totalInstalledFormatted} Used
+              </span>
             </div>
 
-            <button
-              onClick={() => handleDownloadPack(pack)}
-              disabled={downloadingId !== null}
-              className="h-10 px-4 rounded-full tactile-btn-primary flex items-center gap-1.5 text-[12px] font-bold shadow-tactile-primary active:scale-95 disabled:opacity-50 flex-shrink-0"
-            >
-              <span className="material-symbols-outlined text-[16px]">download</span>
-              <span>Get Pack</span>
-            </button>
-          </div>
-        ))}
-      </section>
+            {/* Segmented Progress Bar */}
+            <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden flex">
+              {totalMB > 0 ? (
+                <>
+                  <div style={{ width: '58%' }} className="bg-sky-500" title={`Basemaps (${basemapMB} MB)`} />
+                  <div style={{ width: '24%' }} className="bg-indigo-500" title={`POIs & Search (${poiMB} MB)`} />
+                  <div style={{ width: '12%' }} className="bg-teal-500" title={`Voice Audio (${ttsMB} MB)`} />
+                  <div style={{ width: '6%' }} className="bg-slate-400" title={`Cached Assets (${cachedImgMB} MB)`} />
+                </>
+              ) : (
+                <div style={{ width: '0%' }} className="bg-sky-500" />
+              )}
+            </div>
 
-      {/* Custom City Offline Pack Generator */}
-      <section className="pb-6">
-        <div className="rounded-[20px] bg-surface p-4 shadow-tactile border border-[#eae6df] flex flex-col gap-2.5">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-primary">add_location_alt</span>
-            <span className="text-[13px] font-extrabold text-on-surface">Cache Custom Search Location</span>
-          </div>
-          <p className="text-[11px] text-on-surface-variant">
-            Create and sign a custom regional pack with vector basemaps & SQLite POIs for any searched town or district.
-          </p>
-
-          <form onSubmit={handleGenerateCustom} className="flex items-center gap-2 pt-1">
-            <input
-              type="text"
-              value={customCityInput}
-              onChange={(e) => setCustomCityInput(e.target.value)}
-              placeholder="e.g. Rome, Bangalore, Kyoto, Goa..."
-              className="flex-1 h-10 px-3 rounded-xl bg-surface-container border border-[#eae6df] text-[12px] text-on-surface focus:outline-none focus:ring-1 focus:ring-primary shadow-tactile-inset-sm"
-            />
-            <button
-              type="submit"
-              disabled={!customCityInput.trim() || downloadingId !== null}
-              className="h-10 px-4 rounded-xl tactile-btn-primary text-[12px] font-bold shadow-tactile-primary disabled:opacity-50"
-            >
-              Generate
-            </button>
-          </form>
-        </div>
-      </section>
-
-      {/* Signature Verification Modal */}
-      {selectedPackForVerify && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-sm rounded-[24px] bg-surface p-5 shadow-tactile-xl border border-[#eae6df] flex flex-col gap-3">
-            <div className="flex items-center justify-between pb-2 border-b border-[#eae6df]">
+            {/* Legend */}
+            <div className="grid grid-cols-2 gap-2 text-xs font-medium text-slate-600 pt-1">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[20px] text-primary">verified_user</span>
-                <span className="text-[14px] font-extrabold text-on-surface">Cryptographic Integrity</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-500 flex-shrink-0" />
+                <span>Vector Basemaps ({basemapMB} MB)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 flex-shrink-0" />
+                <span>Directory & POIs ({poiMB} MB)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-teal-500 flex-shrink-0" />
+                <span>Audio Engine ({ttsMB} MB)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-slate-400 flex-shrink-0" />
+                <span>Cached Data ({cachedImgMB} MB)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Installed Packs List */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-900">Downloaded Regional Packs</h2>
+              <span className="text-xs font-semibold text-slate-500">{installedPacks.length} on device</span>
+            </div>
+
+            {installedPacks.length === 0 ? (
+              <div className="p-6 rounded-2xl bg-white border border-dashed border-slate-200 text-center text-slate-500 text-xs">
+                No offline packs installed yet. Download the guide for {location?.cityName || 'your destination'} above.
+              </div>
+            ) : (
+              installedPacks.map(pack => {
+                const isTargetActive = pack.id === currentSearchPack?.id;
+                return (
+                  <div 
+                    key={pack.id} 
+                    className={`rounded-2xl bg-white p-5 shadow-sm border flex flex-col gap-3 transition-all ${
+                      isTargetActive ? 'border-sky-500/40 ring-2 ring-sky-500/10' : 'border-slate-200/80'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          {isTargetActive ? (
+                            <span className="px-2 py-0.5 rounded-md bg-sky-600 text-white text-[10px] font-bold">
+                              Active Region
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-semibold">
+                              Saved Hub
+                            </span>
+                          )}
+                          <span className="text-[10px] font-mono text-slate-400">v{pack.version}</span>
+                        </div>
+                        <h3 className="text-base font-bold text-slate-900">{pack.name}</h3>
+                        <p className="text-xs text-slate-500 font-medium">{pack.country}</p>
+                      </div>
+
+                      <span className="text-sm font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg">
+                        {pack.sizeFormatted}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                      <button 
+                        onClick={() => setSelectedPackForVerify(pack)}
+                        className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[15px] text-sky-600">verified</span>
+                        <span>Verify Security</span>
+                      </button>
+                      <button 
+                        onClick={() => handleRemovePack(pack.id)}
+                        className="py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors cursor-pointer"
+                        title="Remove Pack"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Right Column: Available Packs & Custom Region Generator (5 cols) */}
+        <div className="flex flex-col gap-6 md:col-span-5">
+          {/* Custom Location Generator */}
+          <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-sm border border-slate-200/80 flex flex-col gap-3">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <span className="material-symbols-outlined text-sky-600 text-[18px]">add_location_alt</span>
+              <span>Cache Any Destination</span>
+            </h3>
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Create an offline pack for any custom city, historic town, or national park worldwide.
+            </p>
+
+            <form onSubmit={handleGenerateCustom} className="flex gap-2 pt-1">
+              <input
+                type="text"
+                value={customCityInput}
+                onChange={(e) => setCustomCityInput(e.target.value)}
+                placeholder="e.g. Rome, Agra, Kyoto..."
+                className="flex-1 px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-sky-500"
+              />
+              <button
+                type="submit"
+                disabled={!customCityInput.trim() || downloadingId !== null}
+                className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-sm disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                Generate
+              </button>
+            </form>
+          </div>
+
+          {/* Popular Available Hubs */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900">Featured Global Hubs</h3>
+              <span className="text-xs text-slate-400">Ready to download</span>
+            </div>
+
+            {availablePacks.map(pack => (
+              <div 
+                key={pack.id} 
+                className="rounded-2xl bg-white p-4 shadow-sm border border-slate-200/80 flex items-center justify-between gap-3"
+              >
+                <div className="min-w-0">
+                  <h4 className="text-sm font-bold text-slate-900 truncate">{pack.name}</h4>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    {pack.country} • {pack.sizeFormatted}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => handleDownloadPack(pack)}
+                  disabled={downloadingId !== null}
+                  className="h-9 px-3.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white flex items-center gap-1 text-xs font-bold shadow-sm disabled:opacity-50 transition-colors cursor-pointer flex-shrink-0"
+                >
+                  <span className="material-symbols-outlined text-[16px]">download</span>
+                  <span>Get</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Signature Verification Modal Dialog */}
+      {selectedPackForVerify && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[20px]">verified_user</span>
+                </span>
+                <span className="text-base font-bold text-slate-900">Package Security Verification</span>
               </div>
               <button
                 onClick={() => setSelectedPackForVerify(null)}
-                className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-outline hover:text-on-surface"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[16px]">close</span>
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
-            <div className="text-[11px] flex flex-col gap-2">
+            <div className="text-xs flex flex-col gap-3">
               <div>
-                <span className="font-bold text-on-surface">{selectedPackForVerify.name}</span>
-                <p className="text-[10px] text-on-surface-variant">Version: {selectedPackForVerify.version} • Schema: {selectedPackForVerify.manifest.schemaVersion}</p>
+                <span className="font-bold text-slate-900 text-sm">{selectedPackForVerify.name}</span>
+                <p className="text-xs text-slate-500">Version {selectedPackForVerify.version} • Schema {selectedPackForVerify.manifest.schemaVersion}</p>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-surface-container shadow-tactile-inset-sm font-mono text-[9px] text-on-surface-variant flex flex-col gap-1.5 break-all">
+              <div className="p-3.5 rounded-xl bg-slate-50 font-mono text-[11px] text-slate-700 flex flex-col gap-1.5 border border-slate-200/80 break-all">
                 <div>
-                  <span className="font-bold text-primary">Key ID:</span> {selectedPackForVerify.manifest.keyId}
+                  <span className="font-bold text-sky-700">Signing Key ID:</span> {selectedPackForVerify.manifest.keyId}
                 </div>
                 <div>
-                  <span className="font-bold text-primary">Algorithm:</span> ES256 (ECDSA P-256 with SHA-256)
+                  <span className="font-bold text-sky-700">Algorithm:</span> ES256 (ECDSA P-256 with SHA-256)
                 </div>
                 <div>
-                  <span className="font-bold text-primary">Basemap Hash:</span> {selectedPackForVerify.manifest.hashes['basemap.mbtiles']?.substring(0, 32)}...
+                  <span className="font-bold text-sky-700">Basemap Hash:</span> {selectedPackForVerify.manifest.hashes['basemap.mbtiles']?.substring(0, 24)}...
                 </div>
                 <div>
-                  <span className="font-bold text-primary">POIs SQLite Hash:</span> {selectedPackForVerify.manifest.hashes['pois.sqlite']?.substring(0, 32)}...
-                </div>
-                <div>
-                  <span className="font-bold text-primary">OSRM Route Hash:</span> {selectedPackForVerify.manifest.hashes['routing.osrm']?.substring(0, 32)}...
+                  <span className="font-bold text-sky-700">POIs Hash:</span> {selectedPackForVerify.manifest.hashes['pois.sqlite']?.substring(0, 24)}...
                 </div>
               </div>
 
-              <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 font-bold text-[10px] flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[14px] text-emerald-600">check_circle</span>
-                <span>Signature verified against OpenStreetMap ODbL root trust anchor.</span>
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 font-semibold text-xs flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-emerald-600 flex-shrink-0">check_circle</span>
+                <span>Digital signature verified. Package contents have not been modified.</span>
               </div>
             </div>
 
             <button
               onClick={() => setSelectedPackForVerify(null)}
-              className="w-full py-2.5 rounded-xl tactile-btn-primary text-[12px] font-bold shadow-tactile-primary active:scale-95"
+              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors cursor-pointer"
             >
-              Done
+              Close
             </button>
           </div>
         </div>

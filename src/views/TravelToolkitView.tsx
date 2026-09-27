@@ -223,368 +223,362 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
   };
 
   return (
-    <div className="flex-1 flex flex-col w-full max-w-md mx-auto px-4 pb-28 pt-2">
-      {/* Title */}
-      <div className="py-2 flex items-center justify-between">
+    <div className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-8 pb-28 pt-2">
+      {/* Header Banner */}
+      <div className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 mb-5">
         <div>
-          <h1 className="text-[20px] font-extrabold text-on-surface">Travel Toolkit</h1>
-          <p className="text-[11px] text-on-surface-variant font-medium">
-            Dynamic 12h Live Rates • Verified Dossier • Offline Resilient
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Travel Utilities</h1>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+            Real-time currency converter, local payment customs, weather & essential destination info.
           </p>
         </div>
-        <span className="px-2.5 py-1 rounded-full bg-surface-container shadow-tactile-inset-sm text-primary font-bold text-[11px] flex items-center gap-1">
-          <span className="material-symbols-outlined text-[14px]">bolt</span>
-          <span>12h Live Sync</span>
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-sky-700 font-semibold text-xs border border-sky-100">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Live Sync Active</span>
+          </span>
+        </div>
       </div>
 
-      {/* Country Briefing Dossier */}
-      {briefing && (
-        <section className="pt-1 pb-3">
-          <div className="rounded-[22px] bg-surface p-4 shadow-tactile border border-[#eae6df] flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-primary flex items-center gap-1">
-                <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  flag
-                </span>
-                <span>{briefing.countryName} Dossier</span>
-              </span>
-              <span className="text-[10px] font-bold text-outline">Verified Standards</span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div className="p-2.5 rounded-xl bg-surface-container shadow-tactile-inset-sm flex flex-col">
-                <span className="text-outline font-semibold">Calling Code</span>
-                <span className="text-[14px] font-extrabold text-on-surface mt-0.5">{briefing.callingCode}</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-surface-container shadow-tactile-inset-sm flex flex-col">
-                <span className="text-outline font-semibold">Timezone</span>
-                <span className="text-[14px] font-extrabold text-on-surface mt-0.5">{briefing.timezone}</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-surface-container shadow-tactile-inset-sm flex flex-col">
-                <span className="text-outline font-semibold">Power Plugs</span>
-                <span className="text-[13px] font-bold text-on-surface mt-0.5">{briefing.powerPlugs}</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-surface-container shadow-tactile-inset-sm flex flex-col">
-                <span className="text-outline font-semibold">Currency</span>
-                <span className="text-[13px] font-bold text-on-surface mt-0.5">
-                  {briefing.currency} ({briefing.currencySymbol})
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Real-time Dynamic Payment & Currency Exchange */}
-      <section className="pb-4">
-        <div className="rounded-[22px] bg-surface p-4 shadow-tactile border border-[#eae6df] flex flex-col gap-3">
-          {/* Header with 12h Live Status and Refresh Button */}
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[13px] font-extrabold text-on-surface flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-primary text-[18px]">currency_exchange</span>
-                <span>Live Currency & Payment Rates</span>
-              </span>
-              <div className="flex items-center gap-1.5 text-[10px] font-semibold text-outline mt-0.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>{rates?.isLive ? 'Live Interbank Rates' : 'Cached Baseline'}</span>
-                <span>•</span>
-                <span>Next refresh: {countdownText || '12 hours'}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => loadRates(true)}
-              disabled={isRefreshingRates}
-              className={`p-2 rounded-xl bg-surface-container shadow-tactile active:scale-95 text-primary flex items-center gap-1 text-[11px] font-bold transition-all ${
-                isRefreshingRates ? 'opacity-60 cursor-not-allowed' : ''
-              }`}
-              title="Force Sync Live Rates"
-            >
-              <span className={`material-symbols-outlined text-[16px] ${isRefreshingRates ? 'animate-spin' : ''}`}>
-                sync
-              </span>
-              <span className="hidden sm:inline">Sync Now</span>
-            </button>
-          </div>
-
-          {/* Toast / Sync Feedback Alert */}
-          {syncFeedback && (
-            <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold flex items-center gap-1.5 animate-fadeIn">
-              <span className="material-symbols-outlined text-[15px] text-emerald-600">check_circle</span>
-              <span>{syncFeedback}</span>
-            </div>
-          )}
-
-          {/* Amount Display Wells */}
-          <div className="flex flex-col gap-2">
-            {/* Input Row */}
-            <div className="p-3 rounded-2xl bg-surface-container shadow-tactile-inset flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <select
-                  value={fromCurrency}
-                  onChange={(e) => setFromCurrency(e.target.value)}
-                  className="bg-surface font-extrabold text-[13px] text-primary py-1 px-2.5 rounded-xl shadow-tactile-sm outline-none border border-primary/20 cursor-pointer"
-                >
-                  {POPULAR_CURRENCIES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.flag} {c.code} ({c.symbol})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <span className="text-[24px] font-black text-on-surface font-mono">
-                {inputAmount}
-              </span>
-            </div>
-
-            {/* Swap Button */}
-            <div className="flex justify-center -my-1.5 z-10">
-              <button
-                onClick={handleSwapCurrencies}
-                className="w-8 h-8 rounded-full bg-surface shadow-tactile active:scale-90 flex items-center justify-center text-primary border border-[#eae6df]"
-                title="Swap Currencies"
-              >
-                <span className="material-symbols-outlined text-[18px]">swap_vert</span>
-              </button>
-            </div>
-
-            {/* Result Row */}
-            <div className="p-3 rounded-2xl bg-surface-container-low shadow-tactile-inset flex items-center justify-between border border-[#eae6df]">
-              <div className="flex items-center gap-2">
-                <select
-                  value={toCurrency}
-                  onChange={(e) => setToCurrency(e.target.value)}
-                  className="bg-surface font-extrabold text-[13px] text-secondary py-1 px-2.5 rounded-xl shadow-tactile-sm outline-none border border-secondary/20 cursor-pointer"
-                >
-                  {POPULAR_CURRENCIES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.flag} {c.code} ({c.symbol})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <span className="text-[26px] font-black text-primary font-mono">
-                {convertedAmount}
-              </span>
-            </div>
-          </div>
-
-          {/* Direct Exchange Unit Rate Indicator */}
-          {directUnitRate && (
-            <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-surface-container text-[11px] font-bold text-on-surface-variant">
-              <span>
-                1 {fromCurrency} = {directUnitRate < 1 ? directUnitRate.toFixed(4) : directUnitRate.toFixed(2)} {toCurrency}
-              </span>
-              <span className="text-outline font-semibold">
-                1 {toCurrency} = {(1 / directUnitRate) < 1 ? (1 / directUnitRate).toFixed(4) : (1 / directUnitRate).toFixed(2)} {fromCurrency}
-              </span>
-            </div>
-          )}
-
-          {/* Quick Amount Preset Chips */}
-          <div className="flex items-center gap-1.5 pt-0.5">
-            <span className="text-[10px] font-bold text-outline uppercase tracking-wider mr-1">Presets:</span>
-            {['10', '50', '100', '500', '1000'].map((amt) => (
-              <button
-                key={amt}
-                onClick={() => setInputAmount(amt)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shadow-tactile-sm active:scale-95 ${
-                  inputAmount === amt 
-                    ? 'bg-primary text-white shadow-tactile-inset-sm' 
-                    : 'bg-surface text-on-surface border border-[#eae6df]'
-                }`}
-              >
-                {amt}
-              </button>
-            ))}
-          </div>
-
-          {/* Tactile Keypad */}
-          <div className="grid grid-cols-3 gap-2 pt-1">
-            {['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'C'].map((k) => (
-              <button
-                key={k}
-                onClick={() => handleKeypadPress(k)}
-                className="h-11 rounded-xl bg-surface text-on-surface font-extrabold text-[15px] shadow-tactile active:shadow-tactile-inset transition-all flex items-center justify-center select-none"
-              >
-                {k}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Local Payment Methods & Intelligence */}
-      <section className="pb-4">
-        <div className="rounded-[22px] bg-surface p-4 shadow-tactile border border-[#eae6df] flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-extrabold uppercase tracking-wider text-primary flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px]">payments</span>
-              <span>Local Payment Guide ({briefing?.countryName || effectiveCountry})</span>
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 font-bold text-[10px]">
-              Accepted Methods
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-2.5 text-[11px]">
-            {/* Primary Digital Method */}
-            <div className="p-3 rounded-xl bg-[#F0F9FF] border border-[#E0F2FE] flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-primary text-[20px] flex-shrink-0 mt-0.5">
-                {paymentGuide.primaryIcon}
-              </span>
-              <div className="flex flex-col">
-                <span className="font-extrabold text-on-surface">Top Digital Method</span>
-                <span className="text-on-surface-variant font-medium mt-0.5">
-                  {paymentGuide.primaryMethod}
-                </span>
-              </div>
-            </div>
-
-            {/* Cash Requirements */}
-            <div className="p-3 rounded-xl bg-[#FFFBEB] border border-[#FEF3C7] flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-amber-600 text-[20px] flex-shrink-0 mt-0.5">
-                attach_money
-              </span>
-              <div className="flex flex-col">
-                <span className="font-extrabold text-on-surface">Cash Necessity</span>
-                <span className="text-on-surface-variant font-medium mt-0.5">
-                  {paymentGuide.cashRequirement}
-                </span>
-              </div>
-            </div>
-
-            {/* Card & Tipping Info */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="p-2.5 rounded-xl bg-surface-container shadow-tactile-inset-sm flex flex-col">
-                <span className="text-outline font-semibold">Cards & ATMs</span>
-                <span className="text-[11px] text-on-surface font-medium mt-1">
-                  {paymentGuide.cardAdvice}
-                </span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-surface-container shadow-tactile-inset-sm flex flex-col">
-                <span className="text-outline font-semibold">Tipping Customs</span>
-                <span className="text-[11px] text-on-surface font-medium mt-1">
-                  {paymentGuide.tippingNorm}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Local Weather Card */}
-      {weather && (
-        <section className="pb-4">
-          <div className="rounded-[22px] bg-surface p-4 shadow-tactile border border-[#eae6df] flex flex-col gap-3">
+      {/* Main Responsive Grid: 2 Columns on Desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Currency Converter & Local Payment Guide (7 Cols) */}
+        <div className="flex flex-col gap-6 md:col-span-7">
+          {/* Currency Converter Card */}
+          <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-sm border border-slate-200/80 flex flex-col gap-4">
+            {/* Header & Sync Status */}
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-extrabold uppercase text-outline flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>Live Atmospheric Station</span>
-                </span>
-                <h3 className="text-[16px] font-extrabold text-on-surface">{weather.city}</h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => loadWeather(true)}
-                  disabled={isRefreshingWeather}
-                  className={`p-1.5 rounded-xl bg-surface-container shadow-tactile-sm active:scale-95 text-primary flex items-center text-[10px] font-bold transition-all ${
-                    isRefreshingWeather ? 'opacity-60 cursor-not-allowed' : ''
-                  }`}
-                  title="Force Sync Live Weather"
-                >
-                  <span className={`material-symbols-outlined text-[15px] ${isRefreshingWeather ? 'animate-spin' : ''}`}>
-                    sync
+                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[20px]">currency_exchange</span>
                   </span>
-                </button>
-                <div className="flex items-center gap-1.5 text-primary">
-                  <span className="material-symbols-outlined text-[28px]">
-                    {(weather as any).conditionIcon || 'wb_sunny'}
-                  </span>
-                  <span className="text-[26px] font-black">{weather.tempC}°C</span>
+                  <span>Currency Converter</span>
+                </h2>
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mt-1">
+                  <span>{rates?.isLive ? 'Live Market Rates' : 'Standard Baseline'}</span>
+                  <span>•</span>
+                  <span>Updates in {countdownText || '12 hours'}</span>
                 </div>
               </div>
+
+              <button
+                onClick={() => loadRates(true)}
+                disabled={isRefreshingRates}
+                className={`px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                  isRefreshingRates ? 'opacity-60 cursor-not-allowed' : ''
+                }`}
+                title="Refresh exchange rates"
+              >
+                <span className={`material-symbols-outlined text-[16px] ${isRefreshingRates ? 'animate-spin text-sky-600' : ''}`}>
+                  sync
+                </span>
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
             </div>
 
-            {weatherFeedback && (
-              <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold flex items-center gap-1.5 animate-fadeIn">
-                <span className="material-symbols-outlined text-[15px] text-emerald-600">check_circle</span>
-                <span>{weatherFeedback}</span>
+            {/* Sync Feedback Toast */}
+            {syncFeedback && (
+              <div className="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 animate-fadeIn">
+                <span className="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
+                <span>{syncFeedback}</span>
               </div>
             )}
 
-            <div className="flex items-center justify-between text-[11px] text-on-surface-variant font-semibold pt-1 border-t border-[#eae6df]/70">
-              <span className="font-extrabold text-primary">{weather.condition}</span>
-              <span>
-                H: {weather.highC}°C • L: {weather.lowC}°C • Humidity {weather.humidity}%
-                {(weather as any).feelsLikeC !== undefined && (
-                  <span className="text-outline"> • Feels {(weather as any).feelsLikeC}°C</span>
-                )}
-              </span>
+            {/* Currency Inputs */}
+            <div className="flex flex-col gap-2">
+              {/* From Row */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between">
+                <select
+                  value={fromCurrency}
+                  onChange={(e) => setFromCurrency(e.target.value)}
+                  className="bg-white font-bold text-xs sm:text-sm text-slate-800 py-1.5 px-3 rounded-lg shadow-sm border border-slate-200 outline-none cursor-pointer"
+                >
+                  {POPULAR_CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.code} ({c.symbol})
+                    </option>
+                  ))}
+                </select>
+                <span className="text-2xl font-black text-slate-900 font-mono tracking-tight">
+                  {inputAmount}
+                </span>
+              </div>
+
+              {/* Swap Button */}
+              <div className="flex justify-center -my-2 z-10">
+                <button
+                  onClick={handleSwapCurrencies}
+                  className="w-9 h-9 rounded-full bg-white shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center text-sky-600 border border-slate-200 transition-all cursor-pointer"
+                  title="Swap Currencies"
+                >
+                  <span className="material-symbols-outlined text-[18px]">swap_vert</span>
+                </button>
+              </div>
+
+              {/* To Row */}
+              <div className="p-3.5 rounded-xl bg-sky-50/60 border border-sky-100 flex items-center justify-between">
+                <select
+                  value={toCurrency}
+                  onChange={(e) => setToCurrency(e.target.value)}
+                  className="bg-white font-bold text-xs sm:text-sm text-sky-700 py-1.5 px-3 rounded-lg shadow-sm border border-sky-200 outline-none cursor-pointer"
+                >
+                  {POPULAR_CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.code} ({c.symbol})
+                    </option>
+                  ))}
+                </select>
+                <span className="text-2xl font-black text-sky-700 font-mono tracking-tight">
+                  {convertedAmount}
+                </span>
+              </div>
             </div>
 
-            {/* Hourly Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
-              {weather.hourly.map((h, i) => (
-                <div key={i} className="px-3 py-2 rounded-xl bg-surface-container shadow-tactile-inset-sm flex flex-col items-center flex-shrink-0 text-[10px]">
-                  <span className="text-outline font-semibold">{h.time}</span>
-                  <span className="text-[12px] font-extrabold text-on-surface my-0.5">{h.tempC}°</span>
-                  <span className="text-primary font-bold">{h.condition}</span>
-                </div>
+            {/* Direct Unit Rate */}
+            {directUnitRate && (
+              <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-50 text-xs font-semibold text-slate-600 border border-slate-100">
+                <span>
+                  1 {fromCurrency} = {directUnitRate < 1 ? directUnitRate.toFixed(4) : directUnitRate.toFixed(2)} {toCurrency}
+                </span>
+                <span className="text-slate-400">
+                  1 {toCurrency} = {(1 / directUnitRate) < 1 ? (1 / directUnitRate).toFixed(4) : (1 / directUnitRate).toFixed(2)} {fromCurrency}
+                </span>
+              </div>
+            )}
+
+            {/* Amount Presets */}
+            <div className="flex items-center gap-1.5 pt-1">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Quick:</span>
+              {['10', '50', '100', '500', '1000'].map((amt) => (
+                <button
+                  key={amt}
+                  onClick={() => setInputAmount(amt)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    inputAmount === amt 
+                      ? 'bg-sky-600 text-white shadow-sm' 
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  }`}
+                >
+                  {amt}
+                </button>
+              ))}
+            </div>
+
+            {/* Keypad */}
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100">
+              {['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'C'].map((k) => (
+                <button
+                  key={k}
+                  onClick={() => handleKeypadPress(k)}
+                  className="h-11 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-base active:scale-95 transition-all flex items-center justify-center select-none cursor-pointer"
+                >
+                  {k}
+                </button>
               ))}
             </div>
           </div>
-        </section>
-      )}
 
-      {/* Map & Geocoding Engine Preferences */}
-      <section className="pb-6">
-        <div className="rounded-[22px] bg-surface p-4 shadow-tactile border border-[#eae6df] flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[12px] font-extrabold uppercase tracking-wider text-primary flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[16px]">map</span>
-              <span>Map & Geocoding Engine</span>
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 font-bold text-[10px]">
-              Geolib WGS-84 Active
-            </span>
-          </div>
-
-          <p className="text-[11px] text-on-surface-variant font-medium leading-relaxed">
-            The app uses millimetric geodesic distance formulas from <code className="text-primary font-bold">geolib</code> and fetches 100% verified real facilities from OpenStreetMap Nominatim and Komoot Photon.
-          </p>
-
-          <form onSubmit={handleSaveGoogleKey} className="flex flex-col gap-2 pt-1 border-t border-[#eae6df]/70">
-            <label className="text-[11px] font-bold text-on-surface flex items-center justify-between">
-              <span>Optional Google Places API Key:</span>
-              {keySavedFeedback && (
-                <span className="text-emerald-600 font-bold text-[10px] animate-pulse">Saved Successfully!</span>
-              )}
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="password"
-                placeholder="AIzaSy... (optional for Google POIs)"
-                value={googleApiKey}
-                onChange={(e) => setGoogleApiKey(e.target.value)}
-                className="flex-1 px-3 py-2 text-[12px] rounded-xl bg-surface-container border border-[#eae6df] focus:outline-none focus:border-primary font-mono"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-xl bg-primary text-white text-[12px] font-bold shadow-tactile active:scale-95 transition-all"
-              >
-                Save
-              </button>
+          {/* Local Payment Customs & Guides */}
+          <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-sm border border-slate-200/80 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[20px]">payments</span>
+                </span>
+                <span>Payment Customs • {briefing?.countryName || effectiveCountry}</span>
+              </h2>
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                Local Norms
+              </span>
             </div>
-            <p className="text-[10px] text-outline">
-              Without an API key, Google Maps Street & Satellite tiles plus free high-precision Nominatim & Photon POIs work automatically with zero configuration.
-            </p>
-          </form>
+
+            <div className="flex flex-col gap-3 text-xs">
+              {/* Primary Digital Method */}
+              <div className="p-3.5 rounded-xl bg-sky-50/70 border border-sky-100 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="material-symbols-outlined text-[18px]">
+                    {paymentGuide.primaryIcon}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm">Most Common Payment Method</h3>
+                  <p className="text-slate-600 font-medium mt-0.5 leading-relaxed">
+                    {paymentGuide.primaryMethod}
+                  </p>
+                </div>
+              </div>
+
+              {/* Cash Advice */}
+              <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-100 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="material-symbols-outlined text-[18px]">attach_money</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm">Cash Needs</h3>
+                  <p className="text-slate-600 font-medium mt-0.5 leading-relaxed">
+                    {paymentGuide.cashRequirement}
+                  </p>
+                </div>
+              </div>
+
+              {/* Card & Tipping Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col">
+                  <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Cards & ATMs</span>
+                  <span className="text-slate-700 font-medium mt-1 leading-relaxed">
+                    {paymentGuide.cardAdvice}
+                  </span>
+                </div>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex flex-col">
+                  <span className="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Tipping Etiquette</span>
+                  <span className="text-slate-700 font-medium mt-1 leading-relaxed">
+                    {paymentGuide.tippingNorm}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
+
+        {/* Right Column: Country Info, Weather & Map Engine (5 Cols) */}
+        <div className="flex flex-col gap-6 md:col-span-5">
+          {/* Live Weather Card */}
+          {weather && (
+            <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-sm border border-slate-200/80 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Local Weather</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mt-0.5">{weather.city}</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => loadWeather(true)}
+                    disabled={isRefreshingWeather}
+                    className={`p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer ${
+                      isRefreshingWeather ? 'opacity-60 cursor-not-allowed' : ''
+                    }`}
+                    title="Refresh weather"
+                  >
+                    <span className={`material-symbols-outlined text-[16px] ${isRefreshingWeather ? 'animate-spin text-sky-600' : ''}`}>
+                      sync
+                    </span>
+                  </button>
+                  <div className="flex items-center gap-1.5 text-sky-700 font-bold">
+                    <span className="material-symbols-outlined text-[28px] text-amber-500">
+                      {(weather as any).conditionIcon || 'wb_sunny'}
+                    </span>
+                    <span className="text-2xl font-black">{weather.tempC}°C</span>
+                  </div>
+                </div>
+              </div>
+
+              {weatherFeedback && (
+                <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-1.5 animate-fadeIn">
+                  <span className="material-symbols-outlined text-[15px] text-emerald-600">check_circle</span>
+                  <span>{weatherFeedback}</span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between text-xs text-slate-600 font-medium pt-2 border-t border-slate-100">
+                <span className="font-bold text-sky-700">{weather.condition}</span>
+                <span>
+                  High {weather.highC}° • Low {weather.lowC}° • {weather.humidity}% Humidity
+                </span>
+              </div>
+
+              {/* Hourly Forecast */}
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
+                {weather.hourly.map((h, i) => (
+                  <div key={i} className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center flex-shrink-0 text-xs">
+                    <span className="text-slate-400 font-medium text-[11px]">{h.time}</span>
+                    <span className="text-sm font-bold text-slate-800 my-0.5">{h.tempC}°</span>
+                    <span className="text-sky-600 font-semibold text-[10px]">{h.condition}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Country Guide Dossier */}
+          {briefing && (
+            <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-sm border border-slate-200/80 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sky-600 text-[18px]">public</span>
+                  <span>{briefing.countryName} Travel Facts</span>
+                </h3>
+                <span className="text-xs font-semibold text-slate-400">Verified</span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5 text-xs">
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col">
+                  <span className="text-slate-400 font-medium">Country Calling Code</span>
+                  <span className="text-base font-bold text-slate-900 mt-0.5">{briefing.callingCode}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col">
+                  <span className="text-slate-400 font-medium">Standard Timezone</span>
+                  <span className="text-base font-bold text-slate-900 mt-0.5">{briefing.timezone}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col">
+                  <span className="text-slate-400 font-medium">Power Plugs</span>
+                  <span className="text-sm font-bold text-slate-900 mt-0.5">{briefing.powerPlugs}</span>
+                </div>
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col">
+                  <span className="text-slate-400 font-medium">Local Currency</span>
+                  <span className="text-sm font-bold text-slate-900 mt-0.5">
+                    {briefing.currency} ({briefing.currencySymbol})
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Map Preferences */}
+          <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-sm border border-slate-200/80 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <span className="material-symbols-outlined text-slate-500 text-[18px]">tune</span>
+                <span>Search & Map Data</span>
+              </h3>
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
+                OpenStreetMap
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-500 font-medium leading-relaxed">
+              Real-world places, hospitals, transit hubs, and tourist attractions are retrieved live using OpenStreetMap and Photon geocoding.
+            </p>
+
+            <form onSubmit={handleSaveGoogleKey} className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+              <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                <span>Optional Google Places API Key:</span>
+                {keySavedFeedback && (
+                  <span className="text-emerald-600 font-bold text-[11px] animate-pulse">Saved!</span>
+                )}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  placeholder="AIzaSy... (optional)"
+                  value={googleApiKey}
+                  onChange={(e) => setGoogleApiKey(e.target.value)}
+                  className="flex-1 px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-sky-500 font-mono"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
