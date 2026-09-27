@@ -5,6 +5,7 @@ interface HeaderProps {
   gpsStatus: 'acquiring' | 'fixed' | 'denied' | 'unsupported' | 'fallback';
   isCustom?: boolean;
   tempC?: number | null;
+  offlinePackLabel?: string;
   onOpenCityPicker: () => void;
   onOpenOfflineVault: () => void;
   onOpenProfile: () => void;
@@ -15,6 +16,7 @@ export const Header: React.FC<HeaderProps> = ({
   gpsStatus,
   isCustom,
   tempC,
+  offlinePackLabel,
   onOpenCityPicker,
   onOpenOfflineVault,
   onOpenProfile
@@ -70,7 +72,9 @@ export const Header: React.FC<HeaderProps> = ({
             title="View Offline Regional Packs & Storage"
           >
             <span className="material-symbols-outlined text-[15px] text-primary">offline_pin</span>
-            <span className="text-[11px] text-on-surface-variant font-bold">1.42 GB</span>
+            <span className="text-[11px] text-on-surface-variant font-bold">
+              {offlinePackLabel || 'Offline'}
+            </span>
           </button>
 
           {/* User Profile Avatar */}

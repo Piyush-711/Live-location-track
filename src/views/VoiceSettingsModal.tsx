@@ -41,7 +41,7 @@ export const VoiceSettingsModal: React.FC<VoiceSettingsModalProps> = ({
   const handleTestVoice = () => {
     setTestingAudio(true);
     speechEngine.speak(
-      "In 45 meters, turn right onto Shijo-dori covered arcade toward Gion crossing.",
+      "In 45 meters, turn right at the upcoming intersection. Turn-by-turn navigation is active.",
       () => setTestingAudio(false)
     );
   };

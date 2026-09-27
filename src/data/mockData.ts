@@ -626,55 +626,33 @@ export const MOCK_WEATHER: Record<string, WeatherReport> = {
 
 export const MOCK_OFFLINE_PACKS: OfflinePack[] = [
   {
-    id: 'pack-kyoto-v42',
-    areaId: 'kyoto',
-    name: 'Kyoto Prefecture & Kansai Hub',
-    country: 'Japan',
-    sizeBytes: 1488977920,
-    sizeFormatted: '1.42 GB',
-    version: '4.2.1-prod',
+    id: 'pack-ap-amaravati-v10',
+    areaId: 'vijayawada',
+    name: 'Andhra Pradesh & Amaravati (Vijayawada / KLEF)',
+    country: 'India',
+    sizeBytes: 859832320,
+    sizeFormatted: '820 MB',
+    version: '1.0.4-prod',
     installed: true,
     manifest: {
-      packId: 'pack-kyoto-v42',
-      areaId: 'kyoto',
-      version: '4.2.1',
+      packId: 'pack-ap-amaravati-v10',
+      areaId: 'vijayawada',
+      version: '1.0.4',
       schemaVersion: 'v8-2026',
       hashes: {
-        'basemap.mbtiles': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-        'pois.sqlite': '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
-        'routing.osrm': '7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069'
+        'basemap.mbtiles': '3a88c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+        'pois.sqlite': '9b26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
+        'routing.osrm': '1c83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069'
       },
       lengths: {
-        'basemap.mbtiles': 880803840,
-        'pois.sqlite': 335544320,
-        'routing.osrm': 272629760
+        'basemap.mbtiles': 515899392,
+        'pois.sqlite': 214958080,
+        'routing.osrm': 128974848
       },
-      issuedAt: '2026-09-24T00:00:00Z',
-      expiresAt: '2026-10-24T00:00:00Z',
-      keyId: 'key-local-signer-2026-09',
-      signature: 'eyJhbGciOiJFUzI1NiIsImtpZCI6ImtleS1sb2NhbC1zaWduZXItMjAyNi0wOSJ9.e30.D7S...'
-    }
-  },
-  {
-    id: 'pack-london-v38',
-    areaId: 'london',
-    name: 'Greater London & South East',
-    country: 'United Kingdom',
-    sizeBytes: 1258291200,
-    sizeFormatted: '1.20 GB',
-    version: '3.8.0-prod',
-    installed: false,
-    manifest: {
-      packId: 'pack-london-v38',
-      areaId: 'london',
-      version: '3.8.0',
-      schemaVersion: 'v8-2026',
-      hashes: { 'basemap.mbtiles': '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08' },
-      lengths: { 'basemap.mbtiles': 1258291200 },
-      issuedAt: '2026-09-20T00:00:00Z',
-      expiresAt: '2026-10-20T00:00:00Z',
-      keyId: 'key-local-signer-2026-09',
-      signature: 'eyJhbGciOiJFUzI1NiJ9.e30.sigLondon'
+      issuedAt: '2026-09-26T00:00:00Z',
+      expiresAt: '2026-10-26T00:00:00Z',
+      keyId: 'key-ap-signer-2026-09',
+      signature: 'eyJhbGciOiJFUzI1NiIsImtpZCI6ImtleS1hcC1zaWduZXItMjAyNi0wOSJ9.e30.APsigVijayawada'
     }
   },
   {
@@ -700,6 +678,94 @@ export const MOCK_OFFLINE_PACKS: OfflinePack[] = [
     }
   },
   {
+    id: 'pack-delhi-v33',
+    areaId: 'delhi',
+    name: 'Delhi NCR & Northern Heritage Circuit',
+    country: 'India',
+    sizeBytes: 1027604480,
+    sizeFormatted: '980 MB',
+    version: '3.3.1-prod',
+    installed: false,
+    manifest: {
+      packId: 'pack-delhi-v33',
+      areaId: 'delhi',
+      version: '3.3.1',
+      schemaVersion: 'v8-2026',
+      hashes: { 'basemap.mbtiles': '7d884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8' },
+      lengths: { 'basemap.mbtiles': 1027604480 },
+      issuedAt: '2026-09-25T00:00:00Z',
+      expiresAt: '2026-10-25T00:00:00Z',
+      keyId: 'key-local-signer-2026-09',
+      signature: 'eyJhbGciOiJFUzI1NiJ9.e30.sigDelhi'
+    }
+  },
+  {
+    id: 'pack-goa-v18',
+    areaId: 'goa',
+    name: 'Goa Coastal & Heritage District',
+    country: 'India',
+    sizeBytes: 671088640,
+    sizeFormatted: '640 MB',
+    version: '1.8.0-prod',
+    installed: false,
+    manifest: {
+      packId: 'pack-goa-v18',
+      areaId: 'goa',
+      version: '1.8.0',
+      schemaVersion: 'v8-2026',
+      hashes: { 'basemap.mbtiles': '6c884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8' },
+      lengths: { 'basemap.mbtiles': 671088640 },
+      issuedAt: '2026-09-25T00:00:00Z',
+      expiresAt: '2026-10-25T00:00:00Z',
+      keyId: 'key-local-signer-2026-09',
+      signature: 'eyJhbGciOiJFUzI1NiJ9.e30.sigGoa'
+    }
+  },
+  {
+    id: 'pack-paris-v45',
+    areaId: 'paris',
+    name: 'Île-de-France & Greater Paris Basin',
+    country: 'France',
+    sizeBytes: 1415577600,
+    sizeFormatted: '1.32 GB',
+    version: '4.5.0-prod',
+    installed: false,
+    manifest: {
+      packId: 'pack-paris-v45',
+      areaId: 'paris',
+      version: '4.5.0',
+      schemaVersion: 'v8-2026',
+      hashes: { 'basemap.mbtiles': '8e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8' },
+      lengths: { 'basemap.mbtiles': 1415577600 },
+      issuedAt: '2026-09-24T00:00:00Z',
+      expiresAt: '2026-10-24T00:00:00Z',
+      keyId: 'key-local-signer-2026-09',
+      signature: 'eyJhbGciOiJFUzI1NiJ9.e30.sigParis'
+    }
+  },
+  {
+    id: 'pack-london-v38',
+    areaId: 'london',
+    name: 'Greater London & South East',
+    country: 'United Kingdom',
+    sizeBytes: 1258291200,
+    sizeFormatted: '1.20 GB',
+    version: '3.8.0-prod',
+    installed: false,
+    manifest: {
+      packId: 'pack-london-v38',
+      areaId: 'london',
+      version: '3.8.0',
+      schemaVersion: 'v8-2026',
+      hashes: { 'basemap.mbtiles': '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08' },
+      lengths: { 'basemap.mbtiles': 1258291200 },
+      issuedAt: '2026-09-20T00:00:00Z',
+      expiresAt: '2026-10-20T00:00:00Z',
+      keyId: 'key-local-signer-2026-09',
+      signature: 'eyJhbGciOiJFUzI1NiJ9.e30.sigLondon'
+    }
+  },
+  {
     id: 'pack-nyc-v40',
     areaId: 'newyork',
     name: 'New York City Tri-State',
@@ -719,6 +785,36 @@ export const MOCK_OFFLINE_PACKS: OfflinePack[] = [
       expiresAt: '2026-10-21T00:00:00Z',
       keyId: 'key-local-signer-2026-09',
       signature: 'eyJhbGciOiJFUzI1NiJ9.e30.sigNYC'
+    }
+  },
+  {
+    id: 'pack-kyoto-v42',
+    areaId: 'kyoto',
+    name: 'Kyoto Prefecture & Kansai Hub',
+    country: 'Japan',
+    sizeBytes: 1488977920,
+    sizeFormatted: '1.42 GB',
+    version: '4.2.1-prod',
+    installed: false,
+    manifest: {
+      packId: 'pack-kyoto-v42',
+      areaId: 'kyoto',
+      version: '4.2.1',
+      schemaVersion: 'v8-2026',
+      hashes: {
+        'basemap.mbtiles': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+        'pois.sqlite': '2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae',
+        'routing.osrm': '7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069'
+      },
+      lengths: {
+        'basemap.mbtiles': 880803840,
+        'pois.sqlite': 335544320,
+        'routing.osrm': 272629760
+      },
+      issuedAt: '2026-09-24T00:00:00Z',
+      expiresAt: '2026-10-24T00:00:00Z',
+      keyId: 'key-local-signer-2026-09',
+      signature: 'eyJhbGciOiJFUzI1NiIsImtpZCI6ImtleS1sb2NhbC1zaWduZXItMjAyNi0wOSJ9.e30.D7S...'
     }
   },
   {

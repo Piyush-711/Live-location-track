@@ -68,6 +68,10 @@ export const App: React.FC = () => {
     setActiveLiveRoute(route);
   };
 
+  // Determine active regional pack for current location
+  const currentRegionalPack = storage.getPackForLocation(location);
+  const offlinePackLabel = currentRegionalPack.installed ? currentRegionalPack.sizeFormatted : 'Get Pack';
+
   return (
     <ResponsiveLayout location={location} onRequestGPS={requestLiveGPS}>
       <div className="w-full flex-1 flex flex-col relative select-none">
@@ -77,6 +81,7 @@ export const App: React.FC = () => {
           gpsStatus={location.status}
           isCustom={location.isCustom}
           tempC={currentTemp}
+          offlinePackLabel={offlinePackLabel}
           onOpenCityPicker={() => setShowCityPicker(true)}
           onOpenOfflineVault={() => setActiveTab('offline')}
           onOpenProfile={() => setShowSavedDrawer(true)}
@@ -103,7 +108,10 @@ export const App: React.FC = () => {
           )}
 
           {activeTab === 'offline' && (
-            <OfflineVaultView />
+            <OfflineVaultView 
+              location={location}
+              activeCityId={activeCityId}
+            />
           )}
 
           {activeTab === 'toolkit' && (
