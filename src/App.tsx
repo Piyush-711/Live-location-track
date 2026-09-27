@@ -23,7 +23,7 @@ export const App: React.FC = () => {
   const [activeCityId, setActiveCityId] = useState<string>(storage.getActiveCityId());
 
   // Dynamic live location
-  const { location, requestLiveGPS } = useLiveLocation(activeCityId);
+  const { location, requestLiveGPS, setCustomLocation } = useLiveLocation(activeCityId);
 
   // Modals & HUD state
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -59,6 +59,7 @@ export const App: React.FC = () => {
         <Header
           cityName={location.cityName}
           gpsStatus={location.status}
+          isCustom={location.isCustom}
           onOpenCityPicker={() => setShowCityPicker(true)}
           onOpenOfflineVault={() => setActiveTab('offline')}
           onOpenProfile={() => setShowSavedDrawer(true)}
@@ -150,11 +151,14 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* City Picker Modal */}
+        {/* Location Picker Modal (Google / Apple Maps style) */}
         {showCityPicker && (
           <CityPickerModal
             activeCityId={activeCityId}
+            currentLocationName={location.cityName}
             onSelectCity={handleSelectCity}
+            onSelectCustomLocation={(custom) => setCustomLocation(custom)}
+            onRequestLiveGPS={requestLiveGPS}
             onClose={() => setShowCityPicker(false)}
           />
         )}

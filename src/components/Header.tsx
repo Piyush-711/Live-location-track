@@ -3,6 +3,7 @@ import React from 'react';
 interface HeaderProps {
   cityName: string;
   gpsStatus: 'acquiring' | 'fixed' | 'denied' | 'unsupported' | 'fallback';
+  isCustom?: boolean;
   onOpenCityPicker: () => void;
   onOpenOfflineVault: () => void;
   onOpenProfile: () => void;
@@ -11,6 +12,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   cityName,
   gpsStatus,
+  isCustom,
   onOpenCityPicker,
   onOpenOfflineVault,
   onOpenProfile
@@ -35,9 +37,9 @@ export const Header: React.FC<HeaderProps> = ({
               Local
             </span>
             <span className="text-[11px] font-semibold text-primary flex items-center gap-1 mt-0.5">
-              <span className={`w-1.5 h-1.5 rounded-full ${gpsStatus === 'fixed' ? 'bg-emerald-500 animate-pulse' : 'bg-primary'}`}></span>
+              <span className={`w-1.5 h-1.5 rounded-full ${isCustom ? 'bg-sky-500' : gpsStatus === 'fixed' ? 'bg-emerald-500 animate-pulse' : 'bg-primary'}`}></span>
               <span className="truncate max-w-[190px] md:max-w-none">
-                {cityName} • {gpsStatus === 'fixed' ? 'Live GPS Synced' : 'Selected Hub'}
+                {cityName} • {isCustom ? 'Custom Location' : gpsStatus === 'fixed' ? 'Live GPS' : 'Selected Hub'}
               </span>
               <span className="material-symbols-outlined text-[13px]">expand_more</span>
             </span>

@@ -1,5 +1,18 @@
 import { Place, Category, LocationCoordinates, RouteResponse, RouteStep } from '../types';
 import { getDistance } from 'geolib';
+import { CITIES } from '../data/mockData';
+
+export interface GeocodingResult {
+  id: string;
+  name: string;
+  address: string;
+  cityName: string;
+  country: string;
+  countryCode: string;
+  latitude: number;
+  longitude: number;
+  type?: string;
+}
 
 interface NominatimReverseResponse {
   display_name: string;
@@ -379,6 +392,176 @@ class OsmService {
         displayName: `${lat.toFixed(4)}°, ${lon.toFixed(4)}°`
       };
     }
+  }
+
+  // 1.5. Live Forward Geocoding & Custom Location Search (Google / Apple Maps style)
+  public async searchLocations(query: string): Promise<GeocodingResult[]> {
+    const q = query.trim();
+    if (!q) return [];
+
+    const results: GeocodingResult[] = [];
+    const seen = new Set<string>();
+
+    // 1. Check if user entered direct coordinates (e.g. "16.4422, 80.6253")
+    const coordMatch = q.match(/^(-?\d+(\.\d+)?)\s*,\s*(-?\d+(\.\d+)?)$/);
+    if (coordMatch) {
+      const lat = parseFloat(coordMatch[1]);
+      const lon = parseFloat(coordMatch[3]);
+      if (lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+        results.push({
+          id: `coord-${lat.toFixed(4)}-${lon.toFixed(4)}`,
+          name: `Custom Pinpoint: ${lat.toFixed(4)}, ${lon.toFixed(4)}`,
+          address: `Precise Latitude: ${lat.toFixed(5)}, Longitude: ${lon.toFixed(5)}`,
+          cityName: `Custom Pin (${lat.toFixed(3)}°, ${lon.toFixed(3)}°)`,
+          country: 'Direct Coordinates',
+          countryCode: 'IN',
+          latitude: lat,
+          longitude: lon,
+          type: 'coordinate'
+        });
+        return results;
+      }
+    }
+
+    // 2. Check local catalogue / regional landmarks for instant results
+    const qLower = q.toLowerCase();
+    for (const c of CITIES) {
+      if (c.name.toLowerCase().includes(qLower) || c.country.toLowerCase().includes(qLower)) {
+        const key = `${c.lat.toFixed(2)},${c.lng.toFixed(2)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push({
+            id: `city-${c.id}`,
+            name: c.name,
+            address: `${c.name}, ${c.country}`,
+            cityName: c.name,
+            country: c.country,
+            countryCode: c.countryCode,
+            latitude: c.lat,
+            longitude: c.lng,
+            type: 'city'
+          });
+        }
+      }
+    }
+
+    for (const lm of REGIONAL_LANDMARKS) {
+      if (lm.name.toLowerCase().includes(qLower) || lm.address.toLowerCase().includes(qLower)) {
+        const key = `${lm.latitude.toFixed(2)},${lm.longitude.toFixed(2)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push({
+            id: `lm-${lm.id}`,
+            name: lm.name,
+            address: lm.address,
+            cityName: lm.name.split(',')[0],
+            country: 'India',
+            countryCode: 'IN',
+            latitude: lm.latitude,
+            longitude: lm.longitude,
+            type: lm.category
+          });
+        }
+      }
+    }
+
+    // 3. Query Komoot Photon (Fast, typo-tolerant global search)
+    try {
+      const photonController = new AbortController();
+      const pTimeout = setTimeout(() => photonController.abort(), 4000);
+      const pRes = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8`, {
+        signal: photonController.signal
+      });
+      clearTimeout(pTimeout);
+
+      if (pRes.ok) {
+        const pData = await pRes.json();
+        if (pData && pData.features) {
+          for (const feat of pData.features) {
+            const props = feat.properties || {};
+            const coords = feat.geometry?.coordinates;
+            if (!coords || coords.length < 2) continue;
+            const [lon, lat] = coords;
+            const key = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+
+            const name = props.name || props.city || props.street || q;
+            const city = props.city || props.county || props.state || name;
+            const state = props.state ? `${props.state}, ` : '';
+            const country = props.country || '';
+            const address = [props.street, props.city, state, country].filter(Boolean).join(', ') || name;
+
+            results.push({
+              id: `photon-${props.osm_id || Math.random().toString(36).slice(2, 8)}`,
+              name,
+              address,
+              cityName: city,
+              country,
+              countryCode: (props.countrycode || 'IN').toUpperCase(),
+              latitude: lat,
+              longitude: lon,
+              type: props.osm_value || props.type || 'place'
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Photon forward search warn:', e);
+    }
+
+    // 4. Query Nominatim if fewer than 4 results found
+    if (results.length < 4) {
+      try {
+        const nomController = new AbortController();
+        const nTimeout = setTimeout(() => nomController.abort(), 4000);
+        const nRes = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}&limit=6&addressdetails=1`,
+          {
+            signal: nomController.signal,
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'LocalTravelApp/8.0 (CustomLocationSearch)'
+            }
+          }
+        );
+        clearTimeout(nTimeout);
+
+        if (nRes.ok) {
+          const nData = await nRes.json();
+          if (Array.isArray(nData)) {
+            for (const item of nData) {
+              const lat = parseFloat(item.lat);
+              const lon = parseFloat(item.lon);
+              const key = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+              if (seen.has(key)) continue;
+              seen.add(key);
+
+              const addr = item.address || {};
+              const city = addr.city || addr.town || addr.village || addr.county || item.name;
+              const country = addr.country || '';
+              const countryCode = (addr.country_code || 'IN').toUpperCase();
+
+              results.push({
+                id: `nom-${item.place_id}`,
+                name: item.name || city,
+                address: item.display_name,
+                cityName: city,
+                country,
+                countryCode,
+                latitude: lat,
+                longitude: lon,
+                type: item.type || 'place'
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Nominatim forward search warn:', e);
+      }
+    }
+
+    return results;
   }
 
   // 2. Query Real-World Authentic POIs using Nominatim Proximity & Komoot Photon + Geolib
