@@ -1,25 +1,24 @@
 import React from 'react';
-import { CITIES } from '../data/mockData';
 
 interface HeaderProps {
-  activeCityId: string;
+  cityName: string;
+  gpsStatus: 'acquiring' | 'fixed' | 'denied' | 'unsupported' | 'fallback';
   onOpenCityPicker: () => void;
   onOpenOfflineVault: () => void;
   onOpenProfile: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  activeCityId,
+  cityName,
+  gpsStatus,
   onOpenCityPicker,
   onOpenOfflineVault,
   onOpenProfile
 }) => {
-  const activeCity = CITIES.find(c => c.id === activeCityId) || CITIES[0];
-
   return (
-    <header className="fixed top-0 w-full z-40 pt-safe bg-surface/90 backdrop-blur-xl border-b border-[#eae6df]/80 shadow-[0_4px_16px_rgba(180,172,158,0.20)]">
-      <div className="h-16 px-4 max-w-md mx-auto flex items-center justify-between gap-2">
-        {/* Brand & Location Indicator */}
+    <header className="sticky top-0 w-full z-40 pt-safe bg-surface/90 backdrop-blur-xl border-b border-[#eae6df]/80 shadow-[0_4px_16px_rgba(180,172,158,0.20)]">
+      <div className="h-16 px-4 md:px-8 max-w-5xl mx-auto flex items-center justify-between gap-2">
+        {/* Brand & Dynamic Location Indicator */}
         <div 
           onClick={onOpenCityPicker}
           className="flex items-center gap-2.5 cursor-pointer select-none active:opacity-75 transition-opacity"
@@ -36,19 +35,21 @@ export const Header: React.FC<HeaderProps> = ({
               Local
             </span>
             <span className="text-[11px] font-semibold text-primary flex items-center gap-1 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-              <span>{activeCity.name} • GPS Synced</span>
+              <span className={`w-1.5 h-1.5 rounded-full ${gpsStatus === 'fixed' ? 'bg-emerald-500 animate-pulse' : 'bg-primary'}`}></span>
+              <span className="truncate max-w-[190px] md:max-w-none">
+                {cityName} • {gpsStatus === 'fixed' ? 'Live GPS Synced' : 'Selected Hub'}
+              </span>
               <span className="material-symbols-outlined text-[13px]">expand_more</span>
             </span>
           </div>
         </div>
 
         {/* Offline Vault & Profile Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 md:gap-3">
           {/* Offline Pack Status Pill */}
           <button 
             onClick={onOpenOfflineVault}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-surface-container shadow-tactile-inset-sm active:scale-95 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container shadow-tactile-inset-sm active:scale-95 transition-all"
             title="View Offline Regional Packs & Storage"
           >
             <span className="material-symbols-outlined text-[15px] text-primary">offline_pin</span>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TabType, BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
+import { ResponsiveLayout } from './components/ResponsiveLayout';
 import { ExploreView } from './views/ExploreView';
 import { PlaceDetailsModal } from './views/PlaceDetailsModal';
 import { RoutePreviewModal } from './views/RoutePreviewModal';
@@ -14,11 +15,15 @@ import { CityPickerModal } from './components/CityPickerModal';
 import { SavedPlacesDrawer } from './components/SavedPlacesDrawer';
 import { Place, RouteResponse } from './types';
 import { storage } from './services/storage';
+import { useLiveLocation } from './hooks/useLiveLocation';
 
 export const App: React.FC = () => {
   // Navigation tabs
   const [activeTab, setActiveTab] = useState<TabType>('explore');
   const [activeCityId, setActiveCityId] = useState<string>(storage.getActiveCityId());
+
+  // Dynamic live location
+  const { location, requestLiveGPS } = useLiveLocation(activeCityId);
 
   // Modals & HUD state
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
@@ -48,123 +53,129 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface flex flex-col relative select-none">
-      {/* Top Header */}
-      <Header
-        activeCityId={activeCityId}
-        onOpenCityPicker={() => setShowCityPicker(true)}
-        onOpenOfflineVault={() => setActiveTab('offline')}
-        onOpenProfile={() => setShowSavedDrawer(true)}
-      />
+    <ResponsiveLayout location={location} onRequestGPS={requestLiveGPS}>
+      <div className="w-full flex-1 flex flex-col relative select-none">
+        {/* Top Header with live location badge */}
+        <Header
+          cityName={location.cityName}
+          gpsStatus={location.status}
+          onOpenCityPicker={() => setShowCityPicker(true)}
+          onOpenOfflineVault={() => setActiveTab('offline')}
+          onOpenProfile={() => setShowSavedDrawer(true)}
+        />
 
-      {/* Main Tab Screen Area */}
-      <main className="flex-1 flex flex-col pt-16">
-        {activeTab === 'explore' && (
-          <ExploreView
+        {/* Main Tab Screen Area */}
+        <main className="flex-1 flex flex-col pt-3">
+          {activeTab === 'explore' && (
+            <ExploreView
+              location={location}
+              activeCityId={activeCityId}
+              onSelectPlace={(p) => setSelectedPlace(p)}
+              onStartRoute={(p) => handleStartRoute(p, 'walking')}
+              onOpenEmergency={() => setActiveTab('emergency')}
+              onRequestGPS={requestLiveGPS}
+            />
+          )}
+
+          {activeTab === 'emergency' && (
+            <EmergencySOSView
+              location={location}
+              onStartRouteToER={(p) => handleStartRoute(p, 'walking')}
+            />
+          )}
+
+          {activeTab === 'offline' && (
+            <OfflineVaultView />
+          )}
+
+          {activeTab === 'toolkit' && (
+            <TravelToolkitView activeCityId={activeCityId} />
+          )}
+        </main>
+
+        {/* Bottom Floating Navigation Dock */}
+        {!activeLiveRoute && (
+          <BottomNav
+            activeTab={activeTab}
+            onChangeTab={(tab) => {
+              setActiveTab(tab);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        )}
+
+        {/* Place Details Modal (Screen 1) */}
+        {selectedPlace && (
+          <PlaceDetailsModal
+            place={selectedPlace}
+            onClose={() => setSelectedPlace(null)}
+            onStartRoute={(p, mode) => handleStartRoute(p, mode)}
+            onOpenReportModal={(p) => setReportingPlace(p)}
+          />
+        )}
+
+        {/* Turn-by-Turn Route Preview Modal (Screen 4) */}
+        {previewRoutePlace && (
+          <RoutePreviewModal
+            place={previewRoutePlace.place}
+            mode={previewRoutePlace.mode}
+            onClose={() => setPreviewRoutePlace(null)}
+            onStartLiveNavigation={handleStartLiveNavigation}
+          />
+        )}
+
+        {/* Live Voice Navigation HUD (Screen 2) */}
+        {activeLiveRoute && (
+          <LiveNavigationHUD
+            route={activeLiveRoute}
+            location={location}
+            onEndNavigation={() => setActiveLiveRoute(null)}
+            onOpenVoiceSettings={() => setShowVoiceSettings(true)}
+            onOpenEmergency={() => {
+              setActiveLiveRoute(null);
+              setActiveTab('emergency');
+            }}
+          />
+        )}
+
+        {/* Audio & Voice Engine Settings Modal (Screen 3) */}
+        {showVoiceSettings && (
+          <VoiceSettingsModal
+            onClose={() => setShowVoiceSettings(false)}
+            onOpenOfflineVault={() => {
+              setShowVoiceSettings(false);
+              setActiveTab('offline');
+            }}
+          />
+        )}
+
+        {/* City Picker Modal */}
+        {showCityPicker && (
+          <CityPickerModal
             activeCityId={activeCityId}
+            onSelectCity={handleSelectCity}
+            onClose={() => setShowCityPicker(false)}
+          />
+        )}
+
+        {/* Saved Places Drawer */}
+        {showSavedDrawer && (
+          <SavedPlacesDrawer
+            onClose={() => setShowSavedDrawer(false)}
             onSelectPlace={(p) => setSelectedPlace(p)}
             onStartRoute={(p) => handleStartRoute(p, 'walking')}
-            onOpenEmergency={() => setActiveTab('emergency')}
           />
         )}
 
-        {activeTab === 'emergency' && (
-          <EmergencySOSView
-            activeCityId={activeCityId}
-            onStartRouteToER={(p) => handleStartRoute(p, 'walking')}
+        {/* Correction Report Modal */}
+        {reportingPlace && (
+          <ReportCorrectionModal
+            place={reportingPlace}
+            onClose={() => setReportingPlace(null)}
           />
         )}
-
-        {activeTab === 'offline' && (
-          <OfflineVaultView />
-        )}
-
-        {activeTab === 'toolkit' && (
-          <TravelToolkitView activeCityId={activeCityId} />
-        )}
-      </main>
-
-      {/* Bottom Floating Navigation Dock */}
-      {!activeLiveRoute && (
-        <BottomNav
-          activeTab={activeTab}
-          onChangeTab={(tab) => {
-            setActiveTab(tab);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-        />
-      )}
-
-      {/* Place Details Modal (Screen 1) */}
-      {selectedPlace && (
-        <PlaceDetailsModal
-          place={selectedPlace}
-          onClose={() => setSelectedPlace(null)}
-          onStartRoute={(p, mode) => handleStartRoute(p, mode)}
-          onOpenReportModal={(p) => setReportingPlace(p)}
-        />
-      )}
-
-      {/* Turn-by-Turn Route Preview Modal (Screen 4) */}
-      {previewRoutePlace && (
-        <RoutePreviewModal
-          place={previewRoutePlace.place}
-          mode={previewRoutePlace.mode}
-          onClose={() => setPreviewRoutePlace(null)}
-          onStartLiveNavigation={handleStartLiveNavigation}
-        />
-      )}
-
-      {/* Live Voice Navigation HUD (Screen 2) */}
-      {activeLiveRoute && (
-        <LiveNavigationHUD
-          route={activeLiveRoute}
-          onEndNavigation={() => setActiveLiveRoute(null)}
-          onOpenVoiceSettings={() => setShowVoiceSettings(true)}
-          onOpenEmergency={() => {
-            setActiveLiveRoute(null);
-            setActiveTab('emergency');
-          }}
-        />
-      )}
-
-      {/* Audio & Voice Engine Settings Modal (Screen 3) */}
-      {showVoiceSettings && (
-        <VoiceSettingsModal
-          onClose={() => setShowVoiceSettings(false)}
-          onOpenOfflineVault={() => {
-            setShowVoiceSettings(false);
-            setActiveTab('offline');
-          }}
-        />
-      )}
-
-      {/* City Picker Modal */}
-      {showCityPicker && (
-        <CityPickerModal
-          activeCityId={activeCityId}
-          onSelectCity={handleSelectCity}
-          onClose={() => setShowCityPicker(false)}
-        />
-      )}
-
-      {/* Saved Places Drawer */}
-      {showSavedDrawer && (
-        <SavedPlacesDrawer
-          onClose={() => setShowSavedDrawer(false)}
-          onSelectPlace={(p) => setSelectedPlace(p)}
-          onStartRoute={(p) => handleStartRoute(p, 'walking')}
-        />
-      )}
-
-      {/* Correction Report Modal */}
-      {reportingPlace && (
-        <ReportCorrectionModal
-          place={reportingPlace}
-          onClose={() => setReportingPlace(null)}
-        />
-      )}
-    </div>
+      </div>
+    </ResponsiveLayout>
   );
 };
 
