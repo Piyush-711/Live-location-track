@@ -95,6 +95,93 @@ const CATEGORY_SEARCH_TERMS: Record<Category | 'all', Array<{ term: string; cat:
 };
 
 
+interface LandmarkSeed {
+  id: string;
+  name: string;
+  localizedName?: string;
+  category: Category;
+  latitude: number;
+  longitude: number;
+  city: string;
+  address: string;
+  hours: string;
+  phone?: string;
+  emergencyCapable: boolean;
+  tags: string[];
+  triageInfo?: string;
+}
+
+const REGIONAL_LANDMARKS: LandmarkSeed[] = [
+  {
+    id: 'landmark-aiims-mangalagiri',
+    name: 'All India Institute of Medical Sciences (AIIMS), Mangalagiri',
+    localizedName: 'ఎయిమ్స్ మంగళగిరి (AIIMS Mangalagiri)',
+    category: 'hospital',
+    latitude: 16.4462453,
+    longitude: 80.5801318,
+    city: 'Mangalagiri',
+    address: 'All India Institute Of Medical Sciences (AIIMS) Road, Yerrabalem, Mangalagiri, Guntur District, Andhra Pradesh 522503',
+    hours: 'Emergency 24/7',
+    phone: '08645-293101',
+    emergencyCapable: true,
+    tags: ['AIIMS', 'Super Specialty Hospital', 'Central Govt Hospital', 'Emergency 24/7', 'Trauma Care', 'Public Hospital', 'ICU'],
+    triageInfo: 'Apex Public Super Specialty & Medical Research Hospital • 24/7 Emergency Casualty'
+  },
+  {
+    id: 'landmark-manipal-hospital-tadepalli',
+    name: 'Manipal Super Specialty Hospital (Private)',
+    localizedName: 'మణిపాల్ సూపర్ స్పెషాలిటీ హాస్పిటల్ (తాడేపల్లి)',
+    category: 'hospital',
+    latitude: 16.48512,
+    longitude: 80.61543,
+    city: 'Tadepalli',
+    address: 'Padmasaleela Bazar, Near Toll Gate, Tadepalli, Guntur / Vijayawada, Andhra Pradesh 522501',
+    hours: 'Emergency 24/7',
+    phone: '0866-2499999',
+    emergencyCapable: true,
+    tags: ['Private Hospital', 'Super Specialty', 'Manipal Hospitals', 'NABH Accredited', '24/7 Emergency', 'Cardiology', 'Private'],
+    triageInfo: 'Major Private Multi-Specialty Hospital • 24/7 Emergency Care & Ambulance'
+  },
+  {
+    id: 'landmark-sbi-atm-klef-campus',
+    name: 'State Bank of India (SBI) ATM - KL University (KLEF) Campus',
+    localizedName: 'ఎస్.బి.ఐ ఏటీఎం - కే.ఎల్ విశ్వవిద్యాలయం క్యాంపస్',
+    category: 'atm',
+    latitude: 16.4422073,
+    longitude: 80.6253234,
+    city: 'Vaddeswaram',
+    address: 'Inside KL University Campus, Klef Road, Vaddeswaram, Andhra Pradesh 522502',
+    hours: 'Open 24 Hours',
+    emergencyCapable: false,
+    tags: ['College ATM', 'KL University ATM', 'KLEF Campus ATM', 'SBI ATM', 'College', 'Campus', 'Cash Withdrawal', 'UPI Cardless Cash']
+  },
+  {
+    id: 'landmark-axis-atm-klef-road',
+    name: 'Axis Bank ATM - KLEF Road, Vaddeswaram',
+    category: 'atm',
+    latitude: 16.4488172,
+    longitude: 80.6172224,
+    city: 'Vaddeswaram',
+    address: 'Klef Road, Near University Junction, Vaddeswaram, Andhra Pradesh 522502',
+    hours: 'Open 24 Hours',
+    emergencyCapable: false,
+    tags: ['ATM', 'Axis Bank', 'KLEF Road', 'Cash Dispenser']
+  },
+  {
+    id: 'landmark-klef-university',
+    name: 'Koneru Lakshmaiah Education Foundation (KL University)',
+    localizedName: 'కోనేరు లక్ష్మయ్య ఎడ్యుకేషన్ ఫౌండేషన్ (కే.ఎల్ విశ్వవిద్యాలయం)',
+    category: 'transit_stop',
+    latitude: 16.4422073,
+    longitude: 80.6253234,
+    city: 'Vaddeswaram',
+    address: 'Green Fields, Vaddeswaram, Guntur District, Andhra Pradesh 522502',
+    hours: 'Open',
+    emergencyCapable: false,
+    tags: ['University', 'Engineering College', 'KLEF', 'Campus']
+  }
+];
+
 class OsmService {
   private reverseCache = new Map<string, { city: string; countryCode: string; neighborhood: string }>();
   private poiCache = new Map<string, { timestamp: number; places: Place[] }>();
@@ -164,21 +251,114 @@ class OsmService {
   public async fetchNearbyPOIs(
     lat: number,
     lon: number,
-    category: Category | 'all',
-    radiusMeters: number = 5000
+    category: Category | 'all' = 'all',
+    radiusMeters: number = 12000,
+    searchQuery?: string
   ): Promise<Place[]> {
     // Check in-memory POI cache (3-minute TTL per rounded coordinate ~110m)
-    const cacheKey = `${lat.toFixed(3)},${lon.toFixed(3)}_${category}`;
+    const cacheKey = `${lat.toFixed(3)},${lon.toFixed(3)}_${category}_${searchQuery || ''}`;
     const cached = this.poiCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < 180000 && cached.places.length > 0) {
       return cached.places;
     }
 
-    const queries = CATEGORY_SEARCH_TERMS[category] || [{ term: category, cat: 'hospital' as Category }];
     const places: Place[] = [];
     const seenCoordinates = new Set<string>();
 
-    // Step A: Check optional user-configured Google Places API Key
+    // Step 0: Check landmark registry for this region (AIIMS, Manipal Hospital, College ATMs)
+    for (const lm of REGIONAL_LANDMARKS) {
+      const dist = getDistance({ latitude: lat, longitude: lon }, { latitude: lm.latitude, longitude: lm.longitude });
+      if (dist <= Math.max(radiusMeters, 15000)) {
+        if (category === 'all' || lm.category === category) {
+          let matchesQuery = true;
+          if (searchQuery && searchQuery.trim()) {
+            const q = searchQuery.toLowerCase().trim();
+            matchesQuery = lm.name.toLowerCase().includes(q) ||
+              (lm.localizedName && lm.localizedName.toLowerCase().includes(q)) ||
+              lm.address.toLowerCase().includes(q) ||
+              lm.tags.some(t => t.toLowerCase().includes(q)) ||
+              ((q.includes('aiims') || q.includes('mangalagiri')) && lm.id.includes('aiims')) ||
+              ((q.includes('private') || q.includes('specialty') || q.includes('manipal')) && lm.id.includes('manipal')) ||
+              ((q.includes('college') || q.includes('university') || q.includes('campus') || q.includes('klef') || q.includes('kl')) && (lm.tags.some(t => t.toLowerCase().includes('college') || t.toLowerCase().includes('campus')) || lm.id.includes('klef'))) ||
+              (q.includes('hospital') && lm.category === 'hospital') ||
+              (q.includes('atm') && lm.category === 'atm');
+          }
+
+          if (matchesQuery) {
+            seenCoordinates.add(`${lm.latitude.toFixed(3)},${lm.longitude.toFixed(3)}`);
+            places.push({
+              id: lm.id,
+              name: lm.name,
+              localizedName: lm.localizedName,
+              category: lm.category,
+              distanceMeters: dist,
+              location: { latitude: lm.latitude, longitude: lm.longitude },
+              countryCode: 'IN',
+              city: lm.city,
+              address: lm.address,
+              hours: {
+                status: 'open',
+                raw: lm.hours,
+                formatted: lm.hours
+              },
+              source: 'CURATED_REGISTRY',
+              sourceUpdatedAt: new Date().toISOString(),
+              freshness: 'fresh',
+              emergencyCapable: lm.emergencyCapable,
+              phone: lm.phone,
+              tags: lm.tags,
+              triageInfo: lm.triageInfo
+            });
+          }
+        }
+      }
+    }
+
+    // Step A: Build search queries with semantic expansion
+    let queries = CATEGORY_SEARCH_TERMS[category] || [{ term: category, cat: 'hospital' as Category }];
+
+    if (searchQuery && searchQuery.trim().length > 1) {
+      const q = searchQuery.toLowerCase().trim();
+      const customQueries: Array<{ term: string; cat: Category }> = [];
+
+      if (q.includes('aiims') || q.includes('mangalagiri')) {
+        customQueries.push(
+          { term: 'All India Institute of Medical Sciences Mangalagiri', cat: 'hospital' },
+          { term: 'AIIMS Mangalagiri', cat: 'hospital' }
+        );
+      }
+      if (q.includes('private') || q.includes('manipal') || q.includes('specialty')) {
+        customQueries.push(
+          { term: 'Manipal Super Specialty Hospital Tadepalli', cat: 'hospital' },
+          { term: 'Manipal Hospital', cat: 'hospital' },
+          { term: 'private hospital', cat: 'hospital' }
+        );
+      }
+      if (q.includes('college') || q.includes('university') || q.includes('klef') || q.includes('campus')) {
+        customQueries.push(
+          { term: 'State Bank of India ATM KLEF', cat: 'atm' },
+          { term: 'KL University', cat: 'transit_stop' },
+          { term: 'KLEF Vaddeswaram', cat: 'transit_stop' }
+        );
+      }
+      if (q.includes('atm') || q.includes('sbi') || q.includes('cash')) {
+        customQueries.push(
+          { term: 'State Bank ATM', cat: 'atm' },
+          { term: 'Axis Bank ATM', cat: 'atm' }
+        );
+      }
+      if (q.includes('hospital') || q.includes('clinic')) {
+        customQueries.push(
+          { term: 'AIIMS Mangalagiri', cat: 'hospital' },
+          { term: 'Manipal Hospital', cat: 'hospital' }
+        );
+      }
+
+      customQueries.push({ term: searchQuery.trim(), cat: category !== 'all' ? category : 'hospital' });
+      queries = customQueries;
+    }
+
+    // Step B: Check optional user-configured Google Places API Key
     const googleApiKey = typeof window !== 'undefined' ? localStorage.getItem('google_places_api_key') : null;
     if (googleApiKey && googleApiKey.trim().length > 10) {
       try {
@@ -192,14 +372,14 @@ class OsmService {
       }
     }
 
-    // Step B: Query Nominatim Structured Proximity Search (High Precision Real Facilities)
+    // Step C: Query Nominatim Structured Proximity Search
     await Promise.allSettled(
       queries.map(async ({ term, cat }) => {
         try {
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), 4000);
 
-          const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(term)}+near+${lat},${lon}&format=json&addressdetails=1&limit=5`;
+          const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(term)}+near+${lat},${lon}&format=json&addressdetails=1&limit=6`;
           const res = await fetch(url, {
             headers: {
               'Accept': 'application/json',
@@ -211,6 +391,7 @@ class OsmService {
 
           if (!res.ok) return;
           const items: NominatimSearchResult[] = await res.json();
+
 
           for (const it of items || []) {
             const itemLat = parseFloat(it.lat);
@@ -277,11 +458,14 @@ class OsmService {
       })
     );
 
-    // Step C: If any category yielded 0 results, query Komoot Photon to ensure complete coverage
-    const missingCategories = queries.filter(q => !places.some(p => p.category === q.cat));
-    if (missingCategories.length > 0) {
+    // Step D: Query Komoot Photon for missing categories OR for custom search queries
+    const photonTargets = (searchQuery && searchQuery.trim().length > 1)
+      ? queries
+      : queries.filter(q => !places.some(p => p.category === q.cat));
+
+    if (photonTargets.length > 0) {
       await Promise.allSettled(
-        missingCategories.map(async ({ term, cat }) => {
+        photonTargets.map(async ({ term, cat }) => {
           try {
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 3500);
@@ -303,8 +487,9 @@ class OsmService {
                 { latitude: fLat, longitude: fLon }
               );
 
-              const maxDist = (cat === 'hospital' || cat === 'police') ? Math.max(radiusMeters * 2.5, 15000) : Math.max(radiusMeters * 1.5, 7000);
+              const maxDist = (cat === 'hospital' || cat === 'police') ? Math.max(radiusMeters * 2.5, 15000) : Math.max(radiusMeters * 1.5, 10000);
               if (dist > maxDist) continue;
+
 
               seenCoordinates.add(coordKey);
               const props = feat.properties || {};

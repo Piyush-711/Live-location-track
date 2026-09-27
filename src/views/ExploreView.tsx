@@ -60,7 +60,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
     lastCoordsRef.current = { lat: currentLat, lon: currentLon };
     setLoading(true);
 
-    api.getNearbyPlaces(activeCityId, 'all', undefined, 4000, location.coords)
+    api.getNearbyPlaces(activeCityId, 'all', undefined, 12000, location.coords)
       .then(res => {
         if (isMounted) {
           setPlaces(res.items);
@@ -74,6 +74,35 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 
     return () => { isMounted = false; };
   }, [activeCityId, location.coords.latitude, location.coords.longitude]);
+
+  // Dynamic live search on user typing
+  useEffect(() => {
+    if (!searchQuery || searchQuery.trim().length < 2) return;
+
+    let isCurrent = true;
+    const timer = setTimeout(() => {
+      setLoading(true);
+      api.getNearbyPlaces(activeCityId, selectedCategory, searchQuery.trim(), 12000, location.coords)
+        .then(res => {
+          if (isCurrent && res.items && res.items.length > 0) {
+            setPlaces(prev => {
+              const existingIds = new Set(prev.map(p => p.id));
+              const newItems = res.items.filter(p => !existingIds.has(p.id));
+              return [...newItems, ...prev];
+            });
+            setLoading(false);
+          }
+        })
+        .catch(() => {
+          if (isCurrent) setLoading(false);
+        });
+    }, 350);
+
+    return () => {
+      isCurrent = false;
+      clearTimeout(timer);
+    };
+  }, [searchQuery, selectedCategory, activeCityId, location.coords.latitude, location.coords.longitude]);
 
   // Dynamically compute real-time distance and instant search filtering with semantic matching
   const dynamicPlaces = useMemo(() => {
@@ -97,6 +126,15 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 
         // Category & semantic intent matching
         if (p.category.toLowerCase().includes(q)) return true;
+        if ((q.includes('aiims') || q.includes('mangalagiri')) && (p.id.includes('aiims') || p.name.toLowerCase().includes('aiims') || p.address.toLowerCase().includes('aiims'))) {
+          return true;
+        }
+        if ((q.includes('private') || q.includes('manipal') || q.includes('specialty')) && (p.id.includes('manipal') || p.name.toLowerCase().includes('manipal') || (p.tags && p.tags.some(t => t.toLowerCase().includes('private'))))) {
+          return true;
+        }
+        if ((q.includes('college') || q.includes('university') || q.includes('campus') || q.includes('klef') || q.includes('kl')) && ((p.tags && p.tags.some(t => t.toLowerCase().includes('college') || t.toLowerCase().includes('campus') || t.toLowerCase().includes('university'))) || p.id.includes('klef') || p.name.toLowerCase().includes('college') || p.name.toLowerCase().includes('university'))) {
+          return true;
+        }
         if ((q.includes('hosp') || q.includes('clinic') || q.includes('doctor') || q.includes('er') || q.includes('casualty') || q.includes('medical') || q.includes('health') || q.includes('trauma')) && p.category === 'hospital') {
           return true;
         }

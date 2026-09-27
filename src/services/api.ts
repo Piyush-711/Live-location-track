@@ -91,17 +91,18 @@ class ApiService {
     areaId: string, 
     category?: Category | 'all',
     searchQuery?: string,
-    radiusMeters: number = 3000,
+    radiusMeters: number = 12000,
     coords?: LocationCoordinates
   ): Promise<{ items: Place[]; datasetVersion: string; coverageArea: string }> {
-    // 1. If live coordinates are provided, query live OpenStreetMap Overpass nodes first
+    // 1. If live coordinates are provided, query live OpenStreetMap Overpass/Nominatim nodes
     if (coords && coords.latitude && coords.longitude) {
       try {
         const osmPlaces = await osmService.fetchNearbyPOIs(
           coords.latitude,
           coords.longitude,
           category || 'all',
-          radiusMeters
+          radiusMeters,
+          searchQuery
         );
 
         if (osmPlaces && osmPlaces.length > 0) {
@@ -114,10 +115,13 @@ class ApiService {
               p.address.toLowerCase().includes(q) ||
               p.category.toLowerCase().includes(q) ||
               (p.tags && p.tags.some(t => t.toLowerCase().includes(q))) ||
+              ((q.includes('aiims') || q.includes('mangalagiri')) && (p.id.includes('aiims') || p.name.toLowerCase().includes('aiims') || p.address.toLowerCase().includes('aiims'))) ||
+              ((q.includes('private') || q.includes('manipal') || q.includes('specialty')) && (p.id.includes('manipal') || p.name.toLowerCase().includes('manipal') || (p.tags && p.tags.some(t => t.toLowerCase().includes('private'))))) ||
+              ((q.includes('college') || q.includes('university') || q.includes('campus') || q.includes('klef') || q.includes('kl')) && ((p.tags && p.tags.some(t => t.toLowerCase().includes('college') || t.toLowerCase().includes('campus') || t.toLowerCase().includes('university'))) || p.id.includes('klef') || p.name.toLowerCase().includes('college') || p.name.toLowerCase().includes('university'))) ||
               ((q.includes('hosp') || q.includes('clinic') || q.includes('doctor') || q.includes('er')) && p.category === 'hospital') ||
               ((q.includes('pharm') || q.includes('chem') || q.includes('med')) && p.category === 'pharmacy') ||
               (q.includes('police') && p.category === 'police') ||
-              ((q.includes('atm') || q.includes('cash') || q.includes('bank')) && p.category === 'atm') ||
+              ((q.includes('atm') || q.includes('cash') || q.includes('bank') || q.includes('sbi')) && p.category === 'atm') ||
               ((q.includes('transit') || q.includes('bus') || q.includes('train')) && p.category === 'transit_stop') ||
               ((q.includes('supermarket') || q.includes('grocer') || q.includes('market')) && p.category === 'supermarket') ||
               ((q.includes('cafe') || q.includes('coffee') || q.includes('tea')) && p.category === 'cafe')
