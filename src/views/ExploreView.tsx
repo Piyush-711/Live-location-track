@@ -40,40 +40,27 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [mobileViewMode, setMobileViewMode] = useState<'list' | 'map'>('list');
 
-  const lastQueryRef = useRef<{
-    cityId: string;
-    cat: Category | 'all';
-    q: string;
-    lat: number;
-    lon: number;
-  } | null>(null);
+  const lastCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
 
-  // Load places based on city or live GPS coordinates (Optimized debounce)
+  // Load places pool based on city or live GPS coordinates
   useEffect(() => {
     let isMounted = true;
     const currentLat = location.coords.latitude;
     const currentLon = location.coords.longitude;
-    const last = lastQueryRef.current;
+    const last = lastCoordsRef.current;
 
-    if (last) {
+    // Check if user has moved > 200m or if first load
+    if (last && places.length > 0) {
       const movedDistance = calculateDistanceMeters(currentLat, currentLon, last.lat, last.lon);
-      const sameParams = last.cityId === activeCityId && last.cat === selectedCategory && last.q === searchQuery;
-      // If user hasn't moved more than 200m and category/query hasn't changed, don't re-query network!
-      if (sameParams && movedDistance < 200) {
+      if (movedDistance < 200) {
         return;
       }
     }
 
-    lastQueryRef.current = {
-      cityId: activeCityId,
-      cat: selectedCategory,
-      q: searchQuery,
-      lat: currentLat,
-      lon: currentLon
-    };
-
+    lastCoordsRef.current = { lat: currentLat, lon: currentLon };
     setLoading(true);
-    api.getNearbyPlaces(activeCityId, selectedCategory, searchQuery, 3000, location.coords)
+
+    api.getNearbyPlaces(activeCityId, 'all', undefined, 4000, location.coords)
       .then(res => {
         if (isMounted) {
           setPlaces(res.items);
@@ -86,11 +73,57 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
       });
 
     return () => { isMounted = false; };
-  }, [activeCityId, selectedCategory, searchQuery, location.coords.latitude, location.coords.longitude]);
+  }, [activeCityId, location.coords.latitude, location.coords.longitude]);
 
-  // Dynamically compute real-time distance from user's live GPS to each place
+  // Dynamically compute real-time distance and instant search filtering with semantic matching
   const dynamicPlaces = useMemo(() => {
-    return places.map(p => {
+    let filtered = places;
+
+    // Filter by selected category pill
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(p => p.category === selectedCategory);
+    }
+
+    // Instant real-time search filtering across name, localized name, address, tags, and category keywords
+    if (searchQuery && searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(p => {
+        // Direct text match
+        if (p.name.toLowerCase().includes(q)) return true;
+        if (p.localizedName && p.localizedName.toLowerCase().includes(q)) return true;
+        if (p.address && p.address.toLowerCase().includes(q)) return true;
+        if (p.city && p.city.toLowerCase().includes(q)) return true;
+        if (p.tags && p.tags.some(t => t.toLowerCase().includes(q))) return true;
+
+        // Category & semantic intent matching
+        if (p.category.toLowerCase().includes(q)) return true;
+        if ((q.includes('hosp') || q.includes('clinic') || q.includes('doctor') || q.includes('er') || q.includes('casualty') || q.includes('medical') || q.includes('health') || q.includes('trauma')) && p.category === 'hospital') {
+          return true;
+        }
+        if ((q.includes('pharm') || q.includes('chem') || q.includes('med') || q.includes('drug') || q.includes('rx') || q.includes('dispens')) && p.category === 'pharmacy') {
+          return true;
+        }
+        if ((q.includes('police') || q.includes('cop') || q.includes('station') || q.includes('patrol') || q.includes('security') || q.includes('koban')) && p.category === 'police') {
+          return true;
+        }
+        if ((q.includes('atm') || q.includes('cash') || q.includes('bank') || q.includes('money') || q.includes('indicash') || q.includes('sbi')) && p.category === 'atm') {
+          return true;
+        }
+        if ((q.includes('transit') || q.includes('bus') || q.includes('train') || q.includes('metro') || q.includes('subway') || q.includes('station') || q.includes('stop')) && p.category === 'transit_stop') {
+          return true;
+        }
+        if ((q.includes('supermarket') || q.includes('grocer') || q.includes('market') || q.includes('shop') || q.includes('store') || q.includes('food') || q.includes('provisions')) && p.category === 'supermarket') {
+          return true;
+        }
+        if ((q.includes('cafe') || q.includes('coffee') || q.includes('tea') || q.includes('bakery') || q.includes('snack') || q.includes('drink')) && p.category === 'cafe') {
+          return true;
+        }
+
+        return false;
+      });
+    }
+
+    return filtered.map(p => {
       const liveDist = calculateDistanceMeters(
         location.coords.latitude,
         location.coords.longitude,
@@ -107,7 +140,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
       }
       return a.id.localeCompare(b.id);
     });
-  }, [places, location.coords]);
+  }, [places, selectedCategory, searchQuery, location.coords]);
 
   const refreshSavedState = () => {
     const saved = storage.getSavedPlaces();

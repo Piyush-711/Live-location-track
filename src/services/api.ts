@@ -112,7 +112,15 @@ class ApiService {
               p.name.toLowerCase().includes(q) ||
               (p.localizedName && p.localizedName.toLowerCase().includes(q)) ||
               p.address.toLowerCase().includes(q) ||
-              (p.tags && p.tags.some(t => t.toLowerCase().includes(q)))
+              p.category.toLowerCase().includes(q) ||
+              (p.tags && p.tags.some(t => t.toLowerCase().includes(q))) ||
+              ((q.includes('hosp') || q.includes('clinic') || q.includes('doctor') || q.includes('er')) && p.category === 'hospital') ||
+              ((q.includes('pharm') || q.includes('chem') || q.includes('med')) && p.category === 'pharmacy') ||
+              (q.includes('police') && p.category === 'police') ||
+              ((q.includes('atm') || q.includes('cash') || q.includes('bank')) && p.category === 'atm') ||
+              ((q.includes('transit') || q.includes('bus') || q.includes('train')) && p.category === 'transit_stop') ||
+              ((q.includes('supermarket') || q.includes('grocer') || q.includes('market')) && p.category === 'supermarket') ||
+              ((q.includes('cafe') || q.includes('coffee') || q.includes('tea')) && p.category === 'cafe')
             );
           }
 
