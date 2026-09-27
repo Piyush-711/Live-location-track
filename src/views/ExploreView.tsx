@@ -15,15 +15,20 @@ interface ExploreViewProps {
 }
 
 const CATEGORY_PILLS: { id: Category | 'all'; label: string; icon: string }[] = [
-  { id: 'all', label: 'All Essentials', icon: 'near_me' },
-  { id: 'hospital', label: 'Hospitals', icon: 'local_hospital' },
+  { id: 'all', label: 'All Places', icon: 'explore' },
+  { id: 'historic', label: 'Raj Mahal & Heritage', icon: 'castle' },
+  { id: 'museum', label: 'Museums', icon: 'museum' },
+  { id: 'beach', label: 'Beaches', icon: 'beach_access' },
+  { id: 'attraction', label: 'Attractions', icon: 'attractions' },
+  { id: 'hospital', label: 'Hospitals & ER', icon: 'local_hospital' },
   { id: 'pharmacy', label: 'Pharmacies', icon: 'medication' },
-  { id: 'police', label: 'Police Box (Kōban)', icon: 'local_police' },
-  { id: 'atm', label: 'ATMs', icon: 'atm' },
+  { id: 'atm', label: 'ATMs & Cash', icon: 'atm' },
   { id: 'transit_stop', label: 'Transit', icon: 'train' },
-  { id: 'supermarket', label: 'Supermarkets', icon: 'shopping_basket' },
-  { id: 'cafe', label: 'Cafes', icon: 'coffee' }
+  { id: 'cafe', label: 'Cafes & Dining', icon: 'restaurant' },
+  { id: 'police', label: 'Police', icon: 'local_police' },
+  { id: 'supermarket', label: 'Shops', icon: 'shopping_basket' }
 ];
+
 
 export const ExploreView: React.FC<ExploreViewProps> = ({
   location,
@@ -135,9 +140,22 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
         if ((q.includes('college') || q.includes('university') || q.includes('campus') || q.includes('klef') || q.includes('kl')) && ((p.tags && p.tags.some(t => t.toLowerCase().includes('college') || t.toLowerCase().includes('campus') || t.toLowerCase().includes('university'))) || p.id.includes('klef') || p.name.toLowerCase().includes('college') || p.name.toLowerCase().includes('university'))) {
           return true;
         }
+        if ((q.includes('raj mahal') || q.includes('palace') || q.includes('mahal') || q.includes('fort') || q.includes('historic') || q.includes('monument') || q.includes('caves') || q.includes('heritage') || q.includes('ancient')) && (p.category === 'historic' || (p.tags && p.tags.some(t => t.toLowerCase().includes('historic') || t.toLowerCase().includes('palace') || t.toLowerCase().includes('heritage'))))) {
+          return true;
+        }
+        if ((q.includes('museum') || q.includes('gallery') || q.includes('art') || q.includes('exhibit')) && (p.category === 'museum' || (p.tags && p.tags.some(t => t.toLowerCase().includes('museum'))))) {
+          return true;
+        }
+        if ((q.includes('beach') || q.includes('sea') || q.includes('shore') || q.includes('coast') || q.includes('ocean')) && (p.category === 'beach' || (p.tags && p.tags.some(t => t.toLowerCase().includes('beach'))))) {
+          return true;
+        }
+        if ((q.includes('tourist') || q.includes('attraction') || q.includes('sight') || q.includes('viewpoint') || q.includes('island')) && (p.category === 'attraction' || (p.tags && p.tags.some(t => t.toLowerCase().includes('attraction'))))) {
+          return true;
+        }
         if ((q.includes('hosp') || q.includes('clinic') || q.includes('doctor') || q.includes('er') || q.includes('casualty') || q.includes('medical') || q.includes('health') || q.includes('trauma')) && p.category === 'hospital') {
           return true;
         }
+
         if ((q.includes('pharm') || q.includes('chem') || q.includes('med') || q.includes('drug') || q.includes('rx') || q.includes('dispens')) && p.category === 'pharmacy') {
           return true;
         }

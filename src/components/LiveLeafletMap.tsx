@@ -181,13 +181,25 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
 
     places.forEach((place) => {
       const isSelected = selectedPlace?.id === place.id;
-      const bg = isSelected ? '#0369a1' : (place.emergencyCapable ? '#ba1a1a' : '#0284c7');
+      const bg = isSelected ? '#0369a1' : (
+        place.emergencyCapable ? '#ba1a1a' :
+        place.category === 'historic' ? '#92400e' :
+        place.category === 'museum' ? '#7e22ce' :
+        place.category === 'beach' ? '#0891b2' :
+        place.category === 'attraction' ? '#e11d48' :
+        '#0284c7'
+      );
       const iconGlyph = place.category === 'hospital' ? '+' :
                         place.category === 'pharmacy' ? 'Rx' :
                         place.category === 'police' ? 'POL' :
                         place.category === 'atm' ? '$' :
                         place.category === 'transit_stop' ? 'TR' :
+                        place.category === 'historic' ? '🏛️' :
+                        place.category === 'museum' ? '🎨' :
+                        place.category === 'beach' ? '🏖️' :
+                        place.category === 'attraction' ? '🎡' :
                         place.category === 'cafe' ? '☕' : '•';
+
 
       const customIcon = L.divIcon({
         className: 'custom-poi-marker',

@@ -8,7 +8,12 @@ export type Category =
   | 'hotel' 
   | 'transit_stop' 
   | 'supermarket' 
-  | 'fuel';
+  | 'fuel'
+  | 'historic'
+  | 'museum'
+  | 'beach'
+  | 'attraction';
+
 
 export interface LocationCoordinates {
   latitude: number;

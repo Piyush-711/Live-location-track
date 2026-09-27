@@ -33,6 +33,11 @@ interface NominatimSearchResult {
 
 const CATEGORY_SEARCH_TERMS: Record<Category | 'all', Array<{ term: string; cat: Category }>> = {
   all: [
+    { term: 'historical place', cat: 'historic' },
+    { term: 'palace', cat: 'historic' },
+    { term: 'museum', cat: 'museum' },
+    { term: 'tourist attraction', cat: 'attraction' },
+    { term: 'beach', cat: 'beach' },
     { term: 'hospital', cat: 'hospital' },
     { term: 'pharmacy', cat: 'pharmacy' },
     { term: 'police station', cat: 'police' },
@@ -40,6 +45,35 @@ const CATEGORY_SEARCH_TERMS: Record<Category | 'all', Array<{ term: string; cat:
     { term: 'bus stop', cat: 'transit_stop' },
     { term: 'supermarket', cat: 'supermarket' },
     { term: 'cafe', cat: 'cafe' }
+  ],
+  historic: [
+    { term: 'historical place', cat: 'historic' },
+    { term: 'palace', cat: 'historic' },
+    { term: 'raj mahal', cat: 'historic' },
+    { term: 'fort', cat: 'historic' },
+    { term: 'monument', cat: 'historic' },
+    { term: 'heritage site', cat: 'historic' },
+    { term: 'undavalli caves', cat: 'historic' }
+  ],
+  museum: [
+    { term: 'museum', cat: 'museum' },
+    { term: 'art gallery', cat: 'museum' },
+    { term: 'bapu museum', cat: 'museum' },
+    { term: 'archaeological museum', cat: 'museum' }
+  ],
+  beach: [
+    { term: 'beach', cat: 'beach' },
+    { term: 'sea beach', cat: 'beach' },
+    { term: 'coastal beach', cat: 'beach' },
+    { term: 'waterfront', cat: 'beach' }
+  ],
+  attraction: [
+    { term: 'tourist attraction', cat: 'attraction' },
+    { term: 'sightseeing', cat: 'attraction' },
+    { term: 'undavalli caves', cat: 'attraction' },
+    { term: 'prakasam barrage', cat: 'attraction' },
+    { term: 'bhavani island', cat: 'attraction' },
+    { term: 'viewpoint', cat: 'attraction' }
   ],
   hospital: [
     { term: 'hospital', cat: 'hospital' },
@@ -93,6 +127,7 @@ const CATEGORY_SEARCH_TERMS: Record<Category | 'all', Array<{ term: string; cat:
     { term: 'fuel', cat: 'fuel' }
   ]
 };
+
 
 
 interface LandmarkSeed {
@@ -179,8 +214,107 @@ const REGIONAL_LANDMARKS: LandmarkSeed[] = [
     hours: 'Open',
     emergencyCapable: false,
     tags: ['University', 'Engineering College', 'KLEF', 'Campus']
+  },
+  {
+    id: 'landmark-undavalli-caves',
+    name: 'Undavalli Caves (Ancient Rock-Cut Monument)',
+    localizedName: 'ఉండవల్లి గుహలు (Undavalli Caves)',
+    category: 'historic',
+    latitude: 16.4965,
+    longitude: 80.5794,
+    city: 'Undavalli',
+    address: 'Undavalli Caves Road, Undavalli, Guntur District, Andhra Pradesh 522501',
+    hours: '09:00 - 18:00 Daily',
+    emergencyCapable: false,
+    tags: ['Historical Place', 'Ancient Caves', 'Monolithic Sculpture', 'Archaeological Survey of India', 'Tourist Attraction', '7th Century Heritage', 'Caves'],
+    triageInfo: 'Ancient 7th-century rock-cut monolithic caves and heritage monument'
+  },
+  {
+    id: 'landmark-bapu-museum',
+    name: 'Bapu Museum (Victoria Jubilee Museum)',
+    localizedName: 'బాపు మ్యూజియం (విజయవాడ)',
+    category: 'museum',
+    latitude: 16.5097,
+    longitude: 80.6331,
+    city: 'Vijayawada',
+    address: 'MG Road, Buckinghampet, Vijayawada, Andhra Pradesh 520002',
+    hours: '10:30 - 17:00 (Closed Fridays)',
+    emergencyCapable: false,
+    tags: ['Museum', 'Art Gallery', 'Ancient Sculptures', 'Buddhist Artifacts', 'Archaeology', 'Tourist Landmark', 'Exhibition'],
+    triageInfo: 'State archaeological museum featuring prehistoric artifacts and bronze sculptures'
+  },
+  {
+    id: 'landmark-prakasam-barrage',
+    name: 'Prakasam Barrage & Krishna Riverfront Promenade',
+    localizedName: 'ప్రకాశం బ్యారేజ్ (కృష్ణా నది)',
+    category: 'attraction',
+    latitude: 16.5065,
+    longitude: 80.6062,
+    city: 'Vijayawada',
+    address: 'Across Krishna River, Connecting Guntur and Krishna Districts, Andhra Pradesh',
+    hours: 'Open 24 Hours (Illuminated Evenings)',
+    emergencyCapable: false,
+    tags: ['Tourist Attraction', 'Scenic Viewpoint', 'Krishna River', 'Historic Barrage', 'Sunset Spot', 'Photo Spot', 'River Promenade'],
+    triageInfo: 'Iconic 1.2 km road bridge and barrage over the Krishna river with scenic pedestrian walkways'
+  },
+  {
+    id: 'landmark-kondapalli-fort',
+    name: 'Kondapalli Fort & Royal Palace (Gaja Mahal / Raj Mahal)',
+    localizedName: 'కొండపల్లి కోట (గజ మహల్ / రాజ మహల్)',
+    category: 'historic',
+    latitude: 16.6212,
+    longitude: 80.5348,
+    city: 'Kondapalli',
+    address: 'Fort Hill, Kondapalli, NTR District, Andhra Pradesh 521228',
+    hours: '10:00 - 17:00 Daily',
+    emergencyCapable: false,
+    tags: ['Raj Mahal', 'Royal Palace', 'Historical Fort', '14th Century', 'Heritage', 'Hilltop Viewpoint', 'Gaja Mahal', 'Palace'],
+    triageInfo: 'Historic 14th-century hill fortress featuring the royal palace (Gaja Mahal / Raj Mahal)'
+  },
+  {
+    id: 'landmark-bhavani-island',
+    name: 'Bhavani Island Tourism & Adventure Park',
+    localizedName: 'భవాని ఐలాండ్',
+    category: 'attraction',
+    latitude: 16.5218,
+    longitude: 80.5892,
+    city: 'Vijayawada',
+    address: 'Bhavani Island, Krishna River, Near Gollapudi, Vijayawada, Andhra Pradesh 520012',
+    hours: '08:00 - 19:30 Daily',
+    emergencyCapable: false,
+    tags: ['Tourist Attraction', 'River Island', 'Boating & Water Sports', 'Resort', 'Picnic Spot', 'Nature Park'],
+    triageInfo: 'One of the largest river islands in India with boating, water sports, and botanical gardens'
+  },
+  {
+    id: 'landmark-amaravati-dhyana-buddha',
+    name: 'Amaravati Stupa & Dhyana Buddha Heritage',
+    localizedName: 'అమరావతి ధ్యాన బుద్ధ ప్రాజెక్ట్',
+    category: 'historic',
+    latitude: 16.5746,
+    longitude: 80.3582,
+    city: 'Amaravati',
+    address: 'Amaravati Heritage Corridor, Palnadu District, Andhra Pradesh 522020',
+    hours: '08:00 - 18:00 Daily',
+    emergencyCapable: false,
+    tags: ['Historic Monument', '125ft Giant Buddha', 'Buddhist Heritage', 'Museum', 'Ancient Amaravati Stupa', 'Heritage Site'],
+    triageInfo: 'Iconic 125-foot Dhyana Buddha sculpture and 2,000-year-old Buddhist archaeological site'
+  },
+  {
+    id: 'landmark-suryalanka-beach',
+    name: 'Suryalanka Beach (Bapatla Coast)',
+    localizedName: 'సూర్యలంక బీచ్ (బాపట్ల)',
+    category: 'beach',
+    latitude: 15.8569,
+    longitude: 80.5186,
+    city: 'Bapatla',
+    address: 'Suryalanka Coastal Road, Bapatla, Bapatla District, Andhra Pradesh 522101',
+    hours: 'Open 24 Hours (Best sunrise to sunset)',
+    emergencyCapable: false,
+    tags: ['Beach', 'Bay of Bengal', 'Golden Sands', 'Coastal Shore', 'Waterfront', 'Weekend Getaway', 'Sea Beach'],
+    triageInfo: 'Natural beach on the Bay of Bengal coast with gentle waters and resort cottages'
   }
 ];
+
 
 class OsmService {
   private reverseCache = new Map<string, { city: string; countryCode: string; neighborhood: string }>();
@@ -280,6 +414,10 @@ class OsmService {
               ((q.includes('aiims') || q.includes('mangalagiri')) && lm.id.includes('aiims')) ||
               ((q.includes('private') || q.includes('specialty') || q.includes('manipal')) && lm.id.includes('manipal')) ||
               ((q.includes('college') || q.includes('university') || q.includes('campus') || q.includes('klef') || q.includes('kl')) && (lm.tags.some(t => t.toLowerCase().includes('college') || t.toLowerCase().includes('campus')) || lm.id.includes('klef'))) ||
+              ((q.includes('raj mahal') || q.includes('palace') || q.includes('mahal') || q.includes('fort') || q.includes('historic') || q.includes('monument') || q.includes('caves') || q.includes('heritage')) && (lm.category === 'historic' || lm.tags.some(t => t.toLowerCase().includes('palace') || t.toLowerCase().includes('heritage')))) ||
+              ((q.includes('museum') || q.includes('gallery') || q.includes('art') || q.includes('exhibit')) && lm.category === 'museum') ||
+              ((q.includes('beach') || q.includes('sea') || q.includes('shore') || q.includes('coast')) && lm.category === 'beach') ||
+              ((q.includes('tourist') || q.includes('attraction') || q.includes('sight') || q.includes('viewpoint') || q.includes('island')) && lm.category === 'attraction') ||
               (q.includes('hospital') && lm.category === 'hospital') ||
               (q.includes('atm') && lm.category === 'atm');
           }
@@ -315,12 +453,42 @@ class OsmService {
     }
 
     // Step A: Build search queries with semantic expansion
-    let queries = CATEGORY_SEARCH_TERMS[category] || [{ term: category, cat: 'hospital' as Category }];
+    let queries = CATEGORY_SEARCH_TERMS[category] || [{ term: category, cat: 'historic' as Category }];
 
     if (searchQuery && searchQuery.trim().length > 1) {
       const q = searchQuery.toLowerCase().trim();
       const customQueries: Array<{ term: string; cat: Category }> = [];
 
+      if (q.includes('raj mahal') || q.includes('palace') || q.includes('mahal') || q.includes('fort') || q.includes('historic') || q.includes('monument') || q.includes('caves') || q.includes('heritage')) {
+        customQueries.push(
+          { term: 'palace', cat: 'historic' },
+          { term: 'raj mahal', cat: 'historic' },
+          { term: 'fort', cat: 'historic' },
+          { term: 'Undavalli Caves', cat: 'historic' },
+          { term: 'historical place', cat: 'historic' }
+        );
+      }
+      if (q.includes('museum') || q.includes('gallery') || q.includes('art') || q.includes('exhibit')) {
+        customQueries.push(
+          { term: 'Bapu Museum', cat: 'museum' },
+          { term: 'museum', cat: 'museum' },
+          { term: 'art gallery', cat: 'museum' }
+        );
+      }
+      if (q.includes('beach') || q.includes('sea') || q.includes('shore') || q.includes('coast')) {
+        customQueries.push(
+          { term: 'Suryalanka Beach', cat: 'beach' },
+          { term: 'beach', cat: 'beach' }
+        );
+      }
+      if (q.includes('tourist') || q.includes('attraction') || q.includes('sight') || q.includes('viewpoint') || q.includes('island')) {
+        customQueries.push(
+          { term: 'tourist attraction', cat: 'attraction' },
+          { term: 'Prakasam Barrage', cat: 'attraction' },
+          { term: 'Bhavani Island', cat: 'attraction' },
+          { term: 'Undavalli Caves', cat: 'attraction' }
+        );
+      }
       if (q.includes('aiims') || q.includes('mangalagiri')) {
         customQueries.push(
           { term: 'All India Institute of Medical Sciences Mangalagiri', cat: 'hospital' },
@@ -354,7 +522,7 @@ class OsmService {
         );
       }
 
-      customQueries.push({ term: searchQuery.trim(), cat: category !== 'all' ? category : 'hospital' });
+      customQueries.push({ term: searchQuery.trim(), cat: category !== 'all' ? category : 'historic' });
       queries = customQueries;
     }
 
@@ -550,7 +718,7 @@ class OsmService {
     apiKey: string
   ): Promise<Place[]> {
     const typeMap: Record<Category | 'all', string> = {
-      all: 'hospital|pharmacy|police|atm|transit_station|supermarket|cafe|restaurant|lodging|gas_station',
+      all: 'tourist_attraction|museum|point_of_interest|hospital|pharmacy|police|atm|transit_station|supermarket|cafe|restaurant|lodging|gas_station',
       hospital: 'hospital',
       pharmacy: 'pharmacy',
       police: 'police',
@@ -560,7 +728,11 @@ class OsmService {
       cafe: 'cafe',
       restaurant: 'restaurant',
       hotel: 'lodging',
-      fuel: 'gas_station'
+      fuel: 'gas_station',
+      historic: 'tourist_attraction|museum|place_of_worship',
+      museum: 'museum|art_gallery',
+      beach: 'natural_feature',
+      attraction: 'tourist_attraction|amusement_park'
     };
 
     const type = typeMap[category] || 'point_of_interest';
@@ -579,7 +751,7 @@ class OsmService {
         { latitude: itemLat, longitude: itemLon }
       );
 
-      const cat: Category = (category !== 'all' ? category : 'hospital');
+      const cat: Category = (category !== 'all' ? category : 'historic');
 
       return {
         id: `google-${r.place_id}`,
@@ -626,9 +798,18 @@ class OsmService {
       tags.push('Accommodations', 'Lodging');
     } else if (cat === 'fuel') {
       tags.push('Petrol & Diesel', 'Service Station');
+    } else if (cat === 'historic') {
+      tags.push('Historical Place', 'Heritage Site', 'Palace & Raj Mahal', 'Ancient Monument');
+    } else if (cat === 'museum') {
+      tags.push('Museum', 'Art Gallery', 'Exhibition', 'Cultural Heritage');
+    } else if (cat === 'beach') {
+      tags.push('Beach', 'Waterfront', 'Coastal Shore', 'Golden Sands');
+    } else if (cat === 'attraction') {
+      tags.push('Tourist Attraction', 'Sightseeing', 'Scenic Viewpoint', 'Landmark');
     }
     return tags;
   }
+
 
 
   // 3. Live Turn-by-Turn Routing via OSRM Public Server with Millimetric Geodesic Fallback
