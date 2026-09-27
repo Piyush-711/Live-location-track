@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { EmergencyDossier, Place } from '../types';
 import { api } from '../services/api';
+import { osmService } from '../services/osmService';
 import { speechEngine } from '../services/speechEngine';
 import { LiveLocationState } from '../hooks/useLiveLocation';
 
@@ -18,8 +19,22 @@ export const EmergencySOSView: React.FC<EmergencySOSViewProps> = ({
   const [speakingPhraseIndex, setSpeakingPhraseIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    api.getEmergencyDossier(location.countryCode).then(res => setDossier(res));
-  }, [location.countryCode]);
+    let isMounted = true;
+    api.getEmergencyDossier(location.countryCode).then(res => {
+      if (!isMounted) return;
+      setDossier(res);
+      // Try to query nearest real-world hospital via OpenStreetMap Overpass
+      osmService.fetchNearbyPOIs(location.coords.latitude, location.coords.longitude, 'hospital', 8000)
+        .then(places => {
+          if (isMounted && places.length > 0) {
+            setDossier(prev => prev ? { ...prev, verifiedER: places[0] } : null);
+          }
+        })
+        .catch(err => console.warn('Live hospital search error:', err));
+    });
+
+    return () => { isMounted = false; };
+  }, [location.countryCode, location.coords.latitude, location.coords.longitude]);
 
   const handleCopyCoordinates = () => {
     const latStr = location.coords.latitude >= 0 ? `${location.coords.latitude.toFixed(5)}° N` : `${Math.abs(location.coords.latitude).toFixed(5)}° S`;

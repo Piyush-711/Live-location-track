@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { LocationCoordinates } from '../types';
 import { CITIES } from '../data/mockData';
+import { osmService } from '../services/osmService';
 
 export type GeolocationStatus = 'acquiring' | 'fixed' | 'denied' | 'unsupported' | 'fallback';
 
@@ -89,19 +90,30 @@ export function useLiveLocation(selectedCityId: string) {
         const { latitude, longitude, accuracy, altitude, heading, speed } = pos.coords;
         const { city } = findClosestCity(latitude, longitude);
 
-        setLocation({
+        setLocation(prev => ({
+          ...prev,
           coords: { latitude, longitude },
           accuracyMeters: Math.round(accuracy || 5),
           altitudeMeters: altitude ? Math.round(altitude) : null,
           heading: heading ? Math.round(heading) : 350,
           speed: speed ? Math.round(speed * 3.6) : null, // km/h
           status: 'fixed',
-          cityName: city ? city.name : `${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`,
-          countryCode: city ? city.countryCode : 'JP',
+          cityName: prev.cityName && prev.cityName !== selectedCity.name ? prev.cityName : (city ? city.name : `${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`),
+          countryCode: prev.countryCode || (city ? city.countryCode : 'JP'),
           matchedCityId: city ? city.id : selectedCityId,
           lastUpdated: new Date(pos.timestamp).toISOString(),
           isSimulated: false
-        });
+        }));
+
+        // Dynamic OpenStreetMap reverse geocode resolution
+        osmService.reverseGeocode(latitude, longitude).then(geo => {
+          setLocation(prev => ({
+            ...prev,
+            cityName: geo.cityName,
+            countryCode: geo.countryCode,
+            lastUpdated: new Date().toISOString()
+          }));
+        }).catch(e => console.warn('Live geocode background warn:', e));
       },
       (err) => {
         console.warn('Geolocation error or permission denied:', err.message);

@@ -7,7 +7,8 @@ import {
   CurrencyRates, 
   WeatherReport, 
   CorrectionReportRequest,
-  RFC9457Error 
+  RFC9457Error,
+  LocationCoordinates
 } from '../types';
 import { 
   MOCK_PLACES, 
@@ -19,6 +20,7 @@ import {
   CITIES 
 } from '../data/mockData';
 import { storage } from './storage';
+import { osmService } from './osmService';
 
 class ApiService {
   private baseUrl: string = '/v1';
@@ -74,20 +76,58 @@ class ApiService {
     });
   }
 
-  // POST /v1/places/nearby
+  // POST /v1/places/nearby with OpenStreetMap Live Data Fallback
   public async getNearbyPlaces(
     areaId: string, 
     category?: Category | 'all',
     searchQuery?: string,
-    radiusMeters: number = 2000
+    radiusMeters: number = 3000,
+    coords?: LocationCoordinates
   ): Promise<{ items: Place[]; datasetVersion: string; coverageArea: string }> {
+    // 1. If live coordinates are provided, query live OpenStreetMap Overpass nodes first
+    if (coords && coords.latitude && coords.longitude) {
+      try {
+        const osmPlaces = await osmService.fetchNearbyPOIs(
+          coords.latitude,
+          coords.longitude,
+          category || 'all',
+          radiusMeters
+        );
+
+        if (osmPlaces && osmPlaces.length > 0) {
+          let filtered = osmPlaces;
+          if (searchQuery && searchQuery.trim()) {
+            const q = searchQuery.toLowerCase().trim();
+            filtered = filtered.filter(p => 
+              p.name.toLowerCase().includes(q) ||
+              (p.localizedName && p.localizedName.toLowerCase().includes(q)) ||
+              p.address.toLowerCase().includes(q) ||
+              (p.tags && p.tags.some(t => t.toLowerCase().includes(q)))
+            );
+          }
+
+          return {
+            items: filtered,
+            datasetVersion: `osm-live-${coords.latitude.toFixed(2)}-${coords.longitude.toFixed(2)}`,
+            coverageArea: areaId || 'osm-live'
+          };
+        }
+      } catch (err) {
+        console.warn('Live OSM POI fetch error, switching to certified cache:', err);
+      }
+    }
+
+    // 2. Safe fetch against Spring Boot backend / certified local vault
+    const lat = coords?.latitude || 35.0037;
+    const lon = coords?.longitude || 135.7772;
+
     return this.safeFetch(
       '/places/nearby',
       {
         method: 'POST',
         body: JSON.stringify({
           areaId,
-          origin: { latitude: 35.0037, longitude: 135.7772 },
+          origin: { latitude: lat, longitude: lon },
           category: category || 'all',
           radiusMeters,
           limit: 50
@@ -145,19 +185,33 @@ class ApiService {
     });
   }
 
-  // POST /v1/routes
+  // POST /v1/routes with Live OSRM Turn-by-Turn Engine
   public async getRoute(
     areaId: string,
-    mode: 'walking' | 'driving' = 'walking'
+    mode: 'walking' | 'driving' = 'walking',
+    origin?: LocationCoordinates,
+    destination?: LocationCoordinates
   ): Promise<RouteResponse> {
+    // 1. If real origin and destination coordinates are available, query live OSRM
+    if (origin && destination) {
+      try {
+        const liveRoute = await osmService.fetchLiveOSRMRoute(origin, destination, mode);
+        if (liveRoute) {
+          return liveRoute;
+        }
+      } catch (err) {
+        console.warn('Live OSRM routing failed, falling back:', err);
+      }
+    }
+
     return this.safeFetch(
       '/routes',
       {
         method: 'POST',
         body: JSON.stringify({
           areaId,
-          origin: { latitude: 35.0037, longitude: 135.7772 },
-          destination: { latitude: 35.0045, longitude: 135.7785 },
+          origin: origin || { latitude: 35.0037, longitude: 135.7772 },
+          destination: destination || { latitude: 35.0045, longitude: 135.7785 },
           mode
         })
       },

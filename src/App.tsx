@@ -89,7 +89,7 @@ export const App: React.FC = () => {
           )}
 
           {activeTab === 'toolkit' && (
-            <TravelToolkitView activeCityId={activeCityId} />
+            <TravelToolkitView activeCityId={activeCityId} liveCountryCode={location.countryCode} />
           )}
         </main>
 
@@ -119,6 +119,7 @@ export const App: React.FC = () => {
           <RoutePreviewModal
             place={previewRoutePlace.place}
             mode={previewRoutePlace.mode}
+            userLocation={location.coords}
             onClose={() => setPreviewRoutePlace(null)}
             onStartLiveNavigation={handleStartLiveNavigation}
           />

@@ -1,10 +1,12 @@
-import React from 'react';
-import { Place, RouteResponse } from '../types';
-import { MOCK_KYOTO_ROUTE } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { Place, RouteResponse, LocationCoordinates } from '../types';
+import { api } from '../services/api';
+import { LiveLeafletMap } from '../components/LiveLeafletMap';
 
 interface RoutePreviewModalProps {
   place: Place;
   mode: 'walking' | 'driving';
+  userLocation: LocationCoordinates;
   onClose: () => void;
   onStartLiveNavigation: (route: RouteResponse) => void;
 }
@@ -12,17 +14,44 @@ interface RoutePreviewModalProps {
 export const RoutePreviewModal: React.FC<RoutePreviewModalProps> = ({
   place,
   mode,
+  userLocation,
   onClose,
   onStartLiveNavigation
 }) => {
-  const route: RouteResponse = {
-    ...MOCK_KYOTO_ROUTE,
-    mode,
-    distanceMeters: mode === 'walking' ? 280 : 650,
-    durationSeconds: mode === 'walking' ? 240 : 120
-  };
+  const [route, setRoute] = useState<RouteResponse | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const minutes = Math.round(route.durationSeconds / 60);
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    api.getRoute('live', mode, userLocation, place.location)
+      .then(res => {
+        if (isMounted) {
+          setRoute(res);
+          setLoading(false);
+        }
+      })
+      .catch(err => {
+        console.warn('Failed to fetch route, using fallback:', err);
+        if (isMounted) setLoading(false);
+      });
+
+    return () => { isMounted = false; };
+  }, [place, mode, userLocation]);
+
+  const durationSeconds = route?.durationSeconds || (mode === 'walking' ? Math.round(place.distanceMeters / 1.2) : Math.round(place.distanceMeters / 6));
+  const distanceMeters = route?.distanceMeters || place.distanceMeters;
+  const minutes = Math.max(1, Math.round(durationSeconds / 60));
+  const steps = route?.steps || [
+    {
+      id: 'step-1',
+      instruction: `Head directly toward ${place.name}`,
+      distanceMeters,
+      durationSeconds,
+      maneuver: 'depart' as const,
+      landmark: place.address
+    }
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-surface overflow-y-auto max-w-md mx-auto">
@@ -35,10 +64,10 @@ export const RoutePreviewModal: React.FC<RoutePreviewModalProps> = ({
             className="w-8 h-8 rounded-xl object-contain shadow-sm"
           />
           <div>
-            <h1 className="font-extrabold text-[14px] text-on-surface leading-tight">Local Companion</h1>
+            <h1 className="font-extrabold text-[14px] text-on-surface leading-tight">Live Route Navigator</h1>
             <div className="flex items-center gap-1.5 text-[11px] text-on-surface-variant font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-              <span className="truncate max-w-[210px]">Route to {place.name}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+              <span className="truncate max-w-[210px]">{place.name}</span>
             </div>
           </div>
         </div>
@@ -62,22 +91,40 @@ export const RoutePreviewModal: React.FC<RoutePreviewModalProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-extrabold text-on-surface text-[16px]">{minutes} min</span>
-              <span className="text-[12px] text-on-surface-variant font-semibold">• {route.distanceMeters} meters</span>
+              <span className="font-extrabold text-on-surface text-[16px]">
+                {loading ? 'Calculating...' : `${minutes} min`}
+              </span>
+              <span className="text-[12px] text-on-surface-variant font-semibold">
+                • {distanceMeters}m
+              </span>
               <span className="px-2 py-0.5 rounded-full bg-[#E0F2FE] text-primary text-[10px] font-extrabold">
-                OSRM Validated
+                {route?.graphVersion ? 'OSRM Live Engine' : 'Graph Engine'}
               </span>
             </div>
             <p className="text-[11px] text-on-surface-variant flex items-center gap-1 mt-0.5 font-medium">
               <span className="material-symbols-outlined text-primary text-[13px]">check_circle</span>
-              {mode === 'walking' ? 'Paved pedestrian path • No steep incline' : 'Direct driving route • Tested urban graph'}
+              {mode === 'walking' ? 'OpenStreetMap Pedestrian Way' : 'OpenStreetMap Vehicular Graph'}
             </p>
           </div>
         </div>
         
         <div className="text-right flex-shrink-0">
-          <span className="text-[10px] font-bold tracking-wider uppercase text-outline block">Arrival</span>
-          <span className="text-[14px] font-extrabold text-on-surface">14:36 JST</span>
+          <span className="text-[10px] font-bold tracking-wider uppercase text-outline block">Mode</span>
+          <span className="text-[13px] font-extrabold text-primary capitalize">{mode}</span>
+        </div>
+      </div>
+
+      {/* Mini Leaflet Route Map */}
+      <div className="p-4 pb-0">
+        <div className="w-full h-44 rounded-2xl overflow-hidden border border-[#eae6df] shadow-tactile">
+          <LiveLeafletMap
+            userLocation={userLocation}
+            places={[place]}
+            selectedPlace={place}
+            routeGeometry={route?.geometry}
+            onSelectPlace={() => {}}
+            className="w-full h-full"
+          />
         </div>
       </div>
 
@@ -85,25 +132,23 @@ export const RoutePreviewModal: React.FC<RoutePreviewModalProps> = ({
       <div className="p-4 flex-1 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <span className="text-[14px] font-extrabold text-on-surface">
-            Turn-by-Turn Instructions ({route.steps.length} Steps)
+            Turn-by-Turn Guidance ({steps.length} Steps)
           </span>
           <span className="text-[11px] font-semibold text-primary flex items-center gap-1">
             <span className="material-symbols-outlined text-[14px]">volume_up</span>
-            Voice Ready
+            Voice Engine Ready
           </span>
         </div>
 
         {/* Steps Timeline */}
         <div className="relative pl-6 flex flex-col gap-4 py-2">
-          {/* Continuous vertical timeline track */}
           <div className="absolute left-[11px] top-4 bottom-4 w-[2px] bg-[#E2E8F0]"></div>
 
-          {route.steps.map((step, idx) => {
+          {steps.map((step, idx) => {
             const isFirst = idx === 0;
-            const isLast = idx === route.steps.length - 1;
+            const isLast = idx === steps.length - 1;
             return (
-              <div key={step.id} className="relative flex items-start gap-3">
-                {/* Node marker on the line */}
+              <div key={step.id || idx} className="relative flex items-start gap-3">
                 <div className={`absolute -left-[19px] top-1 w-4 h-4 rounded-full flex items-center justify-center z-10 ${
                   isFirst || isLast 
                     ? 'bg-primary ring-4 ring-[#E0F2FE]' 
@@ -112,7 +157,6 @@ export const RoutePreviewModal: React.FC<RoutePreviewModalProps> = ({
                   <span className={`w-1.5 h-1.5 rounded-full ${isFirst || isLast ? 'bg-white' : 'bg-primary'}`}></span>
                 </div>
 
-                {/* Step Content Card */}
                 <div className="flex-1 rounded-2xl bg-surface p-3.5 shadow-tactile border border-[#eae6df] flex flex-col gap-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[11px] font-bold text-primary flex items-center gap-1">
@@ -121,7 +165,7 @@ export const RoutePreviewModal: React.FC<RoutePreviewModalProps> = ({
                          step.maneuver === 'turn_left' ? 'turn_left' :
                          step.maneuver === 'arrive' ? 'pin_drop' : 'straight'}
                       </span>
-                      <span>In {step.distanceMeters} meters</span>
+                      <span>In {step.distanceMeters}m</span>
                     </span>
                     <span className="text-[10px] font-mono text-outline">
                       Step {idx + 1}
@@ -154,7 +198,29 @@ export const RoutePreviewModal: React.FC<RoutePreviewModalProps> = ({
       {/* Sticky Bottom Actions */}
       <div className="sticky bottom-0 z-20 pb-safe bg-surface/95 backdrop-blur-md p-4 border-t border-[#eae6df] flex flex-col gap-2">
         <button
-          onClick={() => onStartLiveNavigation(route)}
+          onClick={() => {
+            if (route) {
+              onStartLiveNavigation(route);
+            } else {
+              onStartLiveNavigation({
+                graphVersion: 'osrm-fallback',
+                profileVersion: 'walking-1.0',
+                mode,
+                distanceMeters,
+                durationSeconds,
+                geometry: {
+                  type: 'LineString',
+                  coordinates: [
+                    [userLocation.longitude, userLocation.latitude],
+                    [place.location.longitude, place.location.latitude]
+                  ]
+                },
+                steps,
+                sourceUpdatedAt: new Date().toISOString(),
+                coverageAreaId: 'live'
+              });
+            }
+          }}
           className="w-full h-12 rounded-full tactile-btn-primary flex items-center justify-center gap-2 text-[14px] font-bold shadow-tactile-primary select-none"
         >
           <span className="material-symbols-outlined text-[20px]">play_arrow</span>

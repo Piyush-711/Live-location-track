@@ -3,6 +3,7 @@ import { Place, Category } from '../types';
 import { api } from '../services/api';
 import { storage } from '../services/storage';
 import { LiveLocationState, calculateDistanceMeters } from '../hooks/useLiveLocation';
+import { LiveLeafletMap } from '../components/LiveLeafletMap';
 
 interface ExploreViewProps {
   location: LiveLocationState;
@@ -39,11 +40,11 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [mobileViewMode, setMobileViewMode] = useState<'list' | 'map'>('list');
 
-  // Load places based on city
+  // Load places based on city or live GPS coordinates
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
-    api.getNearbyPlaces(activeCityId, selectedCategory, searchQuery)
+    api.getNearbyPlaces(activeCityId, selectedCategory, searchQuery, 3000, location.coords)
       .then(res => {
         if (isMounted) {
           setPlaces(res.items);
@@ -56,7 +57,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
       });
 
     return () => { isMounted = false; };
-  }, [activeCityId, selectedCategory, searchQuery]);
+  }, [activeCityId, selectedCategory, searchQuery, location.coords.latitude, location.coords.longitude]);
 
   // Dynamically compute real-time distance from user's live GPS to each place
   const dynamicPlaces = useMemo(() => {
@@ -424,65 +425,36 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
           </section>
         </div>
 
-        {/* Right Column (Interactive Map - Visible permanently on Tablet/Desktop, toggled on mobile) */}
+        {/* Right Column (Interactive Live Leaflet Map - Visible permanently on Tablet/Desktop, toggled on mobile) */}
         <div className={`md:col-span-5 md:sticky md:top-20 flex-col gap-3 ${mobileViewMode === 'map' ? 'flex' : 'hidden md:flex'}`}>
-          <div className="rounded-2xl overflow-hidden border border-[#eae6df] shadow-tactile p-1 bg-surface">
-            <div className="relative w-full h-80 sm:h-96 md:h-[540px] rounded-xl overflow-hidden bg-[#e4e9ec] flex items-center justify-center">
-              {/* Pattern Background */}
-              <div className="absolute inset-0 bg-[#e5ece9] opacity-90" style={{
-                backgroundImage: 'radial-gradient(#c7d4cc 1.5px, transparent 1.5px), radial-gradient(#c7d4cc 1.5px, #e5ece9 1.5px)',
-                backgroundSize: '30px 30px',
-                backgroundPosition: '0 0, 15px 15px'
-              }}></div>
-              
-              {/* Vector Roads & River Lines */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 0 160 Q 180 200 300 120 T 560 160" stroke="#bae6fd" strokeWidth="22" fill="none" opacity="0.8" />
-                <path d="M 80 0 L 180 400" stroke="#ffffff" strokeWidth="10" fill="none" />
-                <path d="M 0 220 L 560 220" stroke="#ffffff" strokeWidth="12" fill="none" />
-                <path d="M 320 0 L 380 400" stroke="#ffffff" strokeWidth="8" fill="none" />
-                <circle cx="180" cy="220" r="18" fill="#0284c7" fillOpacity="0.25" />
-                <circle cx="180" cy="220" r="8" fill="#0284c7" />
-              </svg>
-
-              {/* Floating POI pins */}
-              {dynamicPlaces.map((place, idx) => {
-                const offsets = [
-                  { top: '35%', left: '60%' },
-                  { top: '55%', left: '38%' },
-                  { top: '25%', left: '30%' },
-                  { top: '65%', left: '72%' },
-                  { top: '45%', left: '80%' }
-                ];
-                const pos = offsets[idx % offsets.length];
-                return (
-                  <div 
-                    key={place.id}
-                    onClick={() => onSelectPlace(place)}
-                    style={{ top: pos.top, left: pos.left }}
-                    className="absolute cursor-pointer -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group z-20"
-                  >
-                    <div className="px-2.5 py-1 rounded-full bg-surface shadow-tactile border border-primary/30 flex items-center gap-1 text-[11px] font-bold text-on-surface whitespace-nowrap active:scale-95 transition-transform hover:bg-[#E0F2FE]">
-                      <span className="w-2 h-2 rounded-full bg-primary"></span>
-                      <span>{place.name.split(' ')[0]}</span>
-                      <span className="text-primary font-extrabold">{place.distanceMeters}m</span>
-                    </div>
-                    <div className="w-2 h-2 bg-primary rotate-45 -mt-1 shadow-sm"></div>
-                  </div>
-                );
-              })}
-
-              <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-lg bg-surface/90 backdrop-blur-md text-[11px] font-bold text-on-surface border border-[#eae6df] shadow-sm">
-                GPS: {location.coords.latitude.toFixed(4)}°, {location.coords.longitude.toFixed(4)}° (±{location.accuracyMeters}m)
+          <div className="rounded-2xl overflow-hidden border border-[#eae6df] shadow-tactile p-2 bg-surface flex flex-col gap-2">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-primary">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>OpenStreetMap Live Layer</span>
               </div>
-              
               <button 
                 onClick={onRequestGPS}
-                className="absolute top-3 right-3 px-3 py-1.5 rounded-lg bg-surface/90 backdrop-blur-md text-[11px] font-bold text-primary border border-primary/30 shadow-sm flex items-center gap-1 active:scale-95"
+                className="px-2.5 py-1 rounded-full bg-surface text-primary border border-primary/30 shadow-tactile-sm flex items-center gap-1 text-[11px] font-bold active:scale-95 transition-transform"
+                title="Center on user GPS position"
               >
-                <span className="material-symbols-outlined text-[15px]">my_location</span>
-                <span>Center Me</span>
+                <span className="material-symbols-outlined text-[14px]">my_location</span>
+                <span>Center GPS</span>
               </button>
+            </div>
+
+            <div className="relative w-full h-80 sm:h-96 md:h-[540px] rounded-xl overflow-hidden shadow-inner">
+              <LiveLeafletMap
+                userLocation={location.coords}
+                places={dynamicPlaces}
+                onSelectPlace={onSelectPlace}
+                className="w-full h-full"
+              />
+            </div>
+            
+            <div className="px-2 py-1 flex items-center justify-between text-[10px] text-on-surface-variant font-mono">
+              <span>{location.coords.latitude.toFixed(5)}°, {location.coords.longitude.toFixed(5)}°</span>
+              <span>{dynamicPlaces.length} OSM POIs Plotted</span>
             </div>
           </div>
         </div>

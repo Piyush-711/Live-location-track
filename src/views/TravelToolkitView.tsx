@@ -5,10 +5,12 @@ import { CITIES } from '../data/mockData';
 
 interface TravelToolkitViewProps {
   activeCityId: string;
+  liveCountryCode?: string;
 }
 
-export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCityId }) => {
+export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCityId, liveCountryCode }) => {
   const activeCity = CITIES.find(c => c.id === activeCityId) || CITIES[0];
+  const effectiveCountry = liveCountryCode || activeCity.countryCode;
 
   const [briefing, setBriefing] = useState<CountryBriefing | null>(null);
   const [rates, setRates] = useState<CurrencyRates | null>(null);
@@ -16,22 +18,22 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
 
   // Currency Converter state
   const [fromCurrency, setFromCurrency] = useState('USD');
-  const [toCurrency, setToCurrency] = useState(activeCity.countryCode === 'JP' ? 'JPY' : 'USD');
+  const [toCurrency, setToCurrency] = useState(effectiveCountry === 'JP' ? 'JPY' : effectiveCountry === 'IN' ? 'INR' : effectiveCountry === 'GB' ? 'GBP' : 'USD');
   const [inputAmount, setInputAmount] = useState('100');
 
   useEffect(() => {
-    api.getCountryBriefing(activeCity.countryCode).then(setBriefing);
+    api.getCountryBriefing(effectiveCountry).then(setBriefing);
     api.getFXRates().then(setRates);
     api.getWeather(activeCityId).then(setWeather);
 
-    // Update target currency to match city
-    if (activeCity.countryCode === 'JP') setToCurrency('JPY');
-    else if (activeCity.countryCode === 'GB') setToCurrency('GBP');
-    else if (activeCity.countryCode === 'IN') setToCurrency('INR');
-    else if (activeCity.countryCode === 'AU') setToCurrency('AUD');
-    else if (activeCity.countryCode === 'CA') setToCurrency('CAD');
+    // Update target currency to match country
+    if (effectiveCountry === 'JP') setToCurrency('JPY');
+    else if (effectiveCountry === 'GB') setToCurrency('GBP');
+    else if (effectiveCountry === 'IN') setToCurrency('INR');
+    else if (effectiveCountry === 'AU') setToCurrency('AUD');
+    else if (effectiveCountry === 'CA') setToCurrency('CAD');
     else setToCurrency('EUR');
-  }, [activeCityId, activeCity.countryCode]);
+  }, [activeCityId, effectiveCountry]);
 
   // Keypad handling
   const handleKeypadPress = (val: string) => {
