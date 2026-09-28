@@ -3,6 +3,7 @@ import { getDistance } from 'geolib';
 import { LiveLocationState } from '../hooks/useLiveLocation';
 import { getDynamicPlaceImage } from '../utils/placeVisuals';
 import Fuse from 'fuse.js';
+import { api } from './api';
 
 export interface SpecialtyMeta {
   id: LocalMarketSpecialty | 'all';
@@ -787,99 +788,133 @@ class MarketService {
     else if (cityRaw.includes('london')) activeCityId = 'london';
     else if (cityRaw.includes('kyoto')) activeCityId = 'kyoto';
 
-    // 1. Identify which curated region the user is currently located in
-    const regionalMarkets = CURATED_MARKETS.filter(m => {
-      // Direct cityId match
-      if (m.cityId && activeCityId && m.cityId === activeCityId) return true;
+    const fallbackLocalExecution = async (): Promise<LocalMarket[]> => {
+      // 1. Identify which curated region the user is currently located in
+      const regionalMarkets = CURATED_MARKETS.filter(m => {
+        // Direct cityId match
+        if (m.cityId && activeCityId && m.cityId === activeCityId) return true;
 
-      // Geodesic distance check (within 55 km of market location)
-      const dist = getDistance(
-        { latitude: userLat, longitude: userLon },
-        { latitude: m.location.latitude, longitude: m.location.longitude }
-      );
-      return dist <= 55000;
-    });
+        // Geodesic distance check (within 55 km of market location)
+        const dist = getDistance(
+          { latitude: userLat, longitude: userLon },
+          { latitude: m.location.latitude, longitude: m.location.longitude }
+        );
+        return dist <= 55000;
+      });
 
-    let results: LocalMarket[] = [];
+      let results: LocalMarket[] = [];
 
-    if (regionalMarkets.length > 0) {
-      // User is in a known hub city (Hyderabad, Delhi, Mumbai, Bangalore, Jaipur, Goa, Vijayawada, London, Kyoto)
-      results = [...regionalMarkets];
-    } else {
-      // 2. Dynamic Live OSM Marketplace Discovery for any custom or uncurated city/coordinates
-      const liveOsmMarkets = await this.fetchLiveOsmMarkets(userLat, userLon, location.cityName);
-      if (liveOsmMarkets.length > 0) {
-        results = liveOsmMarkets;
+      if (regionalMarkets.length > 0) {
+        // User is in a known hub city (Hyderabad, Delhi, Mumbai, Bangalore, Jaipur, Goa, Vijayawada, London, Kyoto)
+        results = [...regionalMarkets];
       } else {
-        // Fallback: Show nearest global/regional markets sorted by proximity
-        results = [...CURATED_MARKETS];
+        // 2. Dynamic Live OSM Marketplace Discovery for any custom or uncurated city/coordinates
+        const liveOsmMarkets = await this.fetchLiveOsmMarkets(userLat, userLon, location.cityName);
+        if (liveOsmMarkets.length > 0) {
+          results = liveOsmMarkets;
+        } else {
+          // Fallback: Show nearest global/regional markets sorted by proximity
+          results = [...CURATED_MARKETS];
+        }
       }
-    }
 
-    // 3. Compute exact live geodesic distance for all returned markets
-    results = results.map(market => {
-      const dist = getDistance(
-        { latitude: userLat, longitude: userLon },
-        { latitude: market.location.latitude, longitude: market.location.longitude }
-      );
-      return {
-        ...market,
-        distanceMeters: dist
-      };
-    });
-
-    // 4. Filter by specialty
-    if (specialtyFilter && specialtyFilter !== 'all') {
-      results = results.filter(m => m.specialty === specialtyFilter);
-    }
-
-    // 5. Intelligent Fuzzy Search using Fuse.js library
-    if (searchQuery && searchQuery.trim().length > 0) {
-      const q = searchQuery.trim();
-      const fuseOptions = {
-        keys: [
-          { name: 'name', weight: 0.35 },
-          { name: 'specialtyLabel', weight: 0.20 },
-          { name: 'whatToBuy', weight: 0.20 },
-          { name: 'famousFor', weight: 0.15 },
-          { name: 'tags', weight: 0.15 },
-          { name: 'famousLandmarkOrFood', weight: 0.10 },
-          { name: 'address', weight: 0.05 },
-          { name: 'city', weight: 0.05 }
-        ],
-        threshold: 0.4,
-        ignoreLocation: true,
-        includeScore: true,
-        minMatchCharLength: 2,
-      };
-
-      // Search within currently filtered local city markets
-      const localFuse = new Fuse(results, fuseOptions);
-      const localMatches = localFuse.search(q);
-
-      if (localMatches.length > 0) {
-        results = localMatches.map(m => m.item);
-      } else {
-        // If not found in current city, search across all global/national markets with distance
-        const allWithDist = CURATED_MARKETS.map(market => ({
+      // 3. Compute exact live geodesic distance for all returned markets
+      results = results.map(market => {
+        const dist = getDistance(
+          { latitude: userLat, longitude: userLon },
+          { latitude: market.location.latitude, longitude: market.location.longitude }
+        );
+        return {
           ...market,
-          distanceMeters: getDistance(
-            { latitude: userLat, longitude: userLon },
-            { latitude: market.location.latitude, longitude: market.location.longitude }
-          )
-        }));
-        const globalFuse = new Fuse(allWithDist, fuseOptions);
-        const globalMatches = globalFuse.search(q);
-        results = globalMatches.map(m => m.item);
+          distanceMeters: dist
+        };
+      });
+
+      // 4. Filter by specialty
+      if (specialtyFilter && specialtyFilter !== 'all') {
+        results = results.filter(m => m.specialty === specialtyFilter);
       }
-    }
 
-    // 6. Sort by shortest distance first (unless fuzzy search already ranked items)
-    if (!searchQuery || !searchQuery.trim()) {
-      results.sort((a, b) => (a.distanceMeters || 0) - (b.distanceMeters || 0));
-    }
+      // 5. Intelligent Fuzzy Search using Fuse.js library
+      if (searchQuery && searchQuery.trim().length > 0) {
+        const q = searchQuery.trim();
+        const fuseOptions = {
+          keys: [
+            { name: 'name', weight: 0.35 },
+            { name: 'specialtyLabel', weight: 0.20 },
+            { name: 'whatToBuy', weight: 0.20 },
+            { name: 'famousFor', weight: 0.15 },
+            { name: 'tags', weight: 0.15 },
+            { name: 'famousLandmarkOrFood', weight: 0.10 },
+            { name: 'address', weight: 0.05 },
+            { name: 'city', weight: 0.05 }
+          ],
+          threshold: 0.4,
+          ignoreLocation: true,
+          includeScore: true,
+          minMatchCharLength: 2,
+        };
 
-    return results;
+        // Search within currently filtered local city markets
+        const localFuse = new Fuse(results, fuseOptions);
+        const localMatches = localFuse.search(q);
+
+        if (localMatches.length > 0) {
+          results = localMatches.map(m => m.item);
+        } else {
+          // If not found in current city, search across all global/national markets with distance
+          const allWithDist = CURATED_MARKETS.map(market => ({
+            ...market,
+            distanceMeters: getDistance(
+              { latitude: userLat, longitude: userLon },
+              { latitude: market.location.latitude, longitude: market.location.longitude }
+            )
+          }));
+          const globalFuse = new Fuse(allWithDist, fuseOptions);
+          const globalMatches = globalFuse.search(q);
+          results = globalMatches.map(m => m.item);
+        }
+      }
+
+      // 6. Sort by shortest distance first (unless fuzzy search already ranked items)
+      if (!searchQuery || !searchQuery.trim()) {
+        results.sort((a, b) => (a.distanceMeters || 0) - (b.distanceMeters || 0));
+      }
+
+      return results;
+    };
+
+    try {
+      const backendResults = await api.getMarkets(
+        {
+          areaId: activeCityId,
+          lat: userLat,
+          lon: userLon,
+          specialty: specialtyFilter,
+          q: searchQuery
+        },
+        fallbackLocalExecution
+      );
+
+      if (backendResults && backendResults.length > 0) {
+        return backendResults;
+      }
+      return await fallbackLocalExecution();
+    } catch {
+      return await fallbackLocalExecution();
+    }
+  }
+
+  public async getMarketById(id: string): Promise<LocalMarket | undefined> {
+    const local = CURATED_MARKETS.find(m => m.id === id);
+    try {
+      return await api.getMarketById(id, () => {
+        if (!local) throw new Error(`Market not found: ${id}`);
+        return local;
+      });
+    } catch {
+      return local;
+    }
   }
 
   /**

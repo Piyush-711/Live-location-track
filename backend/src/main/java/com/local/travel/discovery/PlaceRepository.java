@@ -225,5 +225,210 @@ public class PlaceRepository {
                 )
         );
         cityPlaces.put("newyork", newyork);
+
+        // Hyderabad
+        List<Place> hyderabad = List.of(
+                new Place(
+                        "p-hyd-01",
+                        "Apollo Hospitals Jubilee Hills ER",
+                        "అపోలో హాస్పిటల్స్ అత్యవసర విభాగం",
+                        "hospital",
+                        450,
+                        new LocationCoordinates(17.4260, 78.4116),
+                        "IN",
+                        "Hyderabad",
+                        "Road No 72, Opposite Bharatiya Vidya Bhavan, Jubilee Hills, Hyderabad 500033",
+                        new Place.Hours("open", "24/7", "Emergency 24/7"),
+                        "CURATED_REGISTRY",
+                        "2026-09-24T06:00:00Z",
+                        "fresh",
+                        true,
+                        "+91-40-2360-7777",
+                        List.of("JCI Accredited", "Level 1 Trauma Care", "24/7 Stroke Unit", "Multilingual Staff"),
+                        "NABH & JCI accredited 24h Emergency & Stroke Center",
+                        "https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=800&q=80"
+                ),
+                new Place(
+                        "p-hyd-02",
+                        "Apollo Pharmacy Banjara Hills",
+                        null,
+                        "pharmacy",
+                        210,
+                        new LocationCoordinates(17.4156, 78.4350),
+                        "IN",
+                        "Hyderabad",
+                        "Road No. 2, Banjara Hills, Hyderabad 500034",
+                        new Place.Hours("open", "24/7", "Open 24 Hours"),
+                        "OSM",
+                        "2026-09-23T10:00:00Z",
+                        "fresh",
+                        false,
+                        "+91-40-2354-8899",
+                        List.of("24h Delivery", "UPI Accepted", "Life Saving Drugs"),
+                        "24/7 Emergency Chemist with Home Delivery",
+                        null
+                ),
+                new Place(
+                        "p-hyd-03",
+                        "Charminar Police Station",
+                        null,
+                        "police",
+                        350,
+                        new LocationCoordinates(17.3620, 78.4740),
+                        "IN",
+                        "Hyderabad",
+                        "Near Charminar, Moghalpura, Hyderabad 500002",
+                        new Place.Hours("open", "24/7", "Open 24 Hours"),
+                        "CURATED_REGISTRY",
+                        "2026-09-24T00:00:00Z",
+                        "fresh",
+                        true,
+                        "+91-40-2785-3500",
+                        List.of("Hyderabad City Police", "Tourist Aid", "Emergency Response 100/112"),
+                        "24-Hour Law Enforcement and Tourist Safety Aid",
+                        null
+                ),
+                new Place(
+                        "p-hyd-04",
+                        "MGBS Metro Station",
+                        null,
+                        "transit_stop",
+                        400,
+                        new LocationCoordinates(17.3780, 78.4815),
+                        "IN",
+                        "Hyderabad",
+                        "Mahatma Gandhi Bus Station Complex, Hyderabad",
+                        new Place.Hours("open", "06:00-23:00", "Trains every 4-6 min"),
+                        "OSM",
+                        "2026-09-24T00:00:00Z",
+                        "fresh",
+                        false,
+                        null,
+                        List.of("Red Line & Green Line Interchange", "Smart Card / QR Ticketing"),
+                        "Major Hyderabad Metro Dual-Line Interchange Hub",
+                        null
+                )
+        );
+        cityPlaces.put("hyderabad", hyderabad);
+
+        // Delhi
+        List<Place> delhi = List.of(
+                new Place(
+                        "p-del-01",
+                        "AIIMS Apex Trauma Center & Emergency",
+                        "अखिल भारतीय आयुर्विज्ञान संस्थान आपातकालीन",
+                        "hospital",
+                        500,
+                        new LocationCoordinates(28.5672, 77.2100),
+                        "IN",
+                        "New Delhi",
+                        "Sri Aurobindo Marg, Ansari Nagar, New Delhi 110029",
+                        new Place.Hours("open", "24/7", "Emergency 24/7"),
+                        "CURATED_REGISTRY",
+                        "2026-09-24T06:00:00Z",
+                        "fresh",
+                        true,
+                        "+91-11-2658-8500",
+                        List.of("National Apex Trauma", "24h ICU", "Govt Premier Medical"),
+                        "India's premier public emergency trauma center",
+                        "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80"
+                ),
+                new Place(
+                        "p-del-02",
+                        "Apollo Pharmacy Connaught Place",
+                        null,
+                        "pharmacy",
+                        180,
+                        new LocationCoordinates(28.6328, 77.2195),
+                        "IN",
+                        "New Delhi",
+                        "Block B, Inner Circle, Connaught Place, New Delhi 110001",
+                        new Place.Hours("open", "24/7", "Open 24 Hours"),
+                        "OSM",
+                        "2026-09-23T10:00:00Z",
+                        "fresh",
+                        false,
+                        "+91-11-2332-1111",
+                        List.of("24/7 Chemist", "Prescriptions", "UPI/Card Accepted"),
+                        "Central Connaught Place 24h chemist",
+                        null
+                )
+        );
+        cityPlaces.put("delhi", delhi);
+
+        // Bangalore
+        List<Place> bangalore = List.of(
+                new Place(
+                        "p-blr-01",
+                        "Manipal Hospital HAL Airport Road ER",
+                        null,
+                        "hospital",
+                        520,
+                        new LocationCoordinates(12.9587, 77.6494),
+                        "IN",
+                        "Bengaluru",
+                        "98, HAL Old Airport Rd, Kodihalli, Bengaluru 560017",
+                        new Place.Hours("open", "24/7", "Emergency 24/7"),
+                        "CURATED_REGISTRY",
+                        "2026-09-24T06:00:00Z",
+                        "fresh",
+                        true,
+                        "+91-80-2502-4444",
+                        List.of("Tertiary Care Trauma", "Cardiac Emergency", "NABH Accredited"),
+                        "Premier 24h Emergency and Trauma Care",
+                        null
+                )
+        );
+        cityPlaces.put("bangalore", bangalore);
+
+        // Sydney
+        List<Place> sydney = List.of(
+                new Place(
+                        "p-syd-01",
+                        "St Vincent's Hospital Emergency Department",
+                        null,
+                        "hospital",
+                        420,
+                        new LocationCoordinates(-33.8785, 151.2215),
+                        "AU",
+                        "Sydney",
+                        "390 Victoria St, Darlinghurst NSW 2010",
+                        new Place.Hours("open", "24/7", "Emergency 24/7"),
+                        "CURATED_REGISTRY",
+                        "2026-09-24T06:00:00Z",
+                        "fresh",
+                        true,
+                        "+61-2-8382-1111",
+                        List.of("Level 1 Trauma", "24/7 Emergency"),
+                        "Premier 24h Level 1 Trauma Emergency",
+                        null
+                )
+        );
+        cityPlaces.put("sydney", sydney);
+
+        // Montreal
+        List<Place> montreal = List.of(
+                new Place(
+                        "p-mtl-01",
+                        "CHUM - Centre hospitalier de l'Université de Montréal",
+                        null,
+                        "hospital",
+                        490,
+                        new LocationCoordinates(45.5125, -73.5570),
+                        "CA",
+                        "Montreal",
+                        "1051 Rue Sanguinet, Montréal, QC H2X 3E4",
+                        new Place.Hours("open", "24/7", "Urgences 24/7"),
+                        "CURATED_REGISTRY",
+                        "2026-09-24T06:00:00Z",
+                        "fresh",
+                        true,
+                        "+1-514-890-8000",
+                        List.of("Trauma tertiaire", "Soins intensifs", "Bilingue En/Fr"),
+                        "Trauma tertiaire 24h soins intensifs",
+                        null
+                )
+        );
+        cityPlaces.put("montreal", montreal);
     }
 }

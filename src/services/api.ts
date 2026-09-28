@@ -8,7 +8,8 @@ import {
   WeatherReport, 
   CorrectionReportRequest,
   RFC9457Error,
-  LocationCoordinates
+  LocationCoordinates,
+  LocalMarket
 } from '../types';
 import { 
   MOCK_PLACES, 
@@ -323,6 +324,35 @@ class ApiService {
         return { reportId, status: 'RECEIVED_202' };
       }
     );
+  }
+
+  // GET /v1/markets
+  public async getMarkets(
+    params: {
+      areaId?: string;
+      lat?: number;
+      lon?: number;
+      specialty?: string;
+      q?: string;
+    },
+    fallback?: () => LocalMarket[] | Promise<LocalMarket[]>
+  ): Promise<LocalMarket[]> {
+    const searchParams = new URLSearchParams();
+    if (params.areaId) searchParams.append('areaId', params.areaId);
+    if (params.lat !== undefined && !isNaN(params.lat)) searchParams.append('lat', params.lat.toString());
+    if (params.lon !== undefined && !isNaN(params.lon)) searchParams.append('lon', params.lon.toString());
+    if (params.specialty && params.specialty !== 'all') searchParams.append('specialty', params.specialty);
+    if (params.q) searchParams.append('q', params.q);
+
+    const queryStr = searchParams.toString();
+    const endpoint = `/markets${queryStr ? `?${queryStr}` : ''}`;
+
+    return this.safeFetch<LocalMarket[]>(endpoint, { method: 'GET' }, fallback);
+  }
+
+  // GET /v1/markets/{id}
+  public async getMarketById(id: string, fallback?: () => LocalMarket | undefined | Promise<LocalMarket | undefined>): Promise<LocalMarket> {
+    return this.safeFetch<LocalMarket>(`/markets/${id}`, { method: 'GET' }, fallback as () => LocalMarket | Promise<LocalMarket>);
   }
 
   private buildRFC9457Error(code: string, title: string, status: number, detail: string): RFC9457Error {
