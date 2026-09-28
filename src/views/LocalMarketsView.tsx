@@ -27,6 +27,12 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
   // Focus map coordinates when user taps "View on Map"
   const [focusedLocation, setFocusedLocation] = useState<LocationCoordinates>(location.coords);
 
+  // Synchronize map center when user changes location
+  useEffect(() => {
+    setFocusedLocation(location.coords);
+    setSelectedMarketId(null);
+  }, [location.coords.latitude, location.coords.longitude, location.cityName]);
+
   // Fetch local markets dynamically
   useEffect(() => {
     let isMounted = true;
@@ -45,7 +51,7 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
       });
 
     return () => { isMounted = false; };
-  }, [location.coords.latitude, location.coords.longitude, location.cityName, activeCityId, selectedSpecialty, searchQuery]);
+  }, [location.coords.latitude, location.coords.longitude, location.cityName, location.matchedCityId, activeCityId, selectedSpecialty, searchQuery]);
 
   // Convert markets to places for Leaflet Map
   const mapPlaces: Place[] = useMemo(() => {

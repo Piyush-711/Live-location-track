@@ -1,6 +1,7 @@
 import { LocalMarket, LocalMarketSpecialty, Place } from '../types';
 import { getDistance } from 'geolib';
 import { LiveLocationState } from '../hooks/useLiveLocation';
+import { getDynamicPlaceImage } from '../utils/placeVisuals';
 
 export interface SpecialtyMeta {
   id: LocalMarketSpecialty | 'all';
@@ -24,7 +25,6 @@ export const MARKET_SPECIALTIES: SpecialtyMeta[] = [
 
 const CURATED_MARKETS: LocalMarket[] = [
   // ==================== DELHI LOCAL MARKETS ====================
-  // Electronics
   {
     id: 'delhi-nehru-place',
     name: 'Nehru Place IT & Electronics Market',
@@ -79,8 +79,6 @@ const CURATED_MARKETS: LocalMarket[] = [
     imageUrl: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80',
     tags: ['electronics', 'mobile phones', 'gadgets', 'chargers', 'gaming', 'ghaffar market', 'karol bagh', 'delhi']
   },
-
-  // Clothes & Fashion
   {
     id: 'delhi-sarojini-nagar',
     name: 'Sarojini Nagar Market',
@@ -153,8 +151,6 @@ const CURATED_MARKETS: LocalMarket[] = [
     imageUrl: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=800&q=80',
     tags: ['clothes', 'sarees', 'bridal', 'textiles', 'kinari bazaar', 'katra neel', 'chandni chowk', 'delhi']
   },
-
-  // Automobile & Spare Parts
   {
     id: 'delhi-mayapuri-auto',
     name: 'Mayapuri Industrial Area Automotive Market',
@@ -191,8 +187,6 @@ const CURATED_MARKETS: LocalMarket[] = [
     imageUrl: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80',
     tags: ['automobile', 'bike parts', 'two wheeler', 'car accessories', 'kashmiri gate', 'delhi']
   },
-
-  // Spices & Food
   {
     id: 'delhi-khari-baoli',
     name: 'Khari Baoli Wholesale Spice Market',
@@ -207,12 +201,10 @@ const CURATED_MARKETS: LocalMarket[] = [
     metroStation: 'Chandni Chowk Metro (Yellow Line) • Gate 1',
     closedOn: 'Closed on Sundays',
     timings: '10:00 AM - 07:30 PM',
-    bargainingTip: 'Buy whole unground spices instead of powdered ones for supreme freshness and longevity. Check for Kashmiri saffron threads that dissolve yellow, not red.',
+    bargainingTip: 'Buy whole unground spices instead of powdered ones for supreme freshness and longevity.',
     imageUrl: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80',
     tags: ['spices', 'dry fruits', 'saffron', 'food', 'wholesale', 'khari baoli', 'delhi']
   },
-
-  // Jewelry & Silver
   {
     id: 'delhi-dariba-kalan',
     name: 'Dariba Kalan Silver & Jewelry Street',
@@ -305,6 +297,24 @@ const CURATED_MARKETS: LocalMarket[] = [
     imageUrl: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80',
     tags: ['antiques', 'vintage', 'automobile parts', 'chor bazaar', 'mumbai']
   },
+  {
+    id: 'mumbai-opera-house-auto',
+    name: 'Opera House & Charni Road Auto Spares Market',
+    city: 'South Mumbai',
+    cityId: 'mumbai',
+    specialty: 'automobile',
+    specialtyLabel: 'Automobile Accessories, Car Sound & Performance Parts',
+    famousFor: "Mumbai's prime automobile street. Renowned for custom car interior leather seating, touchscreens, performance alloys, imported exhausts, and genuine Japanese/European car spares.",
+    whatToBuy: ['Custom Seat Covers', 'Touchscreen Infotainment Rigs', 'Alloy Wheels & Spoilers', 'Car Sound Amplifiers', 'OEM Engine Filters & Oils'],
+    address: 'Near Roxy Cinema, Mama Parmanand Marg, Opera House, Mumbai 400004',
+    location: { latitude: 18.9565, longitude: 72.8180 },
+    metroStation: 'Charni Road Station (Western Line) • 3 min walk',
+    closedOn: 'Closed on Sundays',
+    timings: '10:30 AM - 08:00 PM',
+    bargainingTip: 'Ask for bundle installation discounts when purchasing audio systems with subwoofers and dampening sheets.',
+    imageUrl: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=800&q=80',
+    tags: ['automobile', 'car accessories', 'spare parts', 'opera house', 'mumbai']
+  },
 
   // ==================== VIJAYAWADA & ANDHRA MARKETS ====================
   {
@@ -380,6 +390,196 @@ const CURATED_MARKETS: LocalMarket[] = [
     tags: ['spices', 'guntur chillies', 'food', 'wholesale', 'kr market', 'vijayawada']
   },
 
+  // ==================== BANGALORE LOCAL MARKETS ====================
+  {
+    id: 'blr-sp-road',
+    name: 'SP Road (Sadarth Patrappa Road) Electronics Market',
+    city: 'Bengaluru',
+    cityId: 'bangalore',
+    specialty: 'electronics',
+    specialtyLabel: 'IT Hardware, Custom Gaming Rigs & Electronic Components',
+    famousFor: "South India's silicon street. The ultimate destination for custom PC builds, Arduino/Raspberry Pi microcontrollers, sensors, industrial electronics, and motherboard soldering repairs.",
+    whatToBuy: ['Custom Gaming Desktops', 'Motherboards & CPUs', 'Robotics & Arduino Kits', 'Camera Cables & Adaptors', 'LED Strips & Soldering Gear'],
+    address: 'SP Road, Dodpete, Nagarathpete, Bengaluru 560002',
+    location: { latitude: 12.9644, longitude: 77.5855 },
+    metroStation: 'Krishna Rajendra Market (Green Line) • 5 min walk',
+    closedOn: 'Closed on Sundays',
+    timings: '11:00 AM - 08:30 PM',
+    bargainingTip: 'Ask for composite package pricing when buying CPU, motherboard, and graphics card together from distributors.',
+    imageUrl: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
+    tags: ['electronics', 'computers', 'pc build', 'hardware', 'sp road', 'bangalore']
+  },
+  {
+    id: 'blr-commercial-street',
+    name: 'Commercial Street & Brigade Road',
+    city: 'Bengaluru',
+    cityId: 'bangalore',
+    specialty: 'clothes',
+    specialtyLabel: 'Apparel, Footwear, Tailoring & Street Fashion',
+    famousFor: "Bangalore's most vibrant shopping hub. Lined with fashion stores, boutique tailors, silver jewelry alleys, Pashmina shawls, and international fashion outlets.",
+    whatToBuy: ['Designer Dress Materials', 'Custom-Tailored Blouses & Suits', 'Kolhapuri Sandals', 'Silver Earrings & Bangles', 'Denim Jeans'],
+    address: 'Commercial Street, Tasker Town, Shivaji Nagar, Bengaluru 560001',
+    location: { latitude: 12.9822, longitude: 77.6083 },
+    metroStation: 'Mahatma Gandhi Road (Purple Line) • 8 min walk',
+    closedOn: 'Open 7 Days',
+    timings: '10:30 AM - 09:30 PM',
+    bargainingTip: 'The smaller cross-lanes (Ebrahim Sahib Street) have much better deals on fabrics than the main road showrooms.',
+    imageUrl: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=800&q=80',
+    tags: ['clothes', 'fashion', 'commercial street', 'bangalore']
+  },
+  {
+    id: 'blr-jc-road-auto',
+    name: 'JC Road Automobile & Bike Spare Parts Market',
+    city: 'Bengaluru',
+    cityId: 'bangalore',
+    specialty: 'automobile',
+    specialtyLabel: 'Automobile Components, Motorcycle Accessories & Tyres',
+    famousFor: "Bangalore's primary automotive district. Houses hundreds of auto spare shops offering genuine Royal Enfield accessories, car audio systems, performance exhausts, and OEM vehicle spares.",
+    whatToBuy: ['Royal Enfield & Bike Parts', 'Car Alloy Wheels & Tyres', 'Audio & Subwoofer Systems', 'Car Body Kits & Headlamps', 'Vehicle Batteries'],
+    address: 'Jayachamaraja Road (JC Road), Kalasipalya, Bengaluru 560002',
+    location: { latitude: 12.9610, longitude: 77.5840 },
+    metroStation: 'KR Market Metro • 5 min walk',
+    closedOn: 'Closed on Sundays',
+    timings: '10:00 AM - 08:00 PM',
+    bargainingTip: 'Installation labor can be negotiated right on the street behind the main stores.',
+    imageUrl: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=800&q=80',
+    tags: ['automobile', 'bike parts', 'car accessories', 'jc road', 'bangalore']
+  },
+
+  // ==================== HYDERABAD LOCAL MARKETS ====================
+  {
+    id: 'hyd-laad-bazaar',
+    name: 'Laad Bazaar & Charminar Market',
+    city: 'Old City, Hyderabad',
+    cityId: 'hyderabad',
+    specialty: 'jewelry',
+    specialtyLabel: 'Hyderabadi Pearls, Lacquer Bangles & Zari Bridal Sarees',
+    famousFor: 'Historic market adjoining Charminar operating since the Qutb Shahi era. Famous for handcrafted stone-studded lacquer bangles, authentic Basra pearls, bridal khada dupattas, and ittar.',
+    whatToBuy: ['Hyderabadi Pearl Necklaces', 'Stone Lacquer Bangles', 'Bridal Khada Dupattas', 'Zari Embroidered Kurtas', 'Natural Mughlai Attar'],
+    address: 'Laad Bazaar Road, Near Charminar, Hyderabad 500002',
+    location: { latitude: 17.3616, longitude: 78.4735 },
+    metroStation: 'Charminar Metro (Green Line) or MGBS Metro • 10 min',
+    closedOn: 'Open 7 Days',
+    timings: '11:00 AM - 10:00 PM',
+    bargainingTip: 'Ask for authentic certificate of guarantee for pearls. Bangle shops quote 40% higher initially.',
+    imageUrl: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80',
+    tags: ['jewelry', 'pearls', 'bangles', 'bridal', 'charminar', 'laad bazaar', 'hyderabad']
+  },
+  {
+    id: 'hyd-koti-electronics',
+    name: 'Koti (Gujarati Galli) Electronics & Book Market',
+    city: 'Hyderabad',
+    cityId: 'hyderabad',
+    specialty: 'electronics',
+    specialtyLabel: 'Consumer Electronics, Smart TV Parts & Mobile Hub',
+    famousFor: "Hyderabad's electronics capital. Packed with wholesale mobile display panels, camera batteries, LED TV components, sound systems, and academic textbook dealers.",
+    whatToBuy: ['Smart TV Panels & Boards', 'Mobile Phones & Displays', 'Speaker Systems & Amps', 'Academic & Medical Books', 'Electronic Testing Multimeters'],
+    address: 'Gujarati Galli, Koti, Hyderabad 500095',
+    location: { latitude: 17.3850, longitude: 78.4867 },
+    metroStation: 'Sultan Bazaar Metro (Red Line) • 5 min walk',
+    closedOn: 'Closed on Sundays',
+    timings: '10:30 AM - 08:30 PM',
+    bargainingTip: 'Gujarati Galli offers substantial wholesale discounts for tech parts when paying in cash.',
+    imageUrl: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
+    tags: ['electronics', 'mobile parts', 'sound gear', 'koti', 'hyderabad']
+  },
+
+  // ==================== JAIPUR LOCAL MARKETS ====================
+  {
+    id: 'jpr-johari-bazaar',
+    name: 'Johari Bazaar Gemstone & Jewelry Market',
+    city: 'Pink City, Jaipur',
+    cityId: 'jaipur',
+    specialty: 'jewelry',
+    specialtyLabel: 'Precious Gemstones, Kundan Meenakari & Gold',
+    famousFor: "World-renowned epicenter for emeralds, rubies, Kundan-Meenakari bridal sets, and traditional Rajasthani gold filigree jewelry.",
+    whatToBuy: ['Kundan & Polki Jewelry', 'Cut Emeralds & Gemstones', 'Meenakari Enamel Bangles', 'Traditional Rajputi Poshaks', 'Jaipuri Quilts (Razai)'],
+    address: 'Johari Bazaar, Pink City, Jaipur 302003',
+    location: { latitude: 26.9200, longitude: 75.8270 },
+    metroStation: 'Badi Chaupar Metro • 2 min walk',
+    closedOn: 'Open 7 Days',
+    timings: '10:00 AM - 08:30 PM',
+    bargainingTip: 'Verify certification from recognized gemological laboratories before buying loose cut stones.',
+    imageUrl: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80',
+    tags: ['jewelry', 'gemstones', 'kundan', 'johari bazaar', 'jaipur']
+  },
+  {
+    id: 'jpr-bapu-bazaar',
+    name: 'Bapu Bazaar & Nehru Bazaar',
+    city: 'Jaipur',
+    cityId: 'jaipur',
+    specialty: 'clothes',
+    specialtyLabel: 'Jaipuri Textiles, Mojari Leather Footwear & Handicrafts',
+    famousFor: 'Famous pink-walled arcade known for authentic camel leather Mojari shoes, Bandhani/Leheriya sarees, block-print cotton bedsheets, and blue pottery.',
+    whatToBuy: ['Camel Leather Mojari Shoes', 'Bandhani & Leheriya Sarees', 'Sanganeri Block Print Linens', 'Handmade Blue Pottery', 'Puppets & Brass Trinkets'],
+    address: 'Bapu Bazaar Road, Pink City, Jaipur 302003',
+    location: { latitude: 26.9180, longitude: 75.8220 },
+    metroStation: 'Chhoti Chaupar Metro • 5 min walk',
+    closedOn: 'Open 7 Days',
+    timings: '10:30 AM - 09:00 PM',
+    bargainingTip: 'Start negotiation at 50% for handicrafts and Mojari footwear.',
+    imageUrl: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80',
+    tags: ['clothes', 'mojari', 'textiles', 'handicrafts', 'bapu bazaar', 'jaipur']
+  },
+
+  // ==================== GOA LOCAL MARKETS ====================
+  {
+    id: 'goa-mapusa-market',
+    name: 'Mapusa Friday Municipal Market',
+    city: 'Mapusa, Goa',
+    cityId: 'goa',
+    specialty: 'spices_food',
+    specialtyLabel: 'Goan Spices, Homemade Sausages, Cashews & Feni',
+    famousFor: "Goa's most authentic local trade market. Famous for fiery Goan choriz (pork sausages), artisanal vinegar, dried kokum, cashew nuts, local feni, and terracotta earthenware.",
+    whatToBuy: ['Goan Spices & Kokum', 'Goan Choriz Sausages', 'Pure Goan Cashew Nuts', 'Traditional Handcrafted Earthenware', 'Local Bakery Bread & Sweets'],
+    address: 'Mapusa Municipal Market, Mapusa, Goa 403507',
+    location: { latitude: 15.5925, longitude: 73.8130 },
+    metroStation: 'Mapusa Bus Terminal • 3 min walk',
+    closedOn: 'Special peak every Friday; municipal market open daily',
+    timings: '07:30 AM - 07:30 PM',
+    bargainingTip: 'Friday mornings before 10 AM have the freshest local home-producer arrivals.',
+    imageUrl: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80',
+    tags: ['spices', 'food', 'cashews', 'sausages', 'mapusa market', 'goa']
+  },
+
+  // ==================== LONDON LOCAL MARKETS ====================
+  {
+    id: 'london-camden-market',
+    name: 'Camden Market & Stables',
+    city: 'North London',
+    cityId: 'london',
+    specialty: 'clothes',
+    specialtyLabel: 'Alternative Fashion, Vintage Streetwear & Global Food',
+    famousFor: 'World-famous eclectic market set in historic canal-side horse stables. Known for punk/goth fashion, retro vinyl records, handmade leather goods, and international food stalls.',
+    whatToBuy: ['Vintage Denim & Leather', 'Independent Designer Tops', 'Vinyl Records', 'Handmade Silver Trinkets', 'Street Food Delicacies'],
+    address: 'Camden Lock Place, Chalk Farm Road, London NW1 8AF',
+    location: { latitude: 51.5414, longitude: -0.1466 },
+    metroStation: 'Camden Town Underground (Northern Line) • 3 min walk',
+    closedOn: 'Open 7 Days',
+    timings: '10:00 AM - 06:30 PM',
+    bargainingTip: 'Independent craft and vintage sellers in the Stables may negotiate for cash on multi-item bundles.',
+    imageUrl: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=800&q=80',
+    tags: ['clothes', 'vintage', 'fashion', 'street food', 'camden market', 'london']
+  },
+  {
+    id: 'london-borough-market',
+    name: 'Borough Market (Gourmet Food)',
+    city: 'South London',
+    cityId: 'london',
+    specialty: 'spices_food',
+    specialtyLabel: '1,000-Year-Old Historic Gourmet Food & Artisan Produce',
+    famousFor: "London's oldest food market. Renowned for artisan cheeses, rare spices, truffles, freshly baked sourdough, cured meats, and gourmet street food under Victorian railway arches.",
+    whatToBuy: ['British & French Farmhouse Cheeses', 'Truffle Oils & Rare Spices', 'Artisan Chocolates', 'Fresh Oysters', 'Hot Salt Beef Sandwiches'],
+    address: '8 Southwark Street, London SE1 1TL',
+    location: { latitude: 51.5055, longitude: -0.0909 },
+    metroStation: 'London Bridge Underground • 2 min walk',
+    closedOn: 'Closed on Mondays',
+    timings: '10:00 AM - 05:00 PM',
+    bargainingTip: 'Free food tastings and samples are offered generously at cheese and olive stalls.',
+    imageUrl: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=800&q=80',
+    tags: ['food', 'spices', 'gourmet', 'cheese', 'borough market', 'london']
+  },
+
   // ==================== KYOTO LOCAL MARKETS ====================
   {
     id: 'kyoto-nishiki',
@@ -398,31 +598,16 @@ const CURATED_MARKETS: LocalMarket[] = [
     bargainingTip: 'Prices in Japan are fixed and non-negotiable. Eat food in designated shop standing areas rather than walking while eating.',
     imageUrl: 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=800&q=80',
     tags: ['food', 'spices', 'culinary', 'knives', 'nishiki market', 'kyoto']
-  },
-  {
-    id: 'kyoto-teramachi',
-    name: 'Teramachi & Shinkyogoku Covered Arcades',
-    city: 'Kyoto',
-    cityId: 'kyoto',
-    specialty: 'clothes',
-    specialtyLabel: 'Apparel, Vintage Kimonos, Crafts & Tech Accessories',
-    famousFor: 'Historic covered arcade lined with fashion boutiques, second-hand vintage kimonos, stationery, tea shops, and anime merchandise.',
-    whatToBuy: ['Vintage Haori & Kimonos', 'Japanese Washi Stationery', 'Modern Street Apparel', 'Woodblock Art Prints', 'Incense & Fans'],
-    address: 'Teramachi-dori, Nakagyo Ward, Kyoto 604-8042',
-    location: { latitude: 35.0065, longitude: 135.7675 },
-    metroStation: 'Kyoto-Kawaramachi Station • 2 min walk',
-    closedOn: 'Open 7 Days',
-    timings: '11:00 AM - 08:30 PM',
-    bargainingTip: 'Look for tax-free counters (bring your passport for an instant 10% duty deduction on purchases over ¥5,000).',
-    imageUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=80',
-    tags: ['clothes', 'kimonos', 'stationery', 'crafts', 'teramachi', 'kyoto']
   }
 ];
 
 class MarketService {
+  private osmCache = new Map<string, { timestamp: number; markets: LocalMarket[] }>();
+
   /**
    * Retrieves local markets dynamically for the user's active location.
-   * Calculates live distance in meters and sorts by proximity.
+   * Dynamically filters by active city/coordinates and fetches real live
+   * markets from OpenStreetMap when outside curated hub centers.
    */
   public async getLocalMarkets(
     location: LiveLocationState,
@@ -431,30 +616,43 @@ class MarketService {
   ): Promise<LocalMarket[]> {
     const userLat = location.coords.latitude;
     const userLon = location.coords.longitude;
-    const activeCityId = (location.matchedCityId || location.cityName.split(',')[0].toLowerCase().trim()).replace(/[^a-z]/g, '');
+    const cityRaw = (location.cityName || '').toLowerCase();
+    const activeCityId = (location.matchedCityId || cityRaw.split(',')[0].trim()).replace(/[^a-z]/g, '');
 
-    // 1. Filter curated markets
-    let results: LocalMarket[] = [];
-
-    // Check if city matches curated markets (e.g. 'delhi', 'mumbai', 'vijayawada', 'kyoto')
-    const matchesCity = CURATED_MARKETS.filter(m => {
+    // 1. Identify which curated region the user is currently located in
+    const regionalMarkets = CURATED_MARKETS.filter(m => {
+      // Check city ID match
       if (m.cityId === activeCityId) return true;
-      if (location.cityName.toLowerCase().includes(m.cityId || '')) return true;
-      if (location.cityName.toLowerCase().includes(m.city.toLowerCase())) return true;
-      // Distance check within 120km
-      const dist = getDistance({ latitude: userLat, longitude: userLon }, { latitude: m.location.latitude, longitude: m.location.longitude });
-      return dist <= 120000;
+      // Check city name string inclusion
+      if (cityRaw.includes(m.cityId || '')) return true;
+      if (cityRaw.includes(m.city.toLowerCase())) return true;
+      if (m.city.toLowerCase().includes(activeCityId)) return true;
+
+      // Distance check: within 75 km of the market cluster
+      const dist = getDistance(
+        { latitude: userLat, longitude: userLon },
+        { latitude: m.location.latitude, longitude: m.location.longitude }
+      );
+      return dist <= 75000;
     });
 
-    if (matchesCity.length > 0) {
-      results = matchesCity;
+    let results: LocalMarket[] = [];
+
+    if (regionalMarkets.length > 0) {
+      // User is in a known hub city (Delhi, Mumbai, Bangalore, Hyderabad, Jaipur, Goa, Vijayawada, London, Kyoto)
+      results = [...regionalMarkets];
     } else {
-      // If user is somewhere without direct curated markets, show all Indian or global curated markets
-      // as featured destinations with live calculated distances
-      results = [...CURATED_MARKETS];
+      // 2. Dynamic Live OSM Marketplace Discovery for any custom or uncurated city/coordinates
+      const liveOsmMarkets = await this.fetchLiveOsmMarkets(userLat, userLon, location.cityName);
+      if (liveOsmMarkets.length > 0) {
+        results = liveOsmMarkets;
+      } else {
+        // Fallback: Show nearest global/regional markets sorted by proximity
+        results = [...CURATED_MARKETS];
+      }
     }
 
-    // 2. Compute exact live geodesic distance
+    // 3. Compute exact live geodesic distance for all returned markets
     results = results.map(market => {
       const dist = getDistance(
         { latitude: userLat, longitude: userLon },
@@ -466,12 +664,12 @@ class MarketService {
       };
     });
 
-    // 3. Filter by specialty
+    // 4. Filter by specialty
     if (specialtyFilter && specialtyFilter !== 'all') {
       results = results.filter(m => m.specialty === specialtyFilter);
     }
 
-    // 4. Filter by search query
+    // 5. Filter by search query
     if (searchQuery && searchQuery.trim().length > 0) {
       const q = searchQuery.toLowerCase().trim();
       results = results.filter(m => 
@@ -484,10 +682,109 @@ class MarketService {
       );
     }
 
-    // 5. Sort by distance ascending
+    // 6. Sort by shortest distance first
     results.sort((a, b) => (a.distanceMeters || 0) - (b.distanceMeters || 0));
 
     return results;
+  }
+
+  /**
+   * Fetches real live markets, shopping streets, and bazaars from OpenStreetMap
+   * (via Photon and Nominatim) when in any custom or international city.
+   */
+  private async fetchLiveOsmMarkets(lat: number, lon: number, cityName: string): Promise<LocalMarket[]> {
+    const cacheKey = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+    const cached = this.osmCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < 180000) {
+      return cached.markets;
+    }
+
+    const discovered: LocalMarket[] = [];
+    const seen = new Set<string>();
+
+    const searchTerms = ['market', 'bazaar', 'shopping', 'electronics', 'clothing'];
+
+    await Promise.allSettled(
+      searchTerms.map(async (term) => {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 3500);
+
+          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(term)}&lat=${lat}&lon=${lon}&limit=6`;
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(timeout);
+
+          if (!res.ok) return;
+          const data = await res.json();
+
+          for (const feat of data.features || []) {
+            const [fLon, fLat] = feat.geometry.coordinates;
+            const key = `${fLat.toFixed(3)},${fLon.toFixed(3)}`;
+            if (seen.has(key)) continue;
+
+            const dist = getDistance({ latitude: lat, longitude: lon }, { latitude: fLat, longitude: fLon });
+            // Must be within 40 km of the target location
+            if (dist > 40000) continue;
+
+            seen.add(key);
+            const props = feat.properties || {};
+            const rawName = props.name || props.street;
+            if (!rawName || rawName.length < 3) continue;
+
+            // Classify specialty based on keywords
+            const lower = `${rawName} ${props.osm_value || ''} ${props.type || ''}`.toLowerCase();
+            let specialty: LocalMarketSpecialty = 'wholesale';
+            let specialtyLabel = 'Local Shopping Bazaar';
+
+            if (lower.includes('tech') || lower.includes('electr') || lower.includes('computer') || lower.includes('phone') || lower.includes('mobile')) {
+              specialty = 'electronics';
+              specialtyLabel = 'Electronics & Gadgets';
+            } else if (lower.includes('cloth') || lower.includes('apparel') || lower.includes('fashion') || lower.includes('textile') || lower.includes('saree')) {
+              specialty = 'clothes';
+              specialtyLabel = 'Clothes & Apparel';
+            } else if (lower.includes('auto') || lower.includes('motor') || lower.includes('car') || lower.includes('spare')) {
+              specialty = 'automobile';
+              specialtyLabel = 'Automobile & Spares';
+            } else if (lower.includes('spice') || lower.includes('food') || lower.includes('fruit') || lower.includes('grocer') || lower.includes('fish') || lower.includes('meat')) {
+              specialty = 'spices_food';
+              specialtyLabel = 'Spices & Local Produce';
+            } else if (lower.includes('jewel') || lower.includes('gold') || lower.includes('silver') || lower.includes('gem')) {
+              specialty = 'jewelry';
+              specialtyLabel = 'Jewelry & Silverware';
+            } else if (lower.includes('antique') || lower.includes('craft') || lower.includes('flea') || lower.includes('souvenir')) {
+              specialty = 'antiques_handicrafts';
+              specialtyLabel = 'Antiques & Souvenirs';
+            }
+
+            const addr = [props.street, props.district, props.city || cityName, props.state, props.country].filter(Boolean).join(', ');
+
+            discovered.push({
+              id: `osm-market-${props.osm_id || Math.random().toString(36).substring(7)}`,
+              name: rawName,
+              city: props.city || cityName.split(',')[0],
+              specialty,
+              specialtyLabel,
+              famousFor: `Popular regional trading and retail hub in ${props.city || cityName.split(',')[0]} for local goods, retail and shopping.`,
+              whatToBuy: ['Local Commodities', 'Daily Essentials', 'Regional Specialties'],
+              address: addr || `Near ${cityName}`,
+              location: { latitude: fLat, longitude: fLon },
+              distanceMeters: dist,
+              metroStation: props.city ? `Transit access via ${props.city} central line` : undefined,
+              closedOn: 'Varies by local shopkeepers',
+              timings: '10:00 AM - 08:30 PM',
+              bargainingTip: 'Polite bargaining is customary with independent stall holders.',
+              imageUrl: getDynamicPlaceImage({ name: rawName, category: 'supermarket' }),
+              tags: ['market', specialty, rawName.toLowerCase()]
+            });
+          }
+        } catch {
+          // Gracefully continue next term
+        }
+      })
+    );
+
+    this.osmCache.set(cacheKey, { timestamp: Date.now(), markets: discovered });
+    return discovered;
   }
 
   /**
