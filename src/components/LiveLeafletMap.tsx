@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Place, LocationCoordinates } from '../types';
+import { getCategoryVisualMeta, getDynamicPlaceImage } from '../utils/placeVisuals';
 
 export type MapTileProvider = 'google_streets' | 'google_satellite' | 'google_terrain' | 'osm';
 
@@ -254,25 +255,33 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
 
     places.forEach((place) => {
       const isSelected = selectedPlace?.id === place.id;
-      const bg = isSelected ? '#0369a1' : (
-        place.emergencyCapable ? '#ba1a1a' :
-        place.category === 'historic' ? '#92400e' :
-        place.category === 'museum' ? '#7e22ce' :
-        place.category === 'beach' ? '#0891b2' :
-        place.category === 'attraction' ? '#e11d48' :
-        '#0284c7'
-      );
-      const iconGlyph = place.category === 'hospital' ? '+' :
-                        place.category === 'pharmacy' ? 'Rx' :
-                        place.category === 'police' ? 'POL' :
-                        place.category === 'atm' ? '$' :
-                        place.category === 'transit_stop' ? 'TR' :
-                        place.category === 'historic' ? '🏛️' :
-                        place.category === 'museum' ? '🎨' :
-                        place.category === 'beach' ? '🏖️' :
-                        place.category === 'attraction' ? '🎡' :
-                        place.category === 'cafe' ? '☕' : '•';
+      const visualMeta = getCategoryVisualMeta(place.category, place.name);
+      const dynamicImg = getDynamicPlaceImage(place);
 
+      const bg = isSelected ? '#0284c7' : (
+        place.emergencyCapable ? '#ba1a1a' : visualMeta.hex
+      );
+
+      // Render circular photo if available, otherwise category emoji/icon
+      const iconOrPhoto = dynamicImg ? `
+        <img 
+          src="${dynamicImg}" 
+          alt=""
+          style="
+            width: 20px; 
+            height: 20px; 
+            border-radius: 9999px; 
+            object-fit: cover; 
+            border: 1.5px solid #ffffff; 
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+          " 
+        />
+      ` : `
+        <span style="font-size: 13px; line-height: 1; flex-shrink: 0;">${visualMeta.emoji}</span>
+      `;
+
+      const shortName = place.name.split(/[\s,(-]/)[0] || place.name;
 
       const customIcon = L.divIcon({
         className: 'custom-poi-marker',
@@ -282,23 +291,23 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
             color: #ffffff;
             font-size: 11px;
             font-weight: 800;
-            padding: 3px 8px;
+            padding: 2px 8px 2px 3px;
             border-radius: 9999px;
-            box-shadow: -2px -2px 6px rgba(255,255,255,0.9), 2px 4px 8px rgba(0,0,0,0.25);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.28);
             border: 2px solid #ffffff;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
             white-space: nowrap;
             transform: translate(-50%, -50%);
             cursor: pointer;
           ">
-            <span>${iconGlyph}</span>
-            <span>${place.name.split(' ')[0]}</span>
-            <span style="opacity: 0.85; font-size: 10px;">${place.distanceMeters}m</span>
+            ${iconOrPhoto}
+            <span style="max-width: 90px; overflow: hidden; text-overflow: ellipsis; font-weight: 700;">${shortName}</span>
+            <span style="opacity: 0.85; font-size: 10px; font-weight: 600;">${place.distanceMeters}m</span>
           </div>
         `,
-        iconSize: [80, 24],
+        iconSize: [95, 26],
         iconAnchor: [0, 0]
       });
 

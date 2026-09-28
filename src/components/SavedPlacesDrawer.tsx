@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Place, SavedPlace } from '../types';
 import { storage } from '../services/storage';
+import { PlaceThumbnail } from './PlaceThumbnail';
 
 interface SavedPlacesDrawerProps {
   onClose: () => void;
@@ -73,8 +74,14 @@ export const SavedPlacesDrawer: React.FC<SavedPlacesDrawerProps> = ({
                   onSelectPlace(item.place);
                   onClose();
                 }}
-                className="cursor-pointer p-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/90 shadow-sm flex items-center justify-between gap-3 active:scale-98 transition-all group"
+                className="cursor-pointer p-3 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200/90 shadow-sm flex items-center justify-between gap-3 active:scale-98 transition-all group"
               >
+                <PlaceThumbnail 
+                  place={item.place} 
+                  className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 relative shadow-inner"
+                  iconSize={20}
+                  showBadgeLabel={false}
+                />
                 <div className="flex-1 min-w-0">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700">
                     {item.place.category}

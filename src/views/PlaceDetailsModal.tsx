@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Place } from '../types';
 import { storage } from '../services/storage';
+import { getCategoryVisualMeta, getDynamicPlaceImage } from '../utils/placeVisuals';
 
 interface PlaceDetailsModalProps {
   place: Place;
@@ -18,6 +19,10 @@ export const PlaceDetailsModal: React.FC<PlaceDetailsModalProps> = ({
   const [isSaved, setIsSaved] = useState(false);
   const [selectedMode, setSelectedMode] = useState<'walking' | 'driving'>('walking');
   const [notification, setNotification] = useState<string | null>(null);
+  const [imgError, setImgError] = useState(false);
+
+  const visualMeta = getCategoryVisualMeta(place.category, place.name);
+  const dynamicImg = getDynamicPlaceImage(place);
 
   useEffect(() => {
     setIsSaved(storage.isPlaceSaved(place.id));
@@ -100,19 +105,20 @@ export const PlaceDetailsModal: React.FC<PlaceDetailsModalProps> = ({
         <div className="p-5 flex flex-col gap-4">
           {/* Photo Card */}
           <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
-            {place.imageUrl ? (
+            {!imgError && dynamicImg ? (
               <img 
-                src={place.imageUrl} 
+                src={dynamicImg} 
                 alt={place.name}
+                onError={() => setImgError(true)}
                 className="w-full h-56 object-cover"
               />
             ) : (
-              <div className="w-full h-44 bg-slate-100 flex items-center justify-center text-sky-600">
+              <div className={`w-full h-44 ${visualMeta.bgClass} flex flex-col items-center justify-center ${visualMeta.textClass} border ${visualMeta.borderClass} gap-1.5`}>
                 <span className="material-symbols-outlined text-[54px]">
-                  {place.category === 'hospital' ? 'local_hospital' :
-                   place.category === 'pharmacy' ? 'medication' :
-                   place.category === 'police' ? 'local_police' :
-                   place.category === 'atm' ? 'atm' : 'place'}
+                  {visualMeta.icon}
+                </span>
+                <span className="text-xs font-bold uppercase tracking-wider opacity-90">
+                  {visualMeta.label}
                 </span>
               </div>
             )}

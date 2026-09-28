@@ -5,6 +5,7 @@ import { storage } from '../services/storage';
 import { LiveLocationState, calculateDistanceMeters } from '../hooks/useLiveLocation';
 import { LiveLeafletMap } from '../components/LiveLeafletMap';
 import { fxService } from '../services/fxService';
+import { PlaceThumbnail } from '../components/PlaceThumbnail';
 
 interface ExploreViewProps {
   location: LiveLocationState;
@@ -509,26 +510,13 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                   className="group cursor-pointer rounded-2xl bg-white p-4 sm:p-5 border border-slate-200/80 hover:border-sky-300 shadow-sm hover:shadow-md transition-all active:scale-[0.99] flex flex-col gap-3.5"
                 >
                   <div className="flex items-start gap-4">
-                    {/* Thumbnail / Photo */}
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 relative shadow-inner">
-                      {place.imageUrl ? (
-                        <img 
-                          alt={place.name} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          src={place.imageUrl}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-sky-600 gap-1">
-                          <span className="material-symbols-outlined text-[32px]">
-                            {place.category === 'historic' ? 'castle' :
-                             place.category === 'museum' ? 'museum' :
-                             place.category === 'beach' ? 'beach_access' :
-                             place.category === 'hospital' ? 'local_hospital' :
-                             place.category === 'atm' ? 'atm' : 'place'}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    {/* Dynamic Place Thumbnail with Category Fallback Icon */}
+                    <PlaceThumbnail
+                      place={place}
+                      className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 relative shadow-inner"
+                      iconSize={34}
+                      showBadgeLabel={true}
+                    />
 
                     {/* Details Column */}
                     <div className="flex-1 min-w-0 flex flex-col">

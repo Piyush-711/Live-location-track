@@ -1,6 +1,7 @@
 import { Place, Category, LocationCoordinates, RouteResponse, RouteStep } from '../types';
 import { getDistance } from 'geolib';
 import { CITIES } from '../data/mockData';
+import { getDynamicPlaceImage } from '../utils/placeVisuals';
 
 export interface GeocodingResult {
   id: string;
@@ -157,6 +158,7 @@ interface LandmarkSeed {
   emergencyCapable: boolean;
   tags: string[];
   triageInfo?: string;
+  imageUrl?: string;
 }
 
 const REGIONAL_LANDMARKS: LandmarkSeed[] = [
@@ -628,7 +630,8 @@ class OsmService {
               emergencyCapable: lm.emergencyCapable,
               phone: lm.phone,
               tags: lm.tags,
-              triageInfo: lm.triageInfo
+              triageInfo: lm.triageInfo,
+              imageUrl: lm.imageUrl || getDynamicPlaceImage(lm)
             });
           }
         }
@@ -798,7 +801,8 @@ class OsmService {
               emergencyCapable: cat === 'hospital' || cat === 'police',
               phone: cat === 'hospital' ? '108 / Local ER' : cat === 'police' ? '100 / Emergency' : undefined,
               tags: this.generateTags(cat, rawName),
-              triageInfo: cat === 'hospital' ? 'Verified Medical Service / ER' : undefined
+              triageInfo: cat === 'hospital' ? 'Verified Medical Service / ER' : undefined,
+              imageUrl: getDynamicPlaceImage({ name: rawName, category: cat, tags: this.generateTags(cat, rawName) })
             };
 
             places.push(place);
@@ -866,7 +870,8 @@ class OsmService {
                 freshness: 'fresh',
                 emergencyCapable: cat === 'hospital' || cat === 'police',
                 tags: this.generateTags(cat, name),
-                triageInfo: cat === 'hospital' ? 'Emergency Care Facility' : undefined
+                triageInfo: cat === 'hospital' ? 'Emergency Care Facility' : undefined,
+                imageUrl: getDynamicPlaceImage({ name, category: cat, tags: this.generateTags(cat, name) })
               });
             }
           } catch {
