@@ -53,6 +53,35 @@ export interface Place {
   ratingNotice?: string; // Spec explicitly disallows commercial ratings
 }
 
+export type LocalMarketSpecialty = 
+  | 'electronics' 
+  | 'clothes' 
+  | 'automobile' 
+  | 'spices_food' 
+  | 'jewelry' 
+  | 'antiques_handicrafts' 
+  | 'wholesale';
+
+export interface LocalMarket {
+  id: string;
+  name: string;
+  city: string;
+  cityId?: string;
+  specialty: LocalMarketSpecialty;
+  specialtyLabel: string;
+  famousFor: string;
+  whatToBuy: string[];
+  address: string;
+  location: LocationCoordinates;
+  distanceMeters?: number;
+  metroStation?: string;
+  closedOn?: string;
+  timings: string;
+  bargainingTip: string;
+  imageUrl?: string;
+  tags: string[];
+}
+
 export type RouteMode = 'walking' | 'driving';
 
 export interface RouteStep {

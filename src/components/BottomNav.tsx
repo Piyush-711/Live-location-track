@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type TabType = 'explore' | 'emergency' | 'offline' | 'toolkit';
+export type TabType = 'explore' | 'markets' | 'emergency' | 'offline' | 'toolkit';
 
 interface BottomNavProps {
   activeTab: TabType;
@@ -10,6 +10,7 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) => {
   const tabs = [
     { id: 'explore' as TabType, label: 'Explore', icon: 'explore' },
+    { id: 'markets' as TabType, label: 'Markets', icon: 'storefront' },
     { id: 'emergency' as TabType, label: 'Emergency', icon: 'health_and_safety' },
     { id: 'offline' as TabType, label: 'Offline', icon: 'download_for_offline' },
     { id: 'toolkit' as TabType, label: 'Toolkit', icon: 'home_repair_service' }
@@ -25,7 +26,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) 
               <button
                 key={tab.id}
                 onClick={() => onChangeTab(tab.id)}
-                className={`min-w-[68px] h-12 px-3 py-1 rounded-full flex flex-col items-center justify-center transition-all select-none cursor-pointer ${
+                className={`min-w-[56px] sm:min-w-[64px] h-12 px-2.5 py-1 rounded-full flex flex-col items-center justify-center transition-all select-none cursor-pointer ${
                   isActive
                     ? 'bg-sky-50 text-sky-600 font-bold shadow-sm'
                     : 'text-slate-500 hover:text-slate-900 active:scale-95'

@@ -10,6 +10,7 @@ import { VoiceSettingsModal } from './views/VoiceSettingsModal';
 import { OfflineVaultView } from './views/OfflineVaultView';
 import { EmergencySOSView } from './views/EmergencySOSView';
 import { TravelToolkitView } from './views/TravelToolkitView';
+import { LocalMarketsView } from './views/LocalMarketsView';
 import { ReportCorrectionModal } from './components/ReportCorrectionModal';
 import { CityPickerModal } from './components/CityPickerModal';
 import { SavedPlacesDrawer } from './components/SavedPlacesDrawer';
@@ -97,6 +98,15 @@ export const App: React.FC = () => {
               onStartRoute={(p) => handleStartRoute(p, 'walking')}
               onOpenEmergency={() => setActiveTab('emergency')}
               onRequestGPS={requestLiveGPS}
+            />
+          )}
+
+          {activeTab === 'markets' && (
+            <LocalMarketsView
+              location={location}
+              activeCityId={activeCityId}
+              onStartRoute={(p) => handleStartRoute(p, 'driving')}
+              onSelectPlace={(p) => setSelectedPlace(p)}
             />
           )}
 
