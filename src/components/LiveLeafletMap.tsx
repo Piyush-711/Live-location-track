@@ -93,22 +93,40 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
     if (!mapContainerRef.current) return;
     if (mapInstanceRef.current) return;
 
-    const map = L.map(mapContainerRef.current, {
-      center: [userLocation.latitude, userLocation.longitude],
-      zoom: 15,
-      zoomControl: false,
-      attributionControl: false
-    });
+    try {
+      const container = mapContainerRef.current as any;
+      if (container && container._leaflet_id) {
+        container._leaflet_id = null;
+      }
 
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
+      const initialLat = (userLocation && typeof userLocation.latitude === 'number' && !isNaN(userLocation.latitude)) ? userLocation.latitude : 17.3850;
+      const initialLng = (userLocation && typeof userLocation.longitude === 'number' && !isNaN(userLocation.longitude)) ? userLocation.longitude : 78.4867;
 
-    const markersGroup = L.layerGroup().addTo(map);
-    markersLayerRef.current = markersGroup;
-    mapInstanceRef.current = map;
+      const map = L.map(mapContainerRef.current, {
+        center: [initialLat, initialLng],
+        zoom: 15,
+        zoomControl: false,
+        attributionControl: false
+      });
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      const markersGroup = L.layerGroup().addTo(map);
+      markersLayerRef.current = markersGroup;
+      mapInstanceRef.current = map;
+    } catch (err) {
+      console.warn('Leaflet map initialization warning:', err);
+    }
 
     return () => {
-      map.remove();
-      mapInstanceRef.current = null;
+      try {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.remove();
+          mapInstanceRef.current = null;
+        }
+      } catch (err) {
+        console.warn('Leaflet map remove warning:', err);
+      }
     };
   }, []);
 
@@ -117,84 +135,97 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    if (currentTileLayerRef.current) {
-      map.removeLayer(currentTileLayerRef.current);
-      currentTileLayerRef.current = null;
+    try {
+      if (currentTileLayerRef.current) {
+        map.removeLayer(currentTileLayerRef.current);
+        currentTileLayerRef.current = null;
+      }
+
+      const conf = TILE_CONFIG[currentProvider];
+      const layer = L.tileLayer(conf.url, {
+        maxZoom: conf.maxZoom,
+        subdomains: conf.subdomains || [],
+        attribution: conf.attribution
+      }).addTo(map);
+
+      layer.bringToBack();
+      currentTileLayerRef.current = layer;
+      try {
+        localStorage.setItem('app_map_provider', currentProvider);
+      } catch {}
+    } catch (err) {
+      console.warn('Tile layer switch warning:', err);
     }
-
-    const conf = TILE_CONFIG[currentProvider];
-    const layer = L.tileLayer(conf.url, {
-      maxZoom: conf.maxZoom,
-      subdomains: conf.subdomains || [],
-      attribution: conf.attribution
-    }).addTo(map);
-
-    layer.bringToBack();
-    currentTileLayerRef.current = layer;
-    localStorage.setItem('app_map_provider', currentProvider);
   }, [currentProvider]);
 
   // Update User Marker and Relocate Map Dynamically on Location Change
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || !userLocation || typeof userLocation.latitude !== 'number' || typeof userLocation.longitude !== 'number') return;
+    if (!map || !userLocation || typeof userLocation.latitude !== 'number' || typeof userLocation.longitude !== 'number' || isNaN(userLocation.latitude) || isNaN(userLocation.longitude)) return;
 
-    const userIcon = L.divIcon({
-      className: 'user-puck-icon',
-      html: `
-        <div style="
-          width: 22px; 
-          height: 22px; 
-          background: #0284c7; 
-          border: 3px solid #ffffff; 
-          border-radius: 50%; 
-          box-shadow: 0 0 10px rgba(2,132,199,0.7);
-          position: relative;
-        ">
+    try {
+      const userIcon = L.divIcon({
+        className: 'user-puck-icon',
+        html: `
           <div style="
-            position: absolute; 
-            inset: -6px; 
+            width: 22px; 
+            height: 22px; 
+            background: #0284c7; 
+            border: 3px solid #ffffff; 
             border-radius: 50%; 
-            background: rgba(2,132,199,0.25); 
-            animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-          "></div>
-        </div>
-      `,
-      iconSize: [22, 22],
-      iconAnchor: [11, 11]
-    });
-
-    if (userMarkerRef.current) {
-      userMarkerRef.current.setLatLng([userLocation.latitude, userLocation.longitude]);
-    } else {
-      userMarkerRef.current = L.marker([userLocation.latitude, userLocation.longitude], {
-        icon: userIcon,
-        zIndexOffset: 1000
-      }).addTo(map);
-    }
-
-    // Refresh Leaflet canvas viewport bounds
-    map.invalidateSize();
-
-    // If an active route geometry is plotted, respect route fitBounds
-    if (routeGeometry && routeGeometry.coordinates && routeGeometry.coordinates.length > 0) {
-      return;
-    }
-
-    // Relocate map viewport dynamically to user coordinates
-    const center = map.getCenter();
-    const latDiff = Math.abs(center.lat - userLocation.latitude);
-    const lngDiff = Math.abs(center.lng - userLocation.longitude);
-
-    if (latDiff > 0.0001 || lngDiff > 0.0001) {
-      const currentZoom = map.getZoom() || 15;
-      const targetZoom = currentZoom < 13 ? 15 : currentZoom;
-      map.flyTo([userLocation.latitude, userLocation.longitude], targetZoom, {
-        animate: true,
-        duration: (latDiff > 0.2 || lngDiff > 0.2) ? 1.0 : 0.6
+            box-shadow: 0 0 10px rgba(2,132,199,0.7);
+            position: relative;
+          ">
+            <div style="
+              position: absolute; 
+              inset: -6px; 
+              border-radius: 50%; 
+              background: rgba(2,132,199,0.25); 
+              animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+            "></div>
+          </div>
+        `,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11]
       });
+
+      if (userMarkerRef.current) {
+        userMarkerRef.current.setLatLng([userLocation.latitude, userLocation.longitude]);
+      } else {
+        userMarkerRef.current = L.marker([userLocation.latitude, userLocation.longitude], {
+          icon: userIcon,
+          zIndexOffset: 1000
+        }).addTo(map);
+      }
+
+      // DO NOT animate or pan if map container is hidden (e.g. mobile list mode display:none)
+      if (!isMapVisible) return;
+
+      map.invalidateSize();
+
+      // If an active route geometry is plotted, respect route fitBounds
+      if (routeGeometry && routeGeometry.coordinates && routeGeometry.coordinates.length > 0) {
+        return;
+      }
+
+      // Relocate map viewport dynamically to user coordinates
+      const center = map.getCenter();
+      if (!center) return;
+      const latDiff = Math.abs(center.lat - userLocation.latitude);
+      const lngDiff = Math.abs(center.lng - userLocation.longitude);
+
+      if (latDiff > 0.0001 || lngDiff > 0.0001) {
+        const currentZoom = map.getZoom() || 15;
+        const targetZoom = currentZoom < 13 ? 15 : currentZoom;
+        map.flyTo([userLocation.latitude, userLocation.longitude], targetZoom, {
+          animate: true,
+          duration: (latDiff > 0.2 || lngDiff > 0.2) ? 1.0 : 0.6
+        });
+      }
+    } catch (err) {
+      console.warn('Leaflet user marker or flyTo warning:', err);
     }
-  }, [userLocation.latitude, userLocation.longitude, routeGeometry]);
+  }, [userLocation.latitude, userLocation.longitude, routeGeometry, isMapVisible]);
 
   // Handle visibility changes (e.g. switching between list/map on mobile)
   useEffect(() => {
@@ -202,17 +233,21 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
     if (!map || !mapContainerRef.current) return;
 
     if (isMapVisible) {
-      map.invalidateSize();
-      const timer = setTimeout(() => {
+      try {
         map.invalidateSize();
-      }, 150);
+        const timer = setTimeout(() => {
+          try {
+            map.invalidateSize();
+            if (userLocation && typeof userLocation.latitude === 'number' && !isNaN(userLocation.latitude)) {
+              map.panTo([userLocation.latitude, userLocation.longitude]);
+            }
+          } catch {}
+        }, 150);
 
-      // Relocate on become visible
-      if (userLocation && typeof userLocation.latitude === 'number') {
-        map.panTo([userLocation.latitude, userLocation.longitude]);
+        return () => clearTimeout(timer);
+      } catch (err) {
+        console.warn('Map visibility toggle warning:', err);
       }
-
-      return () => clearTimeout(timer);
     }
   }, [isMapVisible, userLocation.latitude, userLocation.longitude]);
 
@@ -223,10 +258,14 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
 
     let observer: ResizeObserver | null = null;
     if (typeof ResizeObserver !== 'undefined') {
-      observer = new ResizeObserver(() => {
-        map.invalidateSize();
-      });
-      observer.observe(mapContainerRef.current);
+      try {
+        observer = new ResizeObserver(() => {
+          try {
+            map.invalidateSize();
+          } catch {}
+        });
+        observer.observe(mapContainerRef.current);
+      } catch {}
     }
 
     return () => {
@@ -237,13 +276,20 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
   // Fly to selected place when user taps a POI
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || !selectedPlace) return;
+    if (!map || !selectedPlace || !selectedPlace.location) return;
+    if (typeof selectedPlace.location.latitude !== 'number' || isNaN(selectedPlace.location.latitude)) return;
 
-    map.flyTo([selectedPlace.location.latitude, selectedPlace.location.longitude], 16, {
-      animate: true,
-      duration: 0.8
-    });
-  }, [selectedPlace]);
+    try {
+      if (isMapVisible) {
+        map.flyTo([selectedPlace.location.latitude, selectedPlace.location.longitude], 16, {
+          animate: true,
+          duration: 0.8
+        });
+      }
+    } catch (err) {
+      console.warn('Fly to selected place warning:', err);
+    }
+  }, [selectedPlace, isMapVisible]);
 
   // Update POI Markers
   useEffect(() => {
@@ -251,76 +297,95 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
     const markersGroup = markersLayerRef.current;
     if (!map || !markersGroup) return;
 
-    markersGroup.clearLayers();
+    try {
+      markersGroup.clearLayers();
 
-    places.forEach((place) => {
-      const isSelected = selectedPlace?.id === place.id;
-      const visualMeta = getCategoryVisualMeta(place.category, place.name);
-      const dynamicImg = getDynamicPlaceImage(place);
-
-      const bg = isSelected ? '#0284c7' : (
-        place.emergencyCapable ? '#ba1a1a' : visualMeta.hex
+      const validPlaces = (places || []).filter(p =>
+        p &&
+        p.location &&
+        typeof p.location.latitude === 'number' &&
+        !isNaN(p.location.latitude) &&
+        typeof p.location.longitude === 'number' &&
+        !isNaN(p.location.longitude)
       );
 
-      // Render circular photo if available, otherwise category emoji/icon
-      const iconOrPhoto = dynamicImg ? `
-        <img 
-          src="${dynamicImg}" 
-          alt=""
-          style="
-            width: 20px; 
-            height: 20px; 
-            border-radius: 9999px; 
-            object-fit: cover; 
-            border: 1.5px solid #ffffff; 
-            flex-shrink: 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-          " 
-        />
-      ` : `
-        <span style="font-size: 13px; line-height: 1; flex-shrink: 0;">${visualMeta.emoji}</span>
-      `;
+      validPlaces.forEach((place) => {
+        try {
+          const isSelected = selectedPlace?.id === place.id;
+          const visualMeta = getCategoryVisualMeta(place.category, place.name);
+          const dynamicImg = getDynamicPlaceImage(place);
 
-      const shortName = place.name.split(/[\s,(-]/)[0] || place.name;
+          const bg = isSelected ? '#0284c7' : (
+            place.emergencyCapable ? '#ba1a1a' : visualMeta.hex
+          );
 
-      const customIcon = L.divIcon({
-        className: 'custom-poi-marker',
-        html: `
-          <div style="
-            background: ${bg};
-            color: #ffffff;
-            font-size: 11px;
-            font-weight: 800;
-            padding: 2px 8px 2px 3px;
-            border-radius: 9999px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.28);
-            border: 2px solid #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            white-space: nowrap;
-            transform: translate(-50%, -50%);
-            cursor: pointer;
-          ">
-            ${iconOrPhoto}
-            <span style="max-width: 90px; overflow: hidden; text-overflow: ellipsis; font-weight: 700;">${shortName}</span>
-            <span style="opacity: 0.85; font-size: 10px; font-weight: 600;">${place.distanceMeters}m</span>
-          </div>
-        `,
-        iconSize: [95, 26],
-        iconAnchor: [0, 0]
+          // Render circular photo if available, otherwise category emoji/icon
+          const iconOrPhoto = dynamicImg ? `
+            <img 
+              src="${dynamicImg}" 
+              alt=""
+              style="
+                width: 20px; 
+                height: 20px; 
+                border-radius: 9999px; 
+                object-fit: cover; 
+                border: 1.5px solid #ffffff; 
+                flex-shrink: 0;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+              " 
+            />
+          ` : `
+            <span style="font-size: 13px; line-height: 1; flex-shrink: 0;">${visualMeta.emoji}</span>
+          `;
+
+          const placeName = place.name || 'Place';
+          const shortName = placeName.split(/[\s,(-]/)[0] || placeName;
+          const distStr = typeof place.distanceMeters === 'number' ? `${place.distanceMeters}m` : '';
+
+          const customIcon = L.divIcon({
+            className: 'custom-poi-marker',
+            html: `
+              <div style="
+                background: ${bg};
+                color: #ffffff;
+                font-size: 11px;
+                font-weight: 800;
+                padding: 2px 8px 2px 3px;
+                border-radius: 9999px;
+                box-shadow: 0 3px 8px rgba(0,0,0,0.28);
+                border: 2px solid #ffffff;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                white-space: nowrap;
+                transform: translate(-50%, -50%);
+                cursor: pointer;
+              ">
+                ${iconOrPhoto}
+                <span style="max-width: 90px; overflow: hidden; text-overflow: ellipsis; font-weight: 700;">${shortName}</span>
+                ${distStr ? `<span style="opacity: 0.85; font-size: 10px; font-weight: 600;">${distStr}</span>` : ''}
+              </div>
+            `,
+            iconSize: [95, 26],
+            iconAnchor: [0, 0]
+          });
+
+          const marker = L.marker([place.location.latitude, place.location.longitude], {
+            icon: customIcon
+          });
+
+          marker.on('click', () => {
+            onSelectPlace(place);
+          });
+
+          markersGroup.addLayer(marker);
+        } catch (mErr) {
+          console.warn('Marker create warning:', mErr);
+        }
       });
-
-      const marker = L.marker([place.location.latitude, place.location.longitude], {
-        icon: customIcon
-      });
-
-      marker.on('click', () => {
-        onSelectPlace(place);
-      });
-
-      markersGroup.addLayer(marker);
-    });
+    } catch (err) {
+      console.warn('Markers group update warning:', err);
+    }
   }, [places, selectedPlace, onSelectPlace]);
 
   // Update Route Polyline
@@ -328,27 +393,41 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    if (routeLayerRef.current) {
-      map.removeLayer(routeLayerRef.current);
-      routeLayerRef.current = null;
-    }
+    try {
+      if (routeLayerRef.current) {
+        map.removeLayer(routeLayerRef.current);
+        routeLayerRef.current = null;
+      }
 
-    if (routeGeometry && routeGeometry.coordinates && routeGeometry.coordinates.length > 0) {
-      // GeoJSON has [lon, lat], Leaflet needs [lat, lon]
-      const latLngs = routeGeometry.coordinates.map(c => [c[1], c[0]] as [number, number]);
-      const polyline = L.polyline(latLngs, {
-        color: '#0284c7',
-        weight: 6,
-        opacity: 0.85,
-        lineCap: 'round',
-        lineJoin: 'round',
-        dashArray: undefined
-      }).addTo(map);
+      if (routeGeometry && routeGeometry.coordinates && routeGeometry.coordinates.length > 0) {
+        const validCoords = routeGeometry.coordinates.filter(c =>
+          Array.isArray(c) &&
+          typeof c[0] === 'number' && !isNaN(c[0]) &&
+          typeof c[1] === 'number' && !isNaN(c[1])
+        );
 
-      routeLayerRef.current = polyline;
-      map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+        if (validCoords.length > 0) {
+          // GeoJSON has [lon, lat], Leaflet needs [lat, lon]
+          const latLngs = validCoords.map(c => [c[1], c[0]] as [number, number]);
+          const polyline = L.polyline(latLngs, {
+            color: '#0284c7',
+            weight: 6,
+            opacity: 0.85,
+            lineCap: 'round',
+            lineJoin: 'round',
+            dashArray: undefined
+          }).addTo(map);
+
+          routeLayerRef.current = polyline;
+          if (isMapVisible) {
+            map.fitBounds(polyline.getBounds(), { padding: [50, 50] });
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Route polyline warning:', err);
     }
-  }, [routeGeometry]);
+  }, [routeGeometry, isMapVisible]);
 
   return (
     <div className={`relative overflow-hidden rounded-xl bg-[#e4e9ec] ${className}`}>

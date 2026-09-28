@@ -833,14 +833,24 @@ class OsmService {
             const pData = await pRes.json();
 
             for (const feat of pData.features || []) {
-              const [fLon, fLat] = feat.geometry.coordinates;
+              if (!feat || !feat.geometry || !Array.isArray(feat.geometry.coordinates)) continue;
+              const coords = feat.geometry.coordinates;
+              const fLon = coords[0];
+              const fLat = coords[1];
+              if (typeof fLat !== 'number' || typeof fLon !== 'number' || isNaN(fLat) || isNaN(fLon)) continue;
+
               const coordKey = `${fLat.toFixed(3)},${fLon.toFixed(3)}`;
               if (seenCoordinates.has(coordKey)) continue;
 
-              const dist = getDistance(
-                { latitude: lat, longitude: lon },
-                { latitude: fLat, longitude: fLon }
-              );
+              let dist = 999999;
+              try {
+                dist = getDistance(
+                  { latitude: lat, longitude: lon },
+                  { latitude: fLat, longitude: fLon }
+                );
+              } catch {
+                continue;
+              }
 
               const maxDist = (cat === 'hospital' || cat === 'police') ? Math.max(radiusMeters * 2.5, 15000) : Math.max(radiusMeters * 1.5, 10000);
               if (dist > maxDist) continue;

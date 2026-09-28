@@ -69,7 +69,7 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
     }
   };
 
-  const cityNameClean = location.cityName.split(',')[0].trim();
+  const cityNameClean = (location?.cityName || 'Current Location').split(',')[0].trim() || 'Current Location';
 
   return (
     <div className="flex-1 w-full px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 pt-2">

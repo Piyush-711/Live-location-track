@@ -232,33 +232,34 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 
   // Dynamically compute real-time distance and instant search filtering with semantic matching
   const dynamicPlaces = useMemo(() => {
-    let filtered = places;
+    let filtered = places || [];
 
     // Filter by selected category pill
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(p => p.category === selectedCategory);
+      filtered = filtered.filter(p => p && p.category === selectedCategory);
     }
 
     // Instant real-time search filtering across name, localized name, address, tags, and category keywords
     if (searchQuery && searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(p => {
+        if (!p) return false;
         // Direct text match
-        if (p.name.toLowerCase().includes(q)) return true;
+        if (p.name && p.name.toLowerCase().includes(q)) return true;
         if (p.localizedName && p.localizedName.toLowerCase().includes(q)) return true;
         if (p.address && p.address.toLowerCase().includes(q)) return true;
         if (p.city && p.city.toLowerCase().includes(q)) return true;
         if (p.tags && p.tags.some(t => t.toLowerCase().includes(q))) return true;
 
         // Category & semantic intent matching
-        if (p.category.toLowerCase().includes(q)) return true;
-        if ((q.includes('aiims') || q.includes('mangalagiri')) && (p.id.includes('aiims') || p.name.toLowerCase().includes('aiims') || p.address.toLowerCase().includes('aiims'))) {
+        if (p.category && p.category.toLowerCase().includes(q)) return true;
+        if ((q.includes('aiims') || q.includes('mangalagiri')) && ((p.id && p.id.includes('aiims')) || (p.name && p.name.toLowerCase().includes('aiims')) || (p.address && p.address.toLowerCase().includes('aiims')))) {
           return true;
         }
-        if ((q.includes('private') || q.includes('manipal') || q.includes('specialty')) && (p.id.includes('manipal') || p.name.toLowerCase().includes('manipal') || (p.tags && p.tags.some(t => t.toLowerCase().includes('private'))))) {
+        if ((q.includes('private') || q.includes('manipal') || q.includes('specialty')) && ((p.id && p.id.includes('manipal')) || (p.name && p.name.toLowerCase().includes('manipal')) || (p.tags && p.tags.some(t => t.toLowerCase().includes('private'))))) {
           return true;
         }
-        if ((q.includes('college') || q.includes('university') || q.includes('campus') || q.includes('klef') || q.includes('kl')) && ((p.tags && p.tags.some(t => t.toLowerCase().includes('college') || t.toLowerCase().includes('campus') || t.toLowerCase().includes('university'))) || p.id.includes('klef') || p.name.toLowerCase().includes('college') || p.name.toLowerCase().includes('university'))) {
+        if ((q.includes('college') || q.includes('university') || q.includes('campus') || q.includes('klef') || q.includes('kl')) && ((p.tags && p.tags.some(t => t.toLowerCase().includes('college') || t.toLowerCase().includes('campus') || t.toLowerCase().includes('university'))) || (p.id && p.id.includes('klef')) || (p.name && p.name.toLowerCase().includes('college')) || (p.name && p.name.toLowerCase().includes('university')))) {
           return true;
         }
         if ((q.includes('raj mahal') || q.includes('palace') || q.includes('mahal') || q.includes('fort') || q.includes('historic') || q.includes('monument') || q.includes('caves') || q.includes('heritage') || q.includes('ancient')) && (p.category === 'historic' || (p.tags && p.tags.some(t => t.toLowerCase().includes('historic') || t.toLowerCase().includes('palace') || t.toLowerCase().includes('heritage'))))) {
@@ -300,13 +301,18 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
       });
     }
 
+    const userLat = location?.coords?.latitude;
+    const userLon = location?.coords?.longitude;
+
     return filtered.map(p => {
-      const liveDist = calculateDistanceMeters(
-        location.coords.latitude,
-        location.coords.longitude,
-        p.location.latitude,
-        p.location.longitude
-      );
+      const liveDist = (p && p.location && typeof p.location.latitude === 'number' && typeof p.location.longitude === 'number' && typeof userLat === 'number' && typeof userLon === 'number')
+        ? calculateDistanceMeters(
+            userLat,
+            userLon,
+            p.location.latitude,
+            p.location.longitude
+          )
+        : 999999;
       return {
         ...p,
         distanceMeters: liveDist
@@ -315,9 +321,11 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
       if (a.distanceMeters !== b.distanceMeters) {
         return a.distanceMeters - b.distanceMeters;
       }
-      return a.id.localeCompare(b.id);
+      return (a.id || '').localeCompare(b.id || '');
     });
-  }, [places, selectedCategory, searchQuery, location.coords]);
+  }, [places, selectedCategory, searchQuery, location?.coords]);
+
+  const displayCityName = (location?.cityName || 'Current Location').split(',')[0].trim() || 'Current Location';
 
   const refreshSavedState = () => {
     const saved = storage.getSavedPlaces();
@@ -347,11 +355,11 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span>{location.isCustom ? 'Custom Location' : location.status === 'fixed' ? 'Live GPS Active' : 'City Hub'}</span>
                 <span>•</span>
-                <span>{location.cityName.split(',')[0]}</span>
+                <span>{displayCityName}</span>
               </div>
 
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
-                Explore {location.cityName.split(',')[0]}
+                Explore {displayCityName}
               </h1>
               <p className="text-xs sm:text-sm text-slate-300 mt-1 font-medium max-w-xl">
                 Historic forts, palaces, museums, scenic beaches, local cafes & 24/7 emergency care.
@@ -462,7 +470,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
           {loading ? (
             <div className="p-12 text-center text-slate-500 text-sm font-medium flex items-center justify-center gap-2">
               <span className="material-symbols-outlined text-[20px] animate-spin text-sky-600">progress_activity</span>
-              <span>Discovering verified places near {location.cityName.split(',')[0]}...</span>
+              <span>Discovering verified places near {displayCityName}...</span>
             </div>
           ) : dynamicPlaces.length === 0 ? (
             <div className="p-10 text-center rounded-2xl bg-white shadow-sm border border-slate-200/80 flex flex-col items-center gap-2">
@@ -470,7 +478,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                 <span className="material-symbols-outlined text-[28px]">search_off</span>
               </div>
               <p className="text-sm font-bold text-slate-800 mt-1">No matching places found</p>
-              <p className="text-xs text-slate-500 max-w-xs">Try clearing your search filters or searching for another place in {location.cityName.split(',')[0]}.</p>
+              <p className="text-xs text-slate-500 max-w-xs">Try clearing your search filters or searching for another place in {displayCityName}.</p>
             </div>
           ) : (
             dynamicPlaces.map((place) => {
@@ -642,7 +650,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                 </div>
                 <div className="flex flex-col text-left">
                   <span className="text-sm font-bold text-white tracking-tight">
-                    Emergency Directory • {location.cityName.split(',')[0]}
+                    Emergency Directory • {displayCityName}
                   </span>
                   <span className="text-xs text-rose-100 font-medium">
                     Local Police, Ambulance & English-Speaking Hospitals

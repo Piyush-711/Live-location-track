@@ -29,17 +29,29 @@ export interface CustomLocationPayload {
   countryCode?: string;
 }
 
-// Calculate millimetric geodesic distance on WGS-84 ellipsoid using geolib
+// Calculate millimetric geodesic distance on WGS-84 ellipsoid using geolib safely
 export function calculateDistanceMeters(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
+  lat1?: number | null,
+  lon1?: number | null,
+  lat2?: number | null,
+  lon2?: number | null
 ): number {
-  return getDistance(
-    { latitude: lat1, longitude: lon1 },
-    { latitude: lat2, longitude: lon2 }
-  );
+  if (
+    lat1 === undefined || lat1 === null || isNaN(lat1) ||
+    lon1 === undefined || lon1 === null || isNaN(lon1) ||
+    lat2 === undefined || lat2 === null || isNaN(lat2) ||
+    lon2 === undefined || lon2 === null || isNaN(lon2)
+  ) {
+    return 999999;
+  }
+  try {
+    return getDistance(
+      { latitude: lat1, longitude: lon1 },
+      { latitude: lat2, longitude: lon2 }
+    );
+  } catch {
+    return 999999;
+  }
 }
 
 // Find closest supported pilot city node
@@ -221,8 +233,8 @@ export function useLiveLocation(selectedCityId: string) {
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
+        timeout: 15000,
+        maximumAge: 10000
       }
     );
 

@@ -23,21 +23,38 @@ export function generateUUID(): string {
   });
 }
 
+// Safe storage access helpers to prevent quota and private browsing crashes
+function safeGetItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSetItem(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    console.warn('Storage safeSetItem warning:', e);
+  }
+}
+
 class StorageService {
   private storeEpoch: string;
   private generation: string;
 
   constructor() {
-    this.storeEpoch = localStorage.getItem(STORAGE_KEYS.STORE_EPOCH) || generateUUID();
-    localStorage.setItem(STORAGE_KEYS.STORE_EPOCH, this.storeEpoch);
+    this.storeEpoch = safeGetItem(STORAGE_KEYS.STORE_EPOCH) || generateUUID();
+    safeSetItem(STORAGE_KEYS.STORE_EPOCH, this.storeEpoch);
 
-    this.generation = localStorage.getItem(STORAGE_KEYS.SYNC_GENERATION) || '1';
-    localStorage.setItem(STORAGE_KEYS.SYNC_GENERATION, this.generation);
+    this.generation = safeGetItem(STORAGE_KEYS.SYNC_GENERATION) || '1';
+    safeSetItem(STORAGE_KEYS.SYNC_GENERATION, this.generation);
 
     // Initialize or migrate offline packs
-    const rawPacks = localStorage.getItem(STORAGE_KEYS.OFFLINE_PACKS);
+    const rawPacks = safeGetItem(STORAGE_KEYS.OFFLINE_PACKS);
     if (!rawPacks) {
-      localStorage.setItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(MOCK_OFFLINE_PACKS));
+      safeSetItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(MOCK_OFFLINE_PACKS));
     } else {
       try {
         const stored: OfflinePack[] = JSON.parse(rawPacks);
@@ -59,10 +76,10 @@ class StorageService {
           }
         }
         if (modified) {
-          localStorage.setItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(stored));
+          safeSetItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(stored));
         }
       } catch {
-        localStorage.setItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(MOCK_OFFLINE_PACKS));
+        safeSetItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(MOCK_OFFLINE_PACKS));
       }
     }
   }
@@ -352,22 +369,22 @@ class StorageService {
     return this.getOrGenerateCustomPack(location);
   }
 
-  public getOrGenerateCustomPack(location: LiveLocationState): OfflinePack {
-    const rawName = location.cityName || 'Custom Regional Area';
-    const cleanName = rawName.split(',')[0].trim();
-    const slug = cleanName.toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 18);
+  public getOrGenerateCustomPack(location?: LiveLocationState): OfflinePack {
+    const rawName = location?.cityName || 'Custom Regional Area';
+    const cleanName = (rawName.split(',')[0] || 'Regional Area').trim();
+    const slug = cleanName.toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 18) || 'custom';
     const packId = `pack-custom-${slug}-v1`;
 
     const allPacks = this.getOfflinePacks();
     const existing = allPacks.find(p => p.id === packId || p.areaId === slug);
     if (existing) return existing;
 
-    const lat = location.coords.latitude || 20;
-    const lng = location.coords.longitude || 78;
+    const lat = location?.coords?.latitude || 20;
+    const lng = location?.coords?.longitude || 78;
     const sizeMB = 680 + Math.abs(Math.round((lat * 19 + lng * 23) % 360));
     const sizeBytes = sizeMB * 1024 * 1024;
     const sizeFormatted = sizeMB >= 1000 ? `${(sizeMB / 1024).toFixed(2)} GB` : `${sizeMB} MB`;
-    const country = location.countryCode ? `Country Code [${location.countryCode}]` : 'Global Territory';
+    const country = location?.countryCode ? `Country Code [${location.countryCode}]` : 'Global Territory';
 
     const dynamicPack: OfflinePack = {
       id: packId,
@@ -401,7 +418,7 @@ class StorageService {
     };
 
     allPacks.push(dynamicPack);
-    localStorage.setItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(allPacks));
+    safeSetItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(allPacks));
     return dynamicPack;
   }
 
@@ -424,7 +441,7 @@ class StorageService {
   // --- Voice Settings (Screen 3) ---
   public getVoiceSettings(): VoiceSettings {
     try {
-      const data = localStorage.getItem(STORAGE_KEYS.VOICE_SETTINGS);
+      const data = safeGetItem(STORAGE_KEYS.VOICE_SETTINGS);
       if (data) return JSON.parse(data);
     } catch {}
     return {
@@ -437,24 +454,24 @@ class StorageService {
   }
 
   public saveVoiceSettings(settings: VoiceSettings): void {
-    localStorage.setItem(STORAGE_KEYS.VOICE_SETTINGS, JSON.stringify(settings));
+    safeSetItem(STORAGE_KEYS.VOICE_SETTINGS, JSON.stringify(settings));
   }
 
   // --- City Selection ---
   public getActiveCityId(): string {
-    return localStorage.getItem(STORAGE_KEYS.ACTIVE_CITY) || 'kyoto';
+    return safeGetItem(STORAGE_KEYS.ACTIVE_CITY) || 'kyoto';
   }
 
   public setActiveCityId(cityId: string): void {
-    localStorage.setItem(STORAGE_KEYS.ACTIVE_CITY, cityId);
+    safeSetItem(STORAGE_KEYS.ACTIVE_CITY, cityId);
   }
 
   // --- Correction Reports ---
   public saveCorrectionReport(report: any): string {
-    const reports = JSON.parse(localStorage.getItem(STORAGE_KEYS.CORRECTION_REPORTS) || '[]');
+    const reports = JSON.parse(safeGetItem(STORAGE_KEYS.CORRECTION_REPORTS) || '[]');
     const reportId = `rep-${generateUUID().substring(0, 8)}`;
     reports.push({ ...report, reportId, receivedAt: new Date().toISOString(), status: 'RECEIVED_IN_TRIAGE' });
-    localStorage.setItem(STORAGE_KEYS.CORRECTION_REPORTS, JSON.stringify(reports));
+    safeSetItem(STORAGE_KEYS.CORRECTION_REPORTS, JSON.stringify(reports));
     return reportId;
   }
 }

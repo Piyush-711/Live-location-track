@@ -74,12 +74,16 @@ export const App: React.FC = () => {
     cityName: string;
     countryCode?: string;
   }) => {
-    const norm = custom.cityName.toLowerCase();
+    const rawName = (custom && custom.cityName) || 'Custom Location';
+    const norm = rawName.toLowerCase();
     const matched = CITIES.find(c => norm.includes(c.id) || norm.includes(c.name.toLowerCase().split(' ')[0]));
-    const resolvedCityId = matched ? matched.id : custom.cityName.split(',')[0].trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    const resolvedCityId = matched ? matched.id : (rawName.split(',')[0].trim().toLowerCase().replace(/[^a-z0-9]/g, '') || 'custom');
     setActiveCityId(resolvedCityId);
     storage.setActiveCityId(resolvedCityId);
-    setCustomLocation(custom);
+    setCustomLocation({
+      ...custom,
+      cityName: rawName
+    });
   };
 
   // Start route preview flow

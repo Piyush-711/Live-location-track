@@ -946,12 +946,22 @@ class MarketService {
           if (!res.ok) return;
           const data = await res.json();
 
-          for (const feat of data.features || []) {
-            const [fLon, fLat] = feat.geometry.coordinates;
+          for (const feat of (data && data.features) || []) {
+            if (!feat || !feat.geometry || !Array.isArray(feat.geometry.coordinates)) continue;
+            const coords = feat.geometry.coordinates;
+            const fLon = coords[0];
+            const fLat = coords[1];
+            if (typeof fLat !== 'number' || typeof fLon !== 'number' || isNaN(fLat) || isNaN(fLon)) continue;
+
             const key = `${fLat.toFixed(3)},${fLon.toFixed(3)}`;
             if (seen.has(key)) continue;
 
-            const dist = getDistance({ latitude: lat, longitude: lon }, { latitude: fLat, longitude: fLon });
+            let dist = 999999;
+            try {
+              dist = getDistance({ latitude: lat, longitude: lon }, { latitude: fLat, longitude: fLon });
+            } catch {
+              continue;
+            }
             // Must be within 40 km of the target location
             if (dist > 40000) continue;
 
@@ -985,17 +995,18 @@ class MarketService {
               specialtyLabel = 'Antiques & Souvenirs';
             }
 
-            const addr = [props.street, props.district, props.city || cityName, props.state, props.country].filter(Boolean).join(', ');
+            const cleanCityName = (cityName || 'Regional Area').split(',')[0].trim() || 'Regional Area';
+            const addr = [props.street, props.district, props.city || cleanCityName, props.state, props.country].filter(Boolean).join(', ');
 
             discovered.push({
               id: `osm-market-${props.osm_id || Math.random().toString(36).substring(7)}`,
               name: rawName,
-              city: props.city || cityName.split(',')[0],
+              city: props.city || cleanCityName,
               specialty,
               specialtyLabel,
-              famousFor: `Popular regional trading and retail hub in ${props.city || cityName.split(',')[0]} for local goods, retail and shopping.`,
+              famousFor: `Popular regional trading and retail hub in ${props.city || cleanCityName} for local goods, retail and shopping.`,
               whatToBuy: ['Local Commodities', 'Daily Essentials', 'Regional Specialties'],
-              address: addr || `Near ${cityName}`,
+              address: addr || `Near ${cleanCityName}`,
               location: { latitude: fLat, longitude: fLon },
               distanceMeters: dist,
               metroStation: props.city ? `Transit access via ${props.city} central line` : undefined,
