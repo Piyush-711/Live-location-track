@@ -23,7 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   return (
     <header className="sticky top-0 w-full z-40 pt-safe bg-white/85 backdrop-blur-xl border-b border-slate-200/80 shadow-sm">
-      <div className="h-16 px-4 md:px-8 max-w-6xl mx-auto flex items-center justify-between gap-3">
+      <div className="h-16 px-4 sm:px-6 lg:px-8 xl:px-10 w-full flex items-center justify-between gap-3">
         {/* Brand & Dynamic Location Indicator */}
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-blue-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">

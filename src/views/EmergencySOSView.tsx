@@ -55,7 +55,7 @@ export const EmergencySOSView: React.FC<EmergencySOSViewProps> = ({
   if (!dossier) return null;
 
   return (
-    <div className="flex-1 flex flex-col w-full max-w-5xl mx-auto px-4 md:px-8 pb-28 pt-2">
+    <div className="flex-1 flex flex-col w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 pt-2">
       {/* Toast Confirmation */}
       {copyFeedback && (
         <div className="mb-4 p-3 rounded-2xl bg-emerald-600 text-white text-xs font-bold text-center shadow-md flex items-center justify-center gap-2 animate-fadeIn">

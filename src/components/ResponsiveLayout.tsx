@@ -11,9 +11,9 @@ export const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({
   children
 }) => {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-start text-slate-900 antialiased">
-      {/* Main Container Shell */}
-      <div className="w-full max-w-6xl mx-auto flex-1 flex flex-col bg-white min-h-screen sm:border-x sm:border-slate-200/70 shadow-sm">
+    <div className="min-h-screen w-full bg-slate-50 flex flex-col justify-start text-slate-900 antialiased">
+      {/* Main Container Shell - Edge-to-edge full width across desktop and mobile */}
+      <div className="w-full flex-1 flex flex-col bg-white min-h-screen">
         {children}
       </div>
     </div>

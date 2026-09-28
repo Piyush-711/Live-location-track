@@ -223,7 +223,7 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
   };
 
   return (
-    <div className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-8 pb-28 pt-2">
+    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 pt-2">
       {/* Header Banner */}
       <div className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 mb-5">
         <div>

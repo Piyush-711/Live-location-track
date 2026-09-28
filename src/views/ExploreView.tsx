@@ -334,7 +334,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   };
 
   return (
-    <div className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-8 pb-28 pt-2">
+    <div className="flex-1 w-full px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 pt-2">
       {/* Human Editorial Destination Hero */}
       <section className="pt-2 pb-3">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-950 p-6 sm:p-7 text-white shadow-md">
@@ -446,7 +446,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
       {/* Main Content Area: Responsive Split View on Tablet/Desktop (md+), Stacked on Mobile */}
       <div className="pt-3 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         {/* Left Column (Stream Cards) */}
-        <div className={`flex flex-col gap-3.5 md:col-span-7 ${mobileViewMode === 'map' ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`flex flex-col gap-3.5 md:col-span-7 lg:col-span-7 xl:col-span-7 ${mobileViewMode === 'map' ? 'hidden md:flex' : 'flex'}`}>
           <div className="flex items-center justify-between pb-1">
             <div className="flex items-baseline gap-2">
               <span className="text-lg font-bold text-slate-900">Nearby Places</span>
@@ -669,7 +669,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
         </div>
 
         {/* Right Column (Interactive Live Leaflet Map - Visible permanently on Tablet/Desktop, toggled on mobile) */}
-        <div className={`md:col-span-5 md:sticky md:top-20 flex-col gap-3 ${mobileViewMode === 'map' ? 'flex' : 'hidden md:flex'}`}>
+        <div className={`md:col-span-5 lg:col-span-5 xl:col-span-5 md:sticky md:top-20 flex-col gap-3 ${mobileViewMode === 'map' ? 'flex' : 'hidden md:flex'}`}>
           <div className="rounded-2xl overflow-hidden border border-slate-200/90 shadow-sm p-3 bg-white flex flex-col gap-2.5">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
@@ -686,7 +686,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
               </button>
             </div>
 
-            <div className="relative w-full h-80 sm:h-96 md:h-[540px] rounded-xl overflow-hidden border border-slate-100">
+            <div className="relative w-full h-80 sm:h-96 md:h-[calc(100vh-140px)] md:min-h-[560px] rounded-xl overflow-hidden border border-slate-100">
               <LiveLeafletMap
                 userLocation={location.coords}
                 places={dynamicPlaces}
