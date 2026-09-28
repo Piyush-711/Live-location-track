@@ -95,8 +95,8 @@ class ApiService {
     radiusMeters: number = 12000,
     coords?: LocationCoordinates
   ): Promise<{ items: Place[]; datasetVersion: string; coverageArea: string }> {
-    // 1. If live coordinates are provided, query live OpenStreetMap Overpass/Nominatim nodes
-    if (coords && coords.latitude && coords.longitude) {
+    // 1. If live coordinates are provided, query live OpenStreetMap Overpass/Photon nodes
+    if (coords && typeof coords.latitude === 'number' && typeof coords.longitude === 'number') {
       try {
         const osmPlaces = await osmService.fetchNearbyPOIs(
           coords.latitude,
@@ -107,34 +107,8 @@ class ApiService {
         );
 
         if (osmPlaces && osmPlaces.length > 0) {
-          let filtered = osmPlaces;
-          if (searchQuery && searchQuery.trim()) {
-            const q = searchQuery.toLowerCase().trim();
-            filtered = filtered.filter(p => 
-              p.name.toLowerCase().includes(q) ||
-              (p.localizedName && p.localizedName.toLowerCase().includes(q)) ||
-              p.address.toLowerCase().includes(q) ||
-              p.category.toLowerCase().includes(q) ||
-              (p.tags && p.tags.some(t => t.toLowerCase().includes(q))) ||
-              ((q.includes('aiims') || q.includes('mangalagiri')) && (p.id.includes('aiims') || p.name.toLowerCase().includes('aiims') || p.address.toLowerCase().includes('aiims'))) ||
-              ((q.includes('private') || q.includes('manipal') || q.includes('specialty')) && (p.id.includes('manipal') || p.name.toLowerCase().includes('manipal') || (p.tags && p.tags.some(t => t.toLowerCase().includes('private'))))) ||
-              ((q.includes('college') || q.includes('university') || q.includes('campus') || q.includes('klef') || q.includes('kl')) && ((p.tags && p.tags.some(t => t.toLowerCase().includes('college') || t.toLowerCase().includes('campus') || t.toLowerCase().includes('university'))) || p.id.includes('klef') || p.name.toLowerCase().includes('college') || p.name.toLowerCase().includes('university'))) ||
-              ((q.includes('raj mahal') || q.includes('palace') || q.includes('mahal') || q.includes('fort') || q.includes('historic') || q.includes('monument') || q.includes('caves') || q.includes('heritage')) && (p.category === 'historic' || (p.tags && p.tags.some(t => t.toLowerCase().includes('historic') || t.toLowerCase().includes('palace') || t.toLowerCase().includes('heritage'))))) ||
-              ((q.includes('museum') || q.includes('gallery') || q.includes('art') || q.includes('exhibit')) && (p.category === 'museum' || (p.tags && p.tags.some(t => t.toLowerCase().includes('museum'))))) ||
-              ((q.includes('beach') || q.includes('sea') || q.includes('shore') || q.includes('coast')) && (p.category === 'beach' || (p.tags && p.tags.some(t => t.toLowerCase().includes('beach'))))) ||
-              ((q.includes('tourist') || q.includes('attraction') || q.includes('sight') || q.includes('viewpoint') || q.includes('island')) && (p.category === 'attraction' || (p.tags && p.tags.some(t => t.toLowerCase().includes('attraction'))))) ||
-              ((q.includes('hosp') || q.includes('clinic') || q.includes('doctor') || q.includes('er')) && p.category === 'hospital') ||
-              ((q.includes('pharm') || q.includes('chem') || q.includes('med')) && p.category === 'pharmacy') ||
-              (q.includes('police') && p.category === 'police') ||
-              ((q.includes('atm') || q.includes('cash') || q.includes('bank') || q.includes('sbi')) && p.category === 'atm') ||
-              ((q.includes('transit') || q.includes('bus') || q.includes('train')) && p.category === 'transit_stop') ||
-              ((q.includes('supermarket') || q.includes('grocer') || q.includes('market')) && p.category === 'supermarket') ||
-              ((q.includes('cafe') || q.includes('coffee') || q.includes('tea')) && p.category === 'cafe')
-            );
-          }
-
           return {
-            items: filtered,
+            items: osmPlaces,
             datasetVersion: `osm-live-${coords.latitude.toFixed(2)}-${coords.longitude.toFixed(2)}`,
             coverageArea: areaId || 'osm-live'
           };
@@ -145,8 +119,8 @@ class ApiService {
     }
 
     // 2. Safe fetch against Spring Boot backend / certified local vault
-    const lat = coords?.latitude || 35.0037;
-    const lon = coords?.longitude || 135.7772;
+    const lat = coords?.latitude || 28.6139;
+    const lon = coords?.longitude || 77.2090;
 
     return this.safeFetch(
       '/places/nearby',
@@ -161,7 +135,18 @@ class ApiService {
         })
       },
       () => {
-        let places = MOCK_PLACES[areaId] || MOCK_PLACES['kyoto'];
+        // Find closest city in registry
+        let closestCityId = areaId;
+        if (!MOCK_PLACES[closestCityId]) {
+          const matched = CITIES.find(c => c.id === areaId.toLowerCase());
+          if (matched && MOCK_PLACES[matched.id]) {
+            closestCityId = matched.id;
+          } else {
+            closestCityId = 'delhi';
+          }
+        }
+
+        let places = [...(MOCK_PLACES[closestCityId] || MOCK_PLACES['delhi'] || [])];
 
         if (category && category !== 'all') {
           places = places.filter(p => p.category === category);
@@ -177,14 +162,12 @@ class ApiService {
           );
         }
 
-        places = places.filter(p => p.distanceMeters <= radiusMeters);
-
         // Section 10 Requirement: Deterministic ordering by distance then place ID
         places.sort((a, b) => {
           if (a.distanceMeters !== b.distanceMeters) {
             return a.distanceMeters - b.distanceMeters;
           }
-          return a.id.localeCompare(b.id);
+          return (a.id || '').localeCompare(b.id || '');
         });
 
         return {

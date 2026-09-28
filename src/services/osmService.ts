@@ -1,6 +1,6 @@
 import { Place, Category, LocationCoordinates, RouteResponse, RouteStep } from '../types';
 import { getDistance } from 'geolib';
-import { CITIES } from '../data/mockData';
+import { CITIES, MOCK_PLACES } from '../data/mockData';
 import { getDynamicPlaceImage } from '../utils/placeVisuals';
 
 export interface GeocodingResult {
@@ -45,102 +45,6 @@ interface NominatimSearchResult {
   address?: Record<string, string>;
 }
 
-const CATEGORY_SEARCH_TERMS: Record<Category | 'all', Array<{ term: string; cat: Category }>> = {
-  all: [
-    { term: 'historical place', cat: 'historic' },
-    { term: 'palace', cat: 'historic' },
-    { term: 'museum', cat: 'museum' },
-    { term: 'tourist attraction', cat: 'attraction' },
-    { term: 'beach', cat: 'beach' },
-    { term: 'hospital', cat: 'hospital' },
-    { term: 'pharmacy', cat: 'pharmacy' },
-    { term: 'police station', cat: 'police' },
-    { term: 'atm', cat: 'atm' },
-    { term: 'bus stop', cat: 'transit_stop' },
-    { term: 'supermarket', cat: 'supermarket' },
-    { term: 'cafe', cat: 'cafe' }
-  ],
-  historic: [
-    { term: 'historical place', cat: 'historic' },
-    { term: 'palace', cat: 'historic' },
-    { term: 'raj mahal', cat: 'historic' },
-    { term: 'fort', cat: 'historic' },
-    { term: 'monument', cat: 'historic' },
-    { term: 'heritage site', cat: 'historic' },
-    { term: 'undavalli caves', cat: 'historic' }
-  ],
-  museum: [
-    { term: 'museum', cat: 'museum' },
-    { term: 'art gallery', cat: 'museum' },
-    { term: 'bapu museum', cat: 'museum' },
-    { term: 'archaeological museum', cat: 'museum' }
-  ],
-  beach: [
-    { term: 'beach', cat: 'beach' },
-    { term: 'sea beach', cat: 'beach' },
-    { term: 'coastal beach', cat: 'beach' },
-    { term: 'waterfront', cat: 'beach' }
-  ],
-  attraction: [
-    { term: 'tourist attraction', cat: 'attraction' },
-    { term: 'sightseeing', cat: 'attraction' },
-    { term: 'undavalli caves', cat: 'attraction' },
-    { term: 'prakasam barrage', cat: 'attraction' },
-    { term: 'bhavani island', cat: 'attraction' },
-    { term: 'viewpoint', cat: 'attraction' }
-  ],
-  hospital: [
-    { term: 'hospital', cat: 'hospital' },
-    { term: 'clinic', cat: 'hospital' },
-    { term: 'health centre', cat: 'hospital' },
-    { term: 'first aid centre', cat: 'hospital' }
-  ],
-  pharmacy: [
-    { term: 'pharmacy', cat: 'pharmacy' },
-    { term: 'medical store', cat: 'pharmacy' },
-    { term: 'chemist', cat: 'pharmacy' }
-  ],
-  police: [
-    { term: 'police station', cat: 'police' },
-    { term: 'police outpost', cat: 'police' },
-    { term: 'police', cat: 'police' }
-  ],
-  atm: [
-    { term: 'atm', cat: 'atm' },
-    { term: 'bank cash', cat: 'atm' },
-    { term: 'state bank atm', cat: 'atm' }
-  ],
-  transit_stop: [
-    { term: 'bus stop', cat: 'transit_stop' },
-    { term: 'bus station', cat: 'transit_stop' },
-    { term: 'railway station', cat: 'transit_stop' }
-  ],
-  supermarket: [
-    { term: 'supermarket', cat: 'supermarket' },
-    { term: 'grocery store', cat: 'supermarket' },
-    { term: 'general store', cat: 'supermarket' }
-  ],
-  cafe: [
-    { term: 'cafe', cat: 'cafe' },
-    { term: 'bakery', cat: 'cafe' },
-    { term: 'coffee', cat: 'cafe' }
-  ],
-  restaurant: [
-    { term: 'restaurant', cat: 'restaurant' },
-    { term: 'food', cat: 'restaurant' },
-    { term: 'diner', cat: 'restaurant' }
-  ],
-  hotel: [
-    { term: 'hotel', cat: 'hotel' },
-    { term: 'guest house', cat: 'hotel' },
-    { term: 'lodge', cat: 'hotel' }
-  ],
-  fuel: [
-    { term: 'petrol pump', cat: 'fuel' },
-    { term: 'gas station', cat: 'fuel' },
-    { term: 'fuel', cat: 'fuel' }
-  ]
-};
 
 
 
@@ -567,156 +471,65 @@ class OsmService {
   }
 
   // 2. Query Real-World Authentic POIs using Nominatim Proximity & Komoot Photon + Geolib
+  // Helper to infer Category from Photon OSM properties
+  private inferCategory(props: Record<string, any>, defaultCat: Category | 'all'): Category {
+    const osmKey = String(props.osm_key || '').toLowerCase();
+    const osmVal = String(props.osm_value || '').toLowerCase();
+    const name = String(props.name || '').toLowerCase();
+
+    if (osmKey === 'amenity' && (osmVal === 'hospital' || osmVal === 'clinic' || osmVal === 'doctors' || osmVal === 'health_post')) return 'hospital';
+    if (osmKey === 'amenity' && (osmVal === 'pharmacy' || osmVal === 'chemist')) return 'pharmacy';
+    if (osmKey === 'amenity' && (osmVal === 'police' || osmVal === 'police_station')) return 'police';
+    if (osmKey === 'amenity' && (osmVal === 'atm' || osmVal === 'bank')) return 'atm';
+    if (osmKey === 'amenity' && (osmVal === 'cafe' || osmVal === 'restaurant' || osmVal === 'fast_food' || osmVal === 'food_court' || osmVal === 'bar' || osmVal === 'pub' || osmVal === 'bakery')) return 'cafe';
+    if (osmKey === 'shop' || (osmKey === 'amenity' && osmVal === 'marketplace')) return 'supermarket';
+    if (osmKey === 'historic' || osmVal === 'castle' || osmVal === 'monument' || osmVal === 'memorial' || osmVal === 'fort' || osmVal === 'archaeological_site') return 'historic';
+    if (osmKey === 'tourism' && (osmVal === 'museum' || osmVal === 'gallery' || osmVal === 'arts_centre')) return 'museum';
+    if (osmKey === 'natural' && (osmVal === 'beach' || osmVal === 'coastline')) return 'beach';
+    if (osmKey === 'tourism' || osmVal === 'attraction' || osmVal === 'viewpoint' || osmVal === 'theme_park') return 'attraction';
+    if (osmKey === 'railway' || (osmKey === 'highway' && (osmVal === 'bus_stop' || osmVal === 'platform')) || (osmKey === 'amenity' && osmVal === 'bus_station')) return 'transit_stop';
+    if (osmKey === 'tourism' && (osmVal === 'hotel' || osmVal === 'guest_house' || osmVal === 'hostel' || osmVal === 'motel')) return 'hotel';
+    if (osmKey === 'amenity' && osmVal === 'fuel') return 'fuel';
+
+    if (name.includes('hospital') || name.includes('clinic') || name.includes('casualty') || name.includes('dispensary') || name.includes('medanta') || name.includes('apollo') || name.includes('fortis') || name.includes('max health') || name.includes('aiims') || name.includes('manipal')) return 'hospital';
+    if (name.includes('pharmacy') || name.includes('chemist') || name.includes('medicos') || name.includes('medical store')) return 'pharmacy';
+    if (name.includes('police') || name.includes('thana') || name.includes('chowki')) return 'police';
+    if (name.includes('atm') || name.includes('bank') || name.includes('sbi') || name.includes('hdfc') || name.includes('icici')) return 'atm';
+    if (name.includes('cafe') || name.includes('coffee') || name.includes('restaurant') || name.includes('sweets') || name.includes('bhojanalaya') || name.includes('dhaba') || name.includes('haldiram') || name.includes('bikanervala') || name.includes('starbucks')) return 'cafe';
+    if (name.includes('market') || name.includes('bazaar') || name.includes('store') || name.includes('supermarket') || name.includes('mart') || name.includes('grocer')) return 'supermarket';
+    if (name.includes('fort') || name.includes('palace') || name.includes('mahal') || name.includes('monument') || name.includes('tomb') || name.includes('qila') || name.includes('heritage')) return 'historic';
+    if (name.includes('museum') || name.includes('gallery')) return 'museum';
+    if (name.includes('beach')) return 'beach';
+    if (name.includes('metro') || name.includes('station') || name.includes('bus stand') || name.includes('isbt')) return 'transit_stop';
+
+    return defaultCat !== 'all' ? defaultCat : 'attraction';
+  }
+
+  // 2. Query Real-World Authentic POIs using High-Speed Komoot Photon & Bounded Nominatim
   public async fetchNearbyPOIs(
     lat: number,
     lon: number,
     category: Category | 'all' = 'all',
-    radiusMeters: number = 12000,
+    radiusMeters: number = 15000,
     searchQuery?: string
   ): Promise<Place[]> {
-    // Check in-memory POI cache (3-minute TTL per rounded coordinate ~110m)
-    const cacheKey = `${lat.toFixed(3)},${lon.toFixed(3)}_${category}_${searchQuery || ''}`;
+    const cleanQuery = (searchQuery || '').trim();
+    // Cache key per rounded coordinate (~110m), category, query
+    const cacheKey = `${lat.toFixed(3)},${lon.toFixed(3)}_${category}_${cleanQuery.toLowerCase()}`;
     const cached = this.poiCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < 180000 && cached.places.length > 0) {
+    if (cached && Date.now() - cached.timestamp < 120000 && cached.places.length > 0) {
       return cached.places;
     }
 
     const places: Place[] = [];
     const seenCoordinates = new Set<string>();
+    const effectiveRadius = Math.max(radiusMeters, 20000);
 
-    // Step 0: Check landmark registry for this region (AIIMS, Manipal Hospital, College ATMs)
-    for (const lm of REGIONAL_LANDMARKS) {
-      const dist = getDistance({ latitude: lat, longitude: lon }, { latitude: lm.latitude, longitude: lm.longitude });
-      if (dist <= Math.max(radiusMeters, 15000)) {
-        if (category === 'all' || lm.category === category) {
-          let matchesQuery = true;
-          if (searchQuery && searchQuery.trim()) {
-            const q = searchQuery.toLowerCase().trim();
-            matchesQuery = lm.name.toLowerCase().includes(q) ||
-              (lm.localizedName && lm.localizedName.toLowerCase().includes(q)) ||
-              lm.address.toLowerCase().includes(q) ||
-              lm.tags.some(t => t.toLowerCase().includes(q)) ||
-              ((q.includes('aiims') || q.includes('mangalagiri')) && lm.id.includes('aiims')) ||
-              ((q.includes('private') || q.includes('specialty') || q.includes('manipal')) && lm.id.includes('manipal')) ||
-              ((q.includes('college') || q.includes('university') || q.includes('campus') || q.includes('klef') || q.includes('kl')) && (lm.tags.some(t => t.toLowerCase().includes('college') || t.toLowerCase().includes('campus')) || lm.id.includes('klef'))) ||
-              ((q.includes('raj mahal') || q.includes('palace') || q.includes('mahal') || q.includes('fort') || q.includes('historic') || q.includes('monument') || q.includes('caves') || q.includes('heritage')) && (lm.category === 'historic' || lm.tags.some(t => t.toLowerCase().includes('palace') || t.toLowerCase().includes('heritage')))) ||
-              ((q.includes('museum') || q.includes('gallery') || q.includes('art') || q.includes('exhibit')) && lm.category === 'museum') ||
-              ((q.includes('beach') || q.includes('sea') || q.includes('shore') || q.includes('coast')) && lm.category === 'beach') ||
-              ((q.includes('tourist') || q.includes('attraction') || q.includes('sight') || q.includes('viewpoint') || q.includes('island')) && lm.category === 'attraction') ||
-              (q.includes('hospital') && lm.category === 'hospital') ||
-              (q.includes('atm') && lm.category === 'atm');
-          }
-
-          if (matchesQuery) {
-            seenCoordinates.add(`${lm.latitude.toFixed(3)},${lm.longitude.toFixed(3)}`);
-            places.push({
-              id: lm.id,
-              name: lm.name,
-              localizedName: lm.localizedName,
-              category: lm.category,
-              distanceMeters: dist,
-              location: { latitude: lm.latitude, longitude: lm.longitude },
-              countryCode: 'IN',
-              city: lm.city,
-              address: lm.address,
-              hours: {
-                status: 'open',
-                raw: lm.hours,
-                formatted: lm.hours
-              },
-              source: 'CURATED_REGISTRY',
-              sourceUpdatedAt: new Date().toISOString(),
-              freshness: 'fresh',
-              emergencyCapable: lm.emergencyCapable,
-              phone: lm.phone,
-              tags: lm.tags,
-              triageInfo: lm.triageInfo,
-              imageUrl: lm.imageUrl || getDynamicPlaceImage(lm)
-            });
-          }
-        }
-      }
-    }
-
-    // Step A: Build search queries with semantic expansion
-    let queries = CATEGORY_SEARCH_TERMS[category] || [{ term: category, cat: 'historic' as Category }];
-
-    if (searchQuery && searchQuery.trim().length > 1) {
-      const q = searchQuery.toLowerCase().trim();
-      const customQueries: Array<{ term: string; cat: Category }> = [];
-
-      if (q.includes('raj mahal') || q.includes('palace') || q.includes('mahal') || q.includes('fort') || q.includes('historic') || q.includes('monument') || q.includes('caves') || q.includes('heritage')) {
-        customQueries.push(
-          { term: 'palace', cat: 'historic' },
-          { term: 'raj mahal', cat: 'historic' },
-          { term: 'fort', cat: 'historic' },
-          { term: 'Undavalli Caves', cat: 'historic' },
-          { term: 'historical place', cat: 'historic' }
-        );
-      }
-      if (q.includes('museum') || q.includes('gallery') || q.includes('art') || q.includes('exhibit')) {
-        customQueries.push(
-          { term: 'Bapu Museum', cat: 'museum' },
-          { term: 'museum', cat: 'museum' },
-          { term: 'art gallery', cat: 'museum' }
-        );
-      }
-      if (q.includes('beach') || q.includes('sea') || q.includes('shore') || q.includes('coast')) {
-        customQueries.push(
-          { term: 'Suryalanka Beach', cat: 'beach' },
-          { term: 'beach', cat: 'beach' }
-        );
-      }
-      if (q.includes('tourist') || q.includes('attraction') || q.includes('sight') || q.includes('viewpoint') || q.includes('island')) {
-        customQueries.push(
-          { term: 'tourist attraction', cat: 'attraction' },
-          { term: 'Prakasam Barrage', cat: 'attraction' },
-          { term: 'Bhavani Island', cat: 'attraction' },
-          { term: 'Undavalli Caves', cat: 'attraction' }
-        );
-      }
-      if (q.includes('aiims') || q.includes('mangalagiri')) {
-        customQueries.push(
-          { term: 'All India Institute of Medical Sciences Mangalagiri', cat: 'hospital' },
-          { term: 'AIIMS Mangalagiri', cat: 'hospital' }
-        );
-      }
-      if (q.includes('private') || q.includes('manipal') || q.includes('specialty')) {
-        customQueries.push(
-          { term: 'Manipal Super Specialty Hospital Tadepalli', cat: 'hospital' },
-          { term: 'Manipal Hospital', cat: 'hospital' },
-          { term: 'private hospital', cat: 'hospital' }
-        );
-      }
-      if (q.includes('college') || q.includes('university') || q.includes('klef') || q.includes('campus')) {
-        customQueries.push(
-          { term: 'State Bank of India ATM KLEF', cat: 'atm' },
-          { term: 'KL University', cat: 'transit_stop' },
-          { term: 'KLEF Vaddeswaram', cat: 'transit_stop' }
-        );
-      }
-      if (q.includes('atm') || q.includes('sbi') || q.includes('cash')) {
-        customQueries.push(
-          { term: 'State Bank ATM', cat: 'atm' },
-          { term: 'Axis Bank ATM', cat: 'atm' }
-        );
-      }
-      if (q.includes('hospital') || q.includes('clinic')) {
-        customQueries.push(
-          { term: 'AIIMS Mangalagiri', cat: 'hospital' },
-          { term: 'Manipal Hospital', cat: 'hospital' }
-        );
-      }
-
-      customQueries.push({ term: searchQuery.trim(), cat: category !== 'all' ? category : 'historic' });
-      queries = customQueries;
-    }
-
-    // Step B: Check optional user-configured Google Places API Key
+    // Optional Google Places API Key support if configured by user
     const googleApiKey = typeof window !== 'undefined' ? localStorage.getItem('google_places_api_key') : null;
     if (googleApiKey && googleApiKey.trim().length > 10) {
       try {
-        const googlePlaces = await this.fetchFromGooglePlaces(lat, lon, category, radiusMeters, googleApiKey.trim());
+        const googlePlaces = await this.fetchFromGooglePlaces(lat, lon, category, effectiveRadius, googleApiKey.trim());
         if (googlePlaces.length > 0) {
           places.push(...googlePlaces);
           googlePlaces.forEach(p => seenCoordinates.add(`${p.location.latitude.toFixed(3)},${p.location.longitude.toFixed(3)}`));
@@ -726,117 +539,87 @@ class OsmService {
       }
     }
 
-    // Step C: Query Nominatim Structured Proximity Search
-    await Promise.allSettled(
-      queries.map(async ({ term, cat }) => {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 4000);
+    // 1. Primary Engine: High-Speed Komoot Photon Geocoding & POI Search (150-300ms, CORS supported)
+    try {
+      const photonUrls: string[] = [];
 
-          const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(term)}+near+${lat},${lon}&format=json&addressdetails=1&limit=6`;
-          const res = await fetch(url, {
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'LocalTravelApp/8.0 (TactileCerulean)'
-            },
-            signal: controller.signal
-          });
-          clearTimeout(timeout);
+      if (cleanQuery.length >= 2) {
+        // Freeform Search query: search user term directly biased to their GPS coordinates
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(cleanQuery)}&lat=${lat}&lon=${lon}&limit=25`
+        );
+      } else if (category === 'hospital') {
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=hospital&lat=${lat}&lon=${lon}&osm_tag=amenity:hospital&limit=15`,
+          `https://photon.komoot.io/api/?q=clinic&lat=${lat}&lon=${lon}&osm_tag=amenity:clinic&limit=10`
+        );
+      } else if (category === 'pharmacy') {
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=pharmacy&lat=${lat}&lon=${lon}&osm_tag=amenity:pharmacy&limit=15`
+        );
+      } else if (category === 'police') {
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=police&lat=${lat}&lon=${lon}&osm_tag=amenity:police&limit=10`
+        );
+      } else if (category === 'atm') {
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=atm&lat=${lat}&lon=${lon}&osm_tag=amenity:atm&limit=15`
+        );
+      } else if (category === 'cafe') {
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=cafe&lat=${lat}&lon=${lon}&osm_tag=amenity:cafe&limit=12`,
+          `https://photon.komoot.io/api/?q=restaurant&lat=${lat}&lon=${lon}&osm_tag=amenity:restaurant&limit=10`
+        );
+      } else if (category === 'supermarket') {
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=supermarket&lat=${lat}&lon=${lon}&osm_tag=shop:supermarket&limit=15`
+        );
+      } else if (category === 'historic') {
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=monument&lat=${lat}&lon=${lon}&osm_tag=historic:monument&limit=12`,
+          `https://photon.komoot.io/api/?q=fort&lat=${lat}&lon=${lon}&limit=10`
+        );
+      } else if (category === 'museum') {
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=museum&lat=${lat}&lon=${lon}&osm_tag=tourism:museum&limit=15`
+        );
+      } else if (category === 'beach') {
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=beach&lat=${lat}&lon=${lon}&osm_tag=natural:beach&limit=15`
+        );
+      } else if (category === 'attraction') {
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=attraction&lat=${lat}&lon=${lon}&osm_tag=tourism:attraction&limit=15`,
+          `https://photon.komoot.io/api/?q=viewpoint&lat=${lat}&lon=${lon}&limit=8`
+        );
+      } else if (category === 'transit_stop') {
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=station&lat=${lat}&lon=${lon}&osm_tag=railway:station&limit=12`,
+          `https://photon.komoot.io/api/?q=bus&lat=${lat}&lon=${lon}&osm_tag=highway:bus_stop&limit=10`
+        );
+      } else {
+        // 'all' category: Query a balanced variety of real POIs near user
+        photonUrls.push(
+          `https://photon.komoot.io/api/?q=hospital&lat=${lat}&lon=${lon}&osm_tag=amenity:hospital&limit=8`,
+          `https://photon.komoot.io/api/?q=cafe&lat=${lat}&lon=${lon}&osm_tag=amenity:cafe&limit=8`,
+          `https://photon.komoot.io/api/?q=attraction&lat=${lat}&lon=${lon}&osm_tag=tourism:attraction&limit=8`,
+          `https://photon.komoot.io/api/?q=atm&lat=${lat}&lon=${lon}&osm_tag=amenity:atm&limit=6`
+        );
+      }
 
-          if (!res.ok) return;
-          const items: NominatimSearchResult[] = await res.json();
-
-
-          for (const it of items || []) {
-            const itemLat = parseFloat(it.lat);
-            const itemLon = parseFloat(it.lon);
-            if (isNaN(itemLat) || isNaN(itemLon)) continue;
-
-            // Deduplicate by 50m proximity cluster
-            const coordKey = `${itemLat.toFixed(3)},${itemLon.toFixed(3)}`;
-            if (seenCoordinates.has(coordKey)) continue;
-
-            const dist = getDistance(
-              { latitude: lat, longitude: lon },
-              { latitude: itemLat, longitude: itemLon }
-            );
-
-            // Discard items ridiculously far unless emergency hospital/police
-            const maxDist = (cat === 'hospital' || cat === 'police') ? Math.max(radiusMeters * 2.5, 12000) : Math.max(radiusMeters * 1.5, 6000);
-            if (dist > maxDist) continue;
-
-            seenCoordinates.add(coordKey);
-
-            const addr = it.address || {};
-            let rawName = it.name || it.display_name.split(',')[0].trim();
-            if (rawName.length <= 3 || rawName.toLowerCase() === 'road' || rawName.toLowerCase() === 'atm') {
-              const locality = addr.suburb || addr.neighbourhood || addr.village || addr.city || '';
-              rawName = `${rawName} (${locality || term})`.trim();
-            }
-
-            const street = [
-              addr.road || addr.street,
-              addr.suburb || addr.neighbourhood,
-              addr.village || addr.city || addr.town
-            ].filter(Boolean).join(', ') || it.display_name;
-
-            const place: Place = {
-              id: `nom-${it.place_id || it.osm_id || Math.random().toString(36).substring(7)}`,
-              name: rawName,
-              localizedName: addr['name:te'] || addr['name:hi'] || addr['name:ja'] || addr.village || undefined,
-              category: cat,
-              distanceMeters: dist,
-              location: { latitude: itemLat, longitude: itemLon },
-              countryCode: (addr.country_code || 'IN').toUpperCase(),
-              city: addr.city || addr.town || addr.village || addr.county || 'Local Area',
-              address: street,
-              hours: {
-                status: 'open',
-                raw: cat === 'hospital' || cat === 'police' ? 'Open 24/7' : 'Standard hours',
-                formatted: cat === 'hospital' || cat === 'police' ? 'Emergency 24/7' : 'Hours on site'
-              },
-              source: 'OSM',
-              sourceUpdatedAt: new Date().toISOString(),
-              freshness: 'fresh',
-              emergencyCapable: cat === 'hospital' || cat === 'police',
-              phone: cat === 'hospital' ? '108 / Local ER' : cat === 'police' ? '100 / Emergency' : undefined,
-              tags: this.generateTags(cat, rawName),
-              triageInfo: cat === 'hospital' ? 'Verified Medical Service / ER' : undefined,
-              imageUrl: getDynamicPlaceImage({ name: rawName, category: cat, tags: this.generateTags(cat, rawName) })
-            };
-
-            places.push(place);
-          }
-        } catch {
-          // Gracefully continue to next query
-        }
-      })
-    );
-
-    // Step D: Query Komoot Photon for missing categories OR for custom search queries
-    const photonTargets = (searchQuery && searchQuery.trim().length > 1)
-      ? queries
-      : queries.filter(q => !places.some(p => p.category === q.cat));
-
-    if (photonTargets.length > 0) {
       await Promise.allSettled(
-        photonTargets.map(async ({ term, cat }) => {
+        photonUrls.map(async (url) => {
           try {
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 3500);
-
-            const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(term)}&lat=${lat}&lon=${lon}&limit=5`;
-            const pRes = await fetch(photonUrl, { signal: controller.signal });
+            const timeout = setTimeout(() => controller.abort(), 2800);
+            const res = await fetch(url, { signal: controller.signal });
             clearTimeout(timeout);
+            if (!res.ok) return;
+            const data = await res.json();
 
-            if (!pRes.ok) return;
-            const pData = await pRes.json();
-
-            for (const feat of pData.features || []) {
+            for (const feat of data.features || []) {
               if (!feat || !feat.geometry || !Array.isArray(feat.geometry.coordinates)) continue;
-              const coords = feat.geometry.coordinates;
-              const fLon = coords[0];
-              const fLat = coords[1];
+              const [fLon, fLat] = feat.geometry.coordinates;
               if (typeof fLat !== 'number' || typeof fLon !== 'number' || isNaN(fLat) || isNaN(fLon)) continue;
 
               const coordKey = `${fLat.toFixed(3)},${fLon.toFixed(3)}`;
@@ -844,67 +627,275 @@ class OsmService {
 
               let dist = 999999;
               try {
-                dist = getDistance(
-                  { latitude: lat, longitude: lon },
-                  { latitude: fLat, longitude: fLon }
-                );
+                dist = getDistance({ latitude: lat, longitude: lon }, { latitude: fLat, longitude: fLon });
               } catch {
                 continue;
               }
 
-              const maxDist = (cat === 'hospital' || cat === 'police') ? Math.max(radiusMeters * 2.5, 15000) : Math.max(radiusMeters * 1.5, 10000);
-              if (dist > maxDist) continue;
+              // Keep within 45km
+              if (dist > 45000) continue;
 
+              const props = feat.properties || {};
+              let rawName = props.name || props.street;
+              if (!rawName || rawName.trim().length < 2) continue;
+              rawName = rawName.trim();
+
+              const inferredCat = this.inferCategory(props, category);
+
+              // Enrich generic names like "hospital" or "atm"
+              if (rawName.toLowerCase() === 'hospital' || rawName.toLowerCase() === 'clinic') {
+                rawName = props.locality ? `${props.locality} Hospital` : (props.street ? `${props.street} Hospital` : `${props.city || 'Local'} Hospital`);
+              } else if (rawName.toLowerCase() === 'atm') {
+                rawName = props.locality ? `${props.locality} ATM` : (props.street ? `${props.street} ATM` : 'Bank Cash ATM');
+              } else if (rawName.toLowerCase() === 'pharmacy' || rawName.toLowerCase() === 'chemist') {
+                rawName = props.locality ? `${props.locality} Chemist` : 'Local Medical Store';
+              }
 
               seenCoordinates.add(coordKey);
-              const props = feat.properties || {};
-              const name = props.name || props.street || `${props.city || 'Regional'} ${term}`;
-              const addr = [props.street, props.district, props.city, props.state, props.country].filter(Boolean).join(', ');
+              const addr = [props.street, props.locality || props.district, props.city, props.state, props.country].filter(Boolean).join(', ');
 
               places.push({
-                id: `photon-${props.osm_type || 'p'}-${props.osm_id || Math.random().toString(36).substring(7)}`,
-                name,
-                category: cat,
+                id: `osm-${props.osm_type || 'p'}-${props.osm_id || Math.random().toString(36).substring(7)}`,
+                name: rawName,
+                category: inferredCat,
                 distanceMeters: dist,
                 location: { latitude: fLat, longitude: fLon },
                 countryCode: (props.countrycode || 'IN').toUpperCase(),
-                city: props.city || props.district || 'Regional Area',
-                address: addr || 'Nearby Location',
+                city: props.city || props.district || 'Local Area',
+                address: addr || 'Near User Location',
                 hours: {
                   status: 'open',
-                  raw: cat === 'hospital' ? 'Emergency 24/7' : 'Standard hours',
-                  formatted: cat === 'hospital' ? 'Emergency 24/7' : 'Open'
+                  raw: inferredCat === 'hospital' ? 'Emergency 24/7' : 'Standard hours',
+                  formatted: inferredCat === 'hospital' ? 'Emergency 24/7' : 'Open'
                 },
                 source: 'OSM',
                 sourceUpdatedAt: new Date().toISOString(),
                 freshness: 'fresh',
-                emergencyCapable: cat === 'hospital' || cat === 'police',
-                tags: this.generateTags(cat, name),
-                triageInfo: cat === 'hospital' ? 'Emergency Care Facility' : undefined,
-                imageUrl: getDynamicPlaceImage({ name, category: cat, tags: this.generateTags(cat, name) })
+                emergencyCapable: inferredCat === 'hospital' || inferredCat === 'police',
+                phone: inferredCat === 'hospital' ? '108 / Local ER' : inferredCat === 'police' ? '100 / Emergency' : undefined,
+                tags: this.generateTags(inferredCat, rawName),
+                triageInfo: inferredCat === 'hospital' ? 'Verified 24/7 Emergency Casualty Service' : undefined,
+                imageUrl: getDynamicPlaceImage({ name: rawName, category: inferredCat, tags: this.generateTags(inferredCat, rawName) })
               });
             }
           } catch {
-            // Gracefully ignore Photon error
+            // Ignore single url timeout
           }
         })
       );
+    } catch (err) {
+      console.warn('Photon POI query error:', err);
     }
 
-    // Step D: Sort deterministically: shortest geodesic distance first, then ID
+    // 2. Secondary Engine: Bounded Nominatim Search with Viewbox if Photon returned few results
+    if (places.length < 3) {
+      try {
+        const box = 0.15; // ~15km bounding box around user's exact coordinates
+        const queryTerm = cleanQuery || (category !== 'all' ? category : 'hospital');
+        const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryTerm)}&viewbox=${(lon - box).toFixed(4)},${(lat + box).toFixed(4)},${(lon + box).toFixed(4)},${(lat - box).toFixed(4)}&bounded=1&format=json&addressdetails=1&limit=8`;
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+        const nomRes = await fetch(nomUrl, {
+          headers: { 'Accept': 'application/json', 'User-Agent': 'LocalTravelApp/8.0' },
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+
+        if (nomRes.ok) {
+          const items: NominatimSearchResult[] = await nomRes.json();
+          for (const it of items || []) {
+            const itemLat = parseFloat(it.lat);
+            const itemLon = parseFloat(it.lon);
+            if (isNaN(itemLat) || isNaN(itemLon)) continue;
+
+            const coordKey = `${itemLat.toFixed(3)},${itemLon.toFixed(3)}`;
+            if (seenCoordinates.has(coordKey)) continue;
+
+            let dist = 999999;
+            try {
+              dist = getDistance({ latitude: lat, longitude: lon }, { latitude: itemLat, longitude: itemLon });
+            } catch {
+              continue;
+            }
+
+            if (dist > 45000) continue;
+            seenCoordinates.add(coordKey);
+
+            const addr = it.address || {};
+            let rawName = it.name || it.display_name.split(',')[0].trim();
+            const inferredCat = it.class === 'amenity' && it.type === 'hospital' ? 'hospital' : (category !== 'all' ? category : 'attraction');
+
+            places.push({
+              id: `nom-${it.place_id || it.osm_id || Math.random().toString(36).substring(7)}`,
+              name: rawName,
+              category: inferredCat,
+              distanceMeters: dist,
+              location: { latitude: itemLat, longitude: itemLon },
+              countryCode: (addr.country_code || 'IN').toUpperCase(),
+              city: addr.city || addr.town || addr.county || 'Local Area',
+              address: it.display_name,
+              hours: {
+                status: 'open',
+                raw: inferredCat === 'hospital' ? 'Emergency 24/7' : 'Standard hours',
+                formatted: inferredCat === 'hospital' ? 'Emergency 24/7' : 'Open'
+              },
+              source: 'OSM',
+              sourceUpdatedAt: new Date().toISOString(),
+              freshness: 'fresh',
+              emergencyCapable: inferredCat === 'hospital',
+              phone: inferredCat === 'hospital' ? '108 / Local ER' : undefined,
+              tags: this.generateTags(inferredCat, rawName),
+              triageInfo: inferredCat === 'hospital' ? 'Verified Emergency Facility' : undefined,
+              imageUrl: getDynamicPlaceImage({ name: rawName, category: inferredCat, tags: this.generateTags(inferredCat, rawName) })
+            });
+          }
+        }
+      } catch {
+        // Graceful fallback
+      }
+    }
+
+    // 3. Fallback: If network is offline or no POIs found, load nearest pilot city verified dataset with recalculation
+    if (places.length === 0) {
+      const closestCity = this.resolveClosestCity(lat, lon);
+      const fallbackList = MOCK_PLACES[closestCity.id] || MOCK_PLACES['delhi'] || [];
+
+      for (const p of fallbackList) {
+        if (category !== 'all' && p.category !== category) continue;
+        if (cleanQuery && !p.name.toLowerCase().includes(cleanQuery.toLowerCase())) continue;
+
+        let dist = 999999;
+        try {
+          dist = getDistance({ latitude: lat, longitude: lon }, { latitude: p.location.latitude, longitude: p.location.longitude });
+        } catch {
+          dist = p.distanceMeters;
+        }
+
+        places.push({
+          ...p,
+          distanceMeters: dist
+        });
+      }
+    }
+
+    // Sort deterministically: shortest geodesic distance first, then place ID
     places.sort((a, b) => {
       if (a.distanceMeters !== b.distanceMeters) {
         return a.distanceMeters - b.distanceMeters;
       }
-      return a.id.localeCompare(b.id);
+      return (a.id || '').localeCompare(b.id || '');
     });
 
-    // Store in cache
     if (places.length > 0) {
       this.poiCache.set(cacheKey, { timestamp: Date.now(), places });
     }
 
     return places;
+  }
+
+  // Fast direct lookup for the nearest verified 24/7 hospital
+  public async fetchNearestHospital(lat: number, lon: number): Promise<Place | null> {
+    try {
+      const photonUrl = `https://photon.komoot.io/api/?q=hospital&lat=${lat}&lon=${lon}&osm_tag=amenity:hospital&limit=8`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2800);
+      const res = await fetch(photonUrl, { signal: controller.signal });
+      clearTimeout(timeout);
+
+      if (res.ok) {
+        const data = await res.json();
+        const hospitals: Place[] = [];
+
+        for (const feat of data.features || []) {
+          if (!feat || !feat.geometry || !Array.isArray(feat.geometry.coordinates)) continue;
+          const [fLon, fLat] = feat.geometry.coordinates;
+          if (typeof fLat !== 'number' || typeof fLon !== 'number' || isNaN(fLat) || isNaN(fLon)) continue;
+
+          let dist = 999999;
+          try {
+            dist = getDistance({ latitude: lat, longitude: lon }, { latitude: fLat, longitude: fLon });
+          } catch {
+            continue;
+          }
+
+          const props = feat.properties || {};
+          let rawName = props.name || props.street;
+          if (!rawName) continue;
+          rawName = rawName.trim();
+
+          if (rawName.toLowerCase() === 'hospital' || rawName.toLowerCase() === 'clinic') {
+            rawName = props.locality ? `${props.locality} Hospital` : (props.street ? `${props.street} Hospital` : `${props.city || 'Emergency'} Hospital`);
+          }
+
+          const addr = [props.street, props.locality || props.district, props.city, props.state, props.country].filter(Boolean).join(', ');
+
+          hospitals.push({
+            id: `hospital-${props.osm_id || Math.random().toString(36).substring(7)}`,
+            name: rawName,
+            category: 'hospital',
+            distanceMeters: dist,
+            location: { latitude: fLat, longitude: fLon },
+            countryCode: (props.countrycode || 'IN').toUpperCase(),
+            city: props.city || props.district || 'Local Area',
+            address: addr || 'Near Current Location',
+            hours: { status: 'open', raw: 'Emergency 24/7', formatted: 'Emergency 24/7' },
+            source: 'OSM',
+            sourceUpdatedAt: new Date().toISOString(),
+            freshness: 'fresh',
+            emergencyCapable: true,
+            phone: '108 / Local ER',
+            tags: ['Emergency Casualty', '24/7 Trauma Unit', 'Verified Hospital'],
+            triageInfo: '24/7 Emergency Casualty & Trauma Resuscitation',
+            imageUrl: getDynamicPlaceImage({ name: rawName, category: 'hospital' })
+          });
+        }
+
+        if (hospitals.length > 0) {
+          hospitals.sort((a, b) => a.distanceMeters - b.distanceMeters);
+          return hospitals[0];
+        }
+      }
+    } catch {
+      // Fallback
+    }
+
+    // Fallback: closest pilot city verified hospital
+    const closestCity = this.resolveClosestCity(lat, lon);
+    const cityPlaces = MOCK_PLACES[closestCity.id] || MOCK_PLACES['delhi'] || [];
+    const hospital = cityPlaces.find(p => p.category === 'hospital') || cityPlaces[0];
+
+    if (hospital) {
+      let dist = hospital.distanceMeters;
+      try {
+        dist = getDistance({ latitude: lat, longitude: lon }, { latitude: hospital.location.latitude, longitude: hospital.location.longitude });
+      } catch {
+        dist = hospital.distanceMeters;
+      }
+      return {
+        ...hospital,
+        distanceMeters: dist
+      };
+    }
+
+    return null;
+  }
+
+  private resolveClosestCity(lat: number, lon: number): typeof CITIES[0] {
+    let closest = CITIES[0];
+    let minDist = Infinity;
+    for (const city of CITIES) {
+      try {
+        const d = getDistance({ latitude: lat, longitude: lon }, { latitude: city.lat, longitude: city.lng });
+        if (d < minDist) {
+          minDist = d;
+          closest = city;
+        }
+      } catch {
+        // continue
+      }
+    }
+    return closest;
   }
 
   // Optional Google Places Nearby Search

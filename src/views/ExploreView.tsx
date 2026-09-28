@@ -208,13 +208,13 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
     let isCurrent = true;
     const timer = setTimeout(() => {
       setLoading(true);
-      api.getNearbyPlaces(activeCityId, selectedCategory, searchQuery.trim(), 12000, location.coords)
+      api.getNearbyPlaces(activeCityId, 'all', searchQuery.trim(), 25000, location.coords)
         .then(res => {
-          if (isCurrent && res.items && res.items.length > 0) {
+          if (isCurrent && res.items) {
             setPlaces(prev => {
-              const existingIds = new Set(prev.map(p => p.id));
-              const newItems = res.items.filter(p => !existingIds.has(p.id));
-              return [...newItems, ...prev];
+              const newIds = new Set(res.items.map(p => p.id));
+              const remainder = prev.filter(p => !newIds.has(p.id));
+              return [...res.items, ...remainder];
             });
             setLoading(false);
           }
@@ -222,25 +222,26 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
         .catch(() => {
           if (isCurrent) setLoading(false);
         });
-    }, 350);
+    }, 250);
 
     return () => {
       isCurrent = false;
       clearTimeout(timer);
     };
-  }, [searchQuery, selectedCategory, activeCityId, location.coords.latitude, location.coords.longitude]);
+  }, [searchQuery, activeCityId, location.coords.latitude, location.coords.longitude]);
 
   // Dynamically compute real-time distance and instant search filtering with semantic matching
   const dynamicPlaces = useMemo(() => {
     let filtered = places || [];
+    const hasSearch = Boolean(searchQuery && searchQuery.trim().length >= 1);
 
-    // Filter by selected category pill
-    if (selectedCategory !== 'all') {
+    // If NO search query, filter strictly by selected category pill
+    if (!hasSearch && selectedCategory !== 'all') {
       filtered = filtered.filter(p => p && p.category === selectedCategory);
     }
 
     // Instant real-time search filtering across name, localized name, address, tags, and category keywords
-    if (searchQuery && searchQuery.trim()) {
+    if (hasSearch) {
       const q = searchQuery.toLowerCase().trim();
       filtered = filtered.filter(p => {
         if (!p) return false;
@@ -253,47 +254,37 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 
         // Category & semantic intent matching
         if (p.category && p.category.toLowerCase().includes(q)) return true;
-        if ((q.includes('aiims') || q.includes('mangalagiri')) && ((p.id && p.id.includes('aiims')) || (p.name && p.name.toLowerCase().includes('aiims')) || (p.address && p.address.toLowerCase().includes('aiims')))) {
-          return true;
-        }
-        if ((q.includes('private') || q.includes('manipal') || q.includes('specialty')) && ((p.id && p.id.includes('manipal')) || (p.name && p.name.toLowerCase().includes('manipal')) || (p.tags && p.tags.some(t => t.toLowerCase().includes('private'))))) {
-          return true;
-        }
-        if ((q.includes('college') || q.includes('university') || q.includes('campus') || q.includes('klef') || q.includes('kl')) && ((p.tags && p.tags.some(t => t.toLowerCase().includes('college') || t.toLowerCase().includes('campus') || t.toLowerCase().includes('university'))) || (p.id && p.id.includes('klef')) || (p.name && p.name.toLowerCase().includes('college')) || (p.name && p.name.toLowerCase().includes('university')))) {
-          return true;
-        }
-        if ((q.includes('raj mahal') || q.includes('palace') || q.includes('mahal') || q.includes('fort') || q.includes('historic') || q.includes('monument') || q.includes('caves') || q.includes('heritage') || q.includes('ancient')) && (p.category === 'historic' || (p.tags && p.tags.some(t => t.toLowerCase().includes('historic') || t.toLowerCase().includes('palace') || t.toLowerCase().includes('heritage'))))) {
-          return true;
-        }
-        if ((q.includes('museum') || q.includes('gallery') || q.includes('art') || q.includes('exhibit')) && (p.category === 'museum' || (p.tags && p.tags.some(t => t.toLowerCase().includes('museum'))))) {
-          return true;
-        }
-        if ((q.includes('beach') || q.includes('sea') || q.includes('shore') || q.includes('coast') || q.includes('ocean')) && (p.category === 'beach' || (p.tags && p.tags.some(t => t.toLowerCase().includes('beach'))))) {
-          return true;
-        }
-        if ((q.includes('tourist') || q.includes('attraction') || q.includes('sight') || q.includes('viewpoint') || q.includes('island')) && (p.category === 'attraction' || (p.tags && p.tags.some(t => t.toLowerCase().includes('attraction'))))) {
-          return true;
-        }
         if ((q.includes('hosp') || q.includes('clinic') || q.includes('doctor') || q.includes('er') || q.includes('casualty') || q.includes('medical') || q.includes('health') || q.includes('trauma')) && p.category === 'hospital') {
           return true;
         }
-
         if ((q.includes('pharm') || q.includes('chem') || q.includes('med') || q.includes('drug') || q.includes('rx') || q.includes('dispens')) && p.category === 'pharmacy') {
           return true;
         }
-        if ((q.includes('police') || q.includes('cop') || q.includes('station') || q.includes('patrol') || q.includes('security') || q.includes('koban')) && p.category === 'police') {
+        if ((q.includes('police') || q.includes('cop') || q.includes('station') || q.includes('patrol') || q.includes('security') || q.includes('thana')) && p.category === 'police') {
           return true;
         }
-        if ((q.includes('atm') || q.includes('cash') || q.includes('bank') || q.includes('money') || q.includes('indicash') || q.includes('sbi')) && p.category === 'atm') {
+        if ((q.includes('atm') || q.includes('cash') || q.includes('bank') || q.includes('money')) && p.category === 'atm') {
           return true;
         }
         if ((q.includes('transit') || q.includes('bus') || q.includes('train') || q.includes('metro') || q.includes('subway') || q.includes('station') || q.includes('stop')) && p.category === 'transit_stop') {
           return true;
         }
-        if ((q.includes('supermarket') || q.includes('grocer') || q.includes('market') || q.includes('shop') || q.includes('store') || q.includes('food') || q.includes('provisions')) && p.category === 'supermarket') {
+        if ((q.includes('supermarket') || q.includes('grocer') || q.includes('market') || q.includes('shop') || q.includes('store') || q.includes('food') || q.includes('bazaar') || q.includes('provisions')) && p.category === 'supermarket') {
           return true;
         }
-        if ((q.includes('cafe') || q.includes('coffee') || q.includes('tea') || q.includes('bakery') || q.includes('snack') || q.includes('drink')) && p.category === 'cafe') {
+        if ((q.includes('cafe') || q.includes('coffee') || q.includes('tea') || q.includes('bakery') || q.includes('snack') || q.includes('drink') || q.includes('restaurant') || q.includes('dhaba')) && p.category === 'cafe') {
+          return true;
+        }
+        if ((q.includes('historic') || q.includes('monument') || q.includes('fort') || q.includes('palace') || q.includes('heritage') || q.includes('ancient') || q.includes('tomb') || q.includes('qila')) && p.category === 'historic') {
+          return true;
+        }
+        if ((q.includes('museum') || q.includes('gallery') || q.includes('art') || q.includes('exhibit')) && p.category === 'museum') {
+          return true;
+        }
+        if ((q.includes('beach') || q.includes('sea') || q.includes('shore') || q.includes('coast')) && p.category === 'beach') {
+          return true;
+        }
+        if ((q.includes('tourist') || q.includes('attraction') || q.includes('sight') || q.includes('viewpoint') || q.includes('park')) && p.category === 'attraction') {
           return true;
         }
 

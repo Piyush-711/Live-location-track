@@ -23,11 +23,12 @@ export const EmergencySOSView: React.FC<EmergencySOSViewProps> = ({
     api.getEmergencyDossier(location.countryCode).then(res => {
       if (!isMounted) return;
       setDossier(res);
-      // Try to query nearest real-world hospital via OpenStreetMap Overpass
-      osmService.fetchNearbyPOIs(location.coords.latitude, location.coords.longitude, 'hospital', 8000)
-        .then(places => {
-          if (isMounted && places.length > 0) {
-            setDossier(prev => prev ? { ...prev, verifiedER: places[0] } : null);
+
+      // Query nearest real-world hospital via high-speed Photon & OSM
+      osmService.fetchNearestHospital(location.coords.latitude, location.coords.longitude)
+        .then(hospital => {
+          if (isMounted && hospital) {
+            setDossier(prev => prev ? { ...prev, verifiedER: hospital } : null);
           }
         })
         .catch(err => console.warn('Live hospital search error:', err));
@@ -161,56 +162,65 @@ export const EmergencySOSView: React.FC<EmergencySOSViewProps> = ({
             </span>
           </div>
 
-          <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-200/80 flex flex-col justify-between gap-3.5 h-full">
-            <div>
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></span>
-                  Emergency Department
-                </span>
-                <span className="text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md">
-                  {dossier.verifiedER.distanceMeters}m away
-                </span>
+          {dossier.verifiedER ? (
+            <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-200/80 flex flex-col justify-between gap-3.5 h-full">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></span>
+                    Emergency Department
+                  </span>
+                  <span className="text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md">
+                    {dossier.verifiedER.distanceMeters >= 1000
+                      ? `${(dossier.verifiedER.distanceMeters / 1000).toFixed(1)} km away`
+                      : `${dossier.verifiedER.distanceMeters}m away`}
+                  </span>
+                </div>
+
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 mt-2.5">
+                  {dossier.verifiedER.name}
+                </h3>
+                {dossier.verifiedER.localizedName && (
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    {dossier.verifiedER.localizedName}
+                  </p>
+                )}
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  {dossier.verifiedER.address}
+                </p>
               </div>
 
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 mt-2.5">
-                {dossier.verifiedER.name}
-              </h3>
-              {dossier.verifiedER.localizedName && (
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
-                  {dossier.verifiedER.localizedName}
-                </p>
-              )}
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                {dossier.verifiedER.address}
-              </p>
-            </div>
+              <div className="p-3 rounded-xl bg-sky-50/70 text-xs text-sky-900 font-medium flex items-center gap-2 border border-sky-100">
+                <span className="material-symbols-outlined text-[18px] text-sky-600 flex-shrink-0">medical_services</span>
+                <span>24/7 Trauma casualty & emergency medical care available</span>
+              </div>
 
-            <div className="p-3 rounded-xl bg-sky-50/70 text-xs text-sky-900 font-medium flex items-center gap-2 border border-sky-100">
-              <span className="material-symbols-outlined text-[18px] text-sky-600 flex-shrink-0">medical_services</span>
-              <span>24/7 Trauma casualty & English assistance available</span>
-            </div>
-
-            <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-              <button
-                onClick={() => onStartRouteToER(dossier.verifiedER)}
-                className="flex-1 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-2 text-xs font-bold shadow-sm active:scale-98 transition-colors cursor-pointer"
-              >
-                <span className="material-symbols-outlined text-[18px]">turn_right</span>
-                <span>Directions to Hospital</span>
-              </button>
-              {dossier.verifiedER.phone && (
-                <a
-                  href={`tel:${dossier.verifiedER.phone}`}
-                  className="h-10 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
-                  title="Call Emergency Hospital"
+              <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                <button
+                  onClick={() => onStartRouteToER(dossier.verifiedER)}
+                  className="flex-1 h-10 rounded-xl bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-2 text-xs font-bold shadow-sm active:scale-98 transition-colors cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[18px]">call</span>
-                  <span>Call</span>
-                </a>
-              )}
+                  <span className="material-symbols-outlined text-[18px]">turn_right</span>
+                  <span>Directions to Hospital</span>
+                </button>
+                {dossier.verifiedER.phone && (
+                  <a
+                    href={`tel:${dossier.verifiedER.phone}`}
+                    className="h-10 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                    title="Call Emergency Hospital"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">call</span>
+                    <span>Call</span>
+                  </a>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-200/80 flex flex-col items-center justify-center gap-3 text-center min-h-[160px]">
+              <span className="material-symbols-outlined text-[28px] animate-spin text-rose-500">progress_activity</span>
+              <p className="text-xs font-semibold text-slate-600">Discovering verified 24/7 emergency casualty hospital near your live coordinates...</p>
+            </div>
+          )}
         </section>
       </div>
 
