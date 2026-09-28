@@ -3,6 +3,7 @@ import { LocalMarket, LocalMarketSpecialty, Place, LocationCoordinates } from '.
 import { marketService, MARKET_SPECIALTIES } from '../services/marketService';
 import { LiveLocationState } from '../hooks/useLiveLocation';
 import { LiveLeafletMap } from '../components/LiveLeafletMap';
+import { MarketDetailsModal } from '../components/MarketDetailsModal';
 
 interface LocalMarketsViewProps {
   location: LiveLocationState;
@@ -23,6 +24,7 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileViewMode, setMobileViewMode] = useState<'list' | 'map'>('list');
   const [selectedMarketId, setSelectedMarketId] = useState<string | null>(null);
+  const [activeDetailMarket, setActiveDetailMarket] = useState<LocalMarket | null>(null);
 
   // Focus map coordinates when user taps "View on Map"
   const [focusedLocation, setFocusedLocation] = useState<LocationCoordinates>(location.coords);
@@ -216,7 +218,10 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
                   {/* Market Header */}
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                     <div className="flex items-start gap-3.5">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                      <div 
+                        onClick={() => setActiveDetailMarket(market)}
+                        className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner cursor-pointer hover:bg-slate-200 transition-colors"
+                      >
                         {specMeta.emoji}
                       </div>
                       <div>
@@ -224,13 +229,21 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
                           <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${specMeta.badgeClass}`}>
                             {market.specialtyLabel}
                           </span>
+                          {market.priceRange && (
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                              {market.priceRange}
+                            </span>
+                          )}
                           {market.closedOn && (
                             <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-100">
                               {market.closedOn}
                             </span>
                           )}
                         </div>
-                        <h2 className="text-lg font-extrabold text-slate-900 leading-tight">
+                        <h2 
+                          onClick={() => setActiveDetailMarket(market)}
+                          className="text-lg font-extrabold text-slate-900 leading-tight hover:text-sky-600 transition-colors cursor-pointer"
+                        >
                           {market.name}
                         </h2>
                         <p className="text-xs text-slate-500 font-medium mt-0.5 flex items-center gap-1">
@@ -257,16 +270,23 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
 
                   {/* Market Banner Photo (if available) */}
                   {market.imageUrl && (
-                    <div className="relative w-full h-44 rounded-xl overflow-hidden bg-slate-100 shadow-inner">
+                    <div 
+                      onClick={() => setActiveDetailMarket(market)}
+                      className="relative w-full h-44 rounded-xl overflow-hidden bg-slate-100 shadow-inner cursor-pointer group"
+                    >
                       <img 
                         src={market.imageUrl} 
                         alt={market.name}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
                       />
                       <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold flex items-center gap-1.5">
                         <span className="material-symbols-outlined text-[13px] text-amber-400">schedule</span>
                         <span>{market.timings}</span>
+                      </div>
+                      <div className="absolute top-2 right-2 px-2.5 py-1 rounded-lg bg-black/50 hover:bg-black/70 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span>Tap for Details</span>
+                        <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                       </div>
                     </div>
                   )}
@@ -326,6 +346,19 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
                     )}
                   </div>
 
+                  {/* Famous Landmark or Food Highlight */}
+                  {market.famousLandmarkOrFood && (
+                    <div className="p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100 text-emerald-950 flex items-start gap-2 text-xs">
+                      <span className="material-symbols-outlined text-[16px] text-emerald-600 flex-shrink-0 mt-0.5">
+                        restaurant
+                      </span>
+                      <div>
+                        <span className="font-bold block text-[11px] text-emerald-900">Must-Try Food & Landmarks Nearby</span>
+                        <span className="font-medium text-[11px] leading-tight text-emerald-800">{market.famousLandmarkOrFood}</span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
                     <button
@@ -345,11 +378,11 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
                     </button>
 
                     <button
-                      onClick={() => onSelectPlace(marketService.marketToPlace(market))}
-                      className="h-9 px-3 rounded-xl bg-slate-100 hover:bg-slate-200/70 text-slate-700 text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
+                      onClick={() => setActiveDetailMarket(market)}
+                      className="h-9 px-3.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs font-bold flex items-center justify-center gap-1 transition-all cursor-pointer"
                     >
-                      <span>Details</span>
-                      <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+                      <span>Full Details</span>
+                      <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                     </button>
                   </div>
                 </article>
@@ -379,6 +412,7 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
                   const m = markets.find(m => `market-${m.id}` === p.id);
                   if (m) {
                     setSelectedMarketId(m.id);
+                    setActiveDetailMarket(m);
                   }
                   onSelectPlace(p);
                 }}
@@ -394,6 +428,19 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Market Details Modal */}
+      {activeDetailMarket && (
+        <MarketDetailsModal
+          market={activeDetailMarket}
+          onClose={() => setActiveDetailMarket(null)}
+          onStartRoute={onStartRoute}
+          onFocusOnMap={(m) => {
+            setActiveDetailMarket(null);
+            handleFocusMarketOnMap(m);
+          }}
+        />
+      )}
     </div>
   );
 };

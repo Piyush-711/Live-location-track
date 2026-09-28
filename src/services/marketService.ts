@@ -2,6 +2,7 @@ import { LocalMarket, LocalMarketSpecialty, Place } from '../types';
 import { getDistance } from 'geolib';
 import { LiveLocationState } from '../hooks/useLiveLocation';
 import { getDynamicPlaceImage } from '../utils/placeVisuals';
+import Fuse from 'fuse.js';
 
 export interface SpecialtyMeta {
   id: LocalMarketSpecialty | 'all';
@@ -454,34 +455,190 @@ const CURATED_MARKETS: LocalMarket[] = [
     cityId: 'hyderabad',
     specialty: 'jewelry',
     specialtyLabel: 'Hyderabadi Pearls, Lacquer Bangles & Zari Bridal Sarees',
-    famousFor: 'Historic market adjoining Charminar operating since the Qutb Shahi era. Famous for handcrafted stone-studded lacquer bangles, authentic Basra pearls, bridal khada dupattas, and ittar.',
+    famousFor: 'Historic 400-year-old market adjoining Charminar operating since the Qutb Shahi era. Famous for handcrafted stone-studded lacquer bangles, authentic Basra pearls, bridal khada dupattas, and natural ittar.',
     whatToBuy: ['Hyderabadi Pearl Necklaces', 'Stone Lacquer Bangles', 'Bridal Khada Dupattas', 'Zari Embroidered Kurtas', 'Natural Mughlai Attar'],
     address: 'Laad Bazaar Road, Near Charminar, Hyderabad 500002',
     location: { latitude: 17.3616, longitude: 78.4735 },
     metroStation: 'Charminar Metro (Green Line) or MGBS Metro • 10 min',
-    closedOn: 'Open 7 Days',
-    timings: '11:00 AM - 10:00 PM',
-    bargainingTip: 'Ask for authentic certificate of guarantee for pearls. Bangle shops quote 40% higher initially.',
+    closedOn: 'Open 7 Days (Best after 4 PM)',
+    timings: '11:00 AM - 10:30 PM',
+    bargainingTip: 'Ask for authentic certificate of guarantee for pearls. Bangle shops quote 40-50% higher initially.',
+    bargainingLevel: 'High (Quote 40-50% less)',
+    priceRange: '₹ (Artisan Direct / Budget to Luxury)',
+    bestTimeToVisit: 'Evening 5:00 PM – 9:30 PM under golden festive street lights',
+    paymentMethods: ['UPI (GPay / PhonePe)', 'Cash Highly Preferred for Small Stalls', 'Credit Cards in Jewellers'],
+    parkingTip: 'Pedestrian-only alleys; park at Charminar Bus Depot or take an auto/Metro',
+    famousLandmarkOrFood: 'Nimrah Cafe & Bakery right at Charminar gate (Irani Chai & Osmania biscuits) and Hotel Shadab',
     imageUrl: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80',
     tags: ['jewelry', 'pearls', 'bangles', 'bridal', 'charminar', 'laad bazaar', 'hyderabad']
   },
   {
+    id: 'hyd-begum-bazaar',
+    name: 'Begum Bazaar & Feelkhana Wholesale Hub',
+    city: 'Old Hyderabad',
+    cityId: 'hyderabad',
+    specialty: 'spices_food',
+    specialtyLabel: 'Asia\'s Giant Wholesale Spices, Dry Fruits & Household Goods',
+    famousFor: 'The largest commercial wholesale market in Hyderabad, established during the Nizam era. Famous for towering sacks of spices (cardamom, cloves, saffron), wholesale dry fruits, brass and copper kitchen vessels, pooja articles, and wedding gifts at 40-60% below retail.',
+    whatToBuy: ['Wholesale Dry Fruits (Almonds, Cashews, Pistachios)', 'Pure Spices & Biryani Potli Masala', 'Brass & Copper Kitchen Vessels', 'Wedding Gift Hampers & Packaging', 'Festive Pooja Articles & Rangoli'],
+    address: 'Begum Bazaar Main Road, Afzal Gunj, Hyderabad 500012',
+    location: { latitude: 17.3735, longitude: 78.4715 },
+    metroStation: 'Osmania Medical College Metro (Red Line) • 8 min walk',
+    closedOn: 'Closed on Sundays',
+    timings: '10:00 AM - 08:30 PM',
+    bargainingTip: 'Prices are already near wholesale; ask for bulk bundle pricing when buying 1kg+ of dry fruits or spices.',
+    bargainingLevel: 'Medium (15-25% discount)',
+    priceRange: '₹ (Direct Wholesale / 40-60% Off Retail)',
+    bestTimeToVisit: '11:30 AM – 3:30 PM for quieter browsing before evening wholesale truck loading',
+    paymentMethods: ['UPI / PhonePe', 'Cash Preferred', 'Bank Transfer for Wholesale'],
+    parkingTip: 'Very congested alleys — park near Afzal Gunj bridge and walk',
+    famousLandmarkOrFood: 'Try Badam Milk & Lassi at century-old Matwale Doodh Ghar',
+    imageUrl: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80',
+    tags: ['spices', 'dry fruits', 'wholesale', 'biryani masala', 'begum bazaar', 'hyderabad']
+  },
+  {
     id: 'hyd-koti-electronics',
-    name: 'Koti (Gujarati Galli) Electronics & Book Market',
+    name: 'Koti (Gujarati Galli) Electronics & Tech Market',
     city: 'Hyderabad',
     cityId: 'hyderabad',
     specialty: 'electronics',
-    specialtyLabel: 'Consumer Electronics, Smart TV Parts & Mobile Hub',
-    famousFor: "Hyderabad's electronics capital. Packed with wholesale mobile display panels, camera batteries, LED TV components, sound systems, and academic textbook dealers.",
-    whatToBuy: ['Smart TV Panels & Boards', 'Mobile Phones & Displays', 'Speaker Systems & Amps', 'Academic & Medical Books', 'Electronic Testing Multimeters'],
-    address: 'Gujarati Galli, Koti, Hyderabad 500095',
+    specialtyLabel: 'Consumer Electronics, Smart TV Parts & Mobile Hardware',
+    famousFor: 'Hyderabad\'s premier electronics and tech nerve center. Packed with multi-storey plazas for smart TV panels, amplifier circuit boards, camera parts, smartphone screens, wholesale tempered glass, CCTV security gear, and chip-level repair shops.',
+    whatToBuy: ['Smart TV LED Boards & Panels', 'Mobile Phone Parts & Screen Replacements', 'Pro Audio Amplifiers & DJ Sound', 'CCTV Cameras & DVRs', 'Soldering Stations & Multimeters'],
+    address: 'Gujarati Galli, Bank Street, Koti, Hyderabad 500095',
     location: { latitude: 17.3850, longitude: 78.4867 },
     metroStation: 'Sultan Bazaar Metro (Red Line) • 5 min walk',
     closedOn: 'Closed on Sundays',
     timings: '10:30 AM - 08:30 PM',
-    bargainingTip: 'Gujarati Galli offers substantial wholesale discounts for tech parts when paying in cash.',
+    bargainingTip: 'Always test electronic circuits or mobile screens at the shop counter testing bench before final payment. Cash gets an extra 5-10% discount over credit card.',
+    bargainingLevel: 'Medium (15-25% discount)',
+    priceRange: '₹ (Wholesale Component Rates)',
+    bestTimeToVisit: '2:00 PM – 6:00 PM for all wholesalers open and technician availability',
+    paymentMethods: ['UPI', 'Cash', 'Credit/Debit Card'],
+    parkingTip: 'Park at Koti Women\'s College paid lot or arrive via Sultan Bazaar Metro',
+    famousLandmarkOrFood: 'Legendary Gokul Chat (famous for Hot Samosa Ragda, Mirchi Bhaji & Kulfi) 3 mins away',
     imageUrl: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
-    tags: ['electronics', 'mobile parts', 'sound gear', 'koti', 'hyderabad']
+    tags: ['electronics', 'mobile parts', 'smart tv', 'sound gear', 'pc build', 'koti', 'hyderabad']
+  },
+  {
+    id: 'hyd-ranigunj-auto',
+    name: 'Ranigunj (Secunderabad) Automobile & Bike Spares Market',
+    city: 'Secunderabad / Hyderabad',
+    cityId: 'hyderabad',
+    specialty: 'automobile',
+    specialtyLabel: 'Auto Spare Parts, Bike Modifications & Machine Hardware',
+    famousFor: 'The undisputed automotive hub of Hyderabad and Secunderabad. Spans miles of shops for car alloy wheels, performance bike exhausts, Royal Enfield custom spares, car music touchscreens, batteries, and mechanical bearings.',
+    whatToBuy: ['Car Alloy Wheels & High-Performance Tyres', 'Royal Enfield Modification Kits', 'Car Touchscreen Infotainment & Subwoofers', 'Two-Wheeler Carburetors & Chains', 'Automotive Batteries & Inverters'],
+    address: 'Ranigunj Main Road, Mahatma Gandhi Road, Secunderabad 500003',
+    location: { latitude: 17.4335, longitude: 78.4910 },
+    metroStation: 'Paradise Metro (Blue Line) or Secunderabad West Metro • 7 min',
+    closedOn: 'Closed on Sundays',
+    timings: '10:00 AM - 08:00 PM',
+    bargainingTip: 'Compare prices across at least 3 shops. Negotiation for installation and mechanic fitment labor can be done right in the street behind the main stores.',
+    bargainingLevel: 'Medium (15-25% discount)',
+    priceRange: '₹₹ (Direct Factory Distributor Rates)',
+    bestTimeToVisit: 'Morning 11:00 AM – 3:00 PM for mechanic fitment bays',
+    paymentMethods: ['UPI', 'Cash', 'Cards'],
+    parkingTip: 'Street parking can be tight; side street mechanic bays allow car parking during installation',
+    famousLandmarkOrFood: 'Paradise Biryani flagship heritage restaurant is within 5 minutes walking distance',
+    imageUrl: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=800&q=80',
+    tags: ['automobile', 'car spares', 'bike parts', 'tyres', 'alloys', 'ranigunj', 'secunderabad', 'hyderabad']
+  },
+  {
+    id: 'hyd-general-bazaar',
+    name: 'General Bazaar & Tobacco Bazaar (Secunderabad)',
+    city: 'Secunderabad / Hyderabad',
+    cityId: 'hyderabad',
+    specialty: 'clothes',
+    specialtyLabel: 'Wholesale Textiles, Bridal Lehengas & Silk Sarees',
+    famousFor: 'A massive bustling covered market labyrinth in Secunderabad dating back over a century. Known for endless rows of bridal lehengas, Kanjeevaram & Pochampally silk sarees, dress materials, footwear, and nightwear at factory prices.',
+    whatToBuy: ['Bridal Lehengas & Gowns', 'Pochampally Ikkat Silk Sarees', 'Unstitched Cotton & Silk Suits', 'Ethnic Mojaris & Bangles', 'Designer Dupattas & Borders'],
+    address: 'General Bazaar, M.G. Road, Secunderabad 500003',
+    location: { latitude: 17.4395, longitude: 78.4985 },
+    metroStation: 'Paradise Metro • 5 min walk',
+    closedOn: 'Closed on Sundays',
+    timings: '10:30 AM - 09:00 PM',
+    bargainingTip: 'Inner narrow lanes have much better prices than outer MG Road facades. Ask for wholesale cut piece rates for salwar suit fabrics.',
+    bargainingLevel: 'High (Quote 40-50% less)',
+    priceRange: '₹ (Factory Surplus to Designer)',
+    bestTimeToVisit: '3:00 PM – 7:00 PM',
+    paymentMethods: ['UPI', 'Cash', 'Cards'],
+    parkingTip: 'Two-wheeler or Metro recommended; lanes are extremely narrow for cars',
+    famousLandmarkOrFood: 'Secunderabad Clock Tower & historic Irani cafes',
+    imageUrl: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=800&q=80',
+    tags: ['clothes', 'sarees', 'lehenga', 'fabrics', 'general bazaar', 'secunderabad', 'hyderabad']
+  },
+  {
+    id: 'hyd-sultan-bazaar',
+    name: 'Sultan Bazaar & Badichowdi',
+    city: 'Hyderabad',
+    cityId: 'hyderabad',
+    specialty: 'clothes',
+    specialtyLabel: 'Ethnic Street Fashion, Kurtis, Footwear & Bangles',
+    famousFor: 'One of Hyderabad\'s oldest and liveliest shopping arcades, established in the 1800s. Packed with affordable college fashion, cotton Kurtis, traditional silver earrings, Kolhapuri footwear, and festive jewelry.',
+    whatToBuy: ['Everyday & Festive Kurtis', 'Kolhapuri Sandals & Juttis', 'Silver & Oxidized Jewelry', 'Handbags & Clutches', 'Cotton Nightwear & Leggings'],
+    address: 'Sultan Bazaar Road, Koti, Hyderabad 500095',
+    location: { latitude: 17.3875, longitude: 78.4870 },
+    metroStation: 'Sultan Bazaar Metro (Red Line) • Direct station exit',
+    closedOn: 'Open 7 Days',
+    timings: '11:00 AM - 09:30 PM',
+    bargainingTip: 'Street hawkers and roadside apparel vendors expect bargaining. Start at 50% of the quoted price.',
+    bargainingLevel: 'High (Quote 40-50% less)',
+    priceRange: '₹ (Extremely Budget-Friendly)',
+    bestTimeToVisit: 'Evening 4:30 PM – 8:30 PM when street stalls light up',
+    paymentMethods: ['UPI', 'Cash'],
+    parkingTip: 'Direct Metro connectivity; exit directly into the bazaar entrance',
+    famousLandmarkOrFood: 'Gokul Chat & Pragati Tiffin Center nearby for butter dosas',
+    imageUrl: 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=800&q=80',
+    tags: ['clothes', 'kurtis', 'footwear', 'fashion', 'street market', 'sultan bazaar', 'hyderabad']
+  },
+  {
+    id: 'hyd-mj-market',
+    name: 'Moazzam Jahi (MJ) Market & Jam Bagh',
+    city: 'Central Hyderabad',
+    cityId: 'hyderabad',
+    specialty: 'spices_food',
+    specialtyLabel: 'Historic Granite Stone Market, Dry Fruits, Natural Ittar & Ice Cream',
+    famousFor: 'Iconic 1935 Nizam-era stone landmark with a central clock tower. Famous for wholesale dry fruits, organic honey, exotic seasonal fruits, natural flower bazaar, and the century-old handmade natural ice creams (sapota, mango, custard apple).',
+    whatToBuy: ['Hand-Churned Famous Ice Cream (Custard Apple / Sitaphal, Mango, Fig)', 'Fresh Dry Fruits & Spices', 'Pure Forest Honey', 'Traditional Nizam Ittar', 'Exotic Seasonal Fruits'],
+    address: 'Mozamjahi Market Road, Abids, Hyderabad 500001',
+    location: { latitude: 17.3802, longitude: 78.4770 },
+    metroStation: 'Gandhi Bhavan Metro (Red Line) • 3 min walk',
+    closedOn: 'Open 7 Days',
+    timings: '09:00 AM - 11:30 PM',
+    bargainingTip: 'Ice cream is fixed price (around ₹40-60 per bowl). For dry fruits, buy 500g or 1kg tins for maximum wholesale discount.',
+    bargainingLevel: 'Fixed / Wholesale trade rate',
+    priceRange: '₹ (Fair Wholesale & Affordable Heritage Food)',
+    bestTimeToVisit: 'Late evening 7:00 PM – 11:00 PM for the heritage lighting and fresh ice cream crowd',
+    paymentMethods: ['UPI', 'Cash', 'Cards'],
+    parkingTip: 'Ample parking inside the newly restored heritage complex courtyard',
+    famousLandmarkOrFood: 'Famous Ice Cream stall inside the heritage quadrangle',
+    imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+    tags: ['spices', 'dry fruits', 'ice cream', 'heritage', 'fruits', 'mj market', 'hyderabad']
+  },
+  {
+    id: 'hyd-madina-market',
+    name: 'Madina Market & Pathergatti Arcades',
+    city: 'Old City, Hyderabad',
+    cityId: 'hyderabad',
+    specialty: 'wholesale',
+    specialtyLabel: 'Historic Nizam Arcades, Wholesale Fabrics & Sherwanis',
+    famousFor: 'Heritage stone arcades built by the 7th Nizam in the 1930s. The major wholesale hub for wedding textiles, unstitched suit materials, sherwanis, and burqas supplying retailers across South India.',
+    whatToBuy: ['Wholesale Fabric Rolls', 'Men\'s Wedding Sherwanis & Kurtas', 'Embroidered Velvet Materials', 'Traditional Burqas & Hijabs', 'Attar & Incense'],
+    address: 'Pathergatti Road, Near Madina Building, Hyderabad 500002',
+    location: { latitude: 17.3680, longitude: 78.4750 },
+    metroStation: 'MGBS Metro • 10 min walk',
+    closedOn: 'Open 7 Days',
+    timings: '10:30 AM - 09:30 PM',
+    bargainingTip: 'Wholesale shops require minimum meterage (5-10m) for bottom rates; ask for than (full roll) price.',
+    bargainingLevel: 'High (Quote 40-50% less)',
+    priceRange: '₹ (Direct Factory Wholesale)',
+    bestTimeToVisit: '12:00 PM – 4:00 PM',
+    paymentMethods: ['UPI', 'Cash', 'NEFT / RTGS'],
+    parkingTip: 'Take auto or Metro to MGBS to avoid traffic gridlock near the old bridge',
+    famousLandmarkOrFood: 'Hotel Shadab right at the corner — world famous for Hyderabadi Mutton Dum Biryani & Paya Nahari',
+    imageUrl: 'https://images.unsplash.com/photo-1579202673506-ca3ce28943ef?auto=format&fit=crop&w=800&q=80',
+    tags: ['wholesale', 'fabrics', 'textiles', 'sherwani', 'madina market', 'hyderabad']
   },
 
   // ==================== JAIPUR LOCAL MARKETS ====================
@@ -617,29 +774,36 @@ class MarketService {
     const userLat = location.coords.latitude;
     const userLon = location.coords.longitude;
     const cityRaw = (location.cityName || '').toLowerCase();
-    const activeCityId = (location.matchedCityId || cityRaw.split(',')[0].trim()).replace(/[^a-z]/g, '');
+    
+    // Resolve matched city ID with strict city name mapping
+    let activeCityId = (location.matchedCityId || '').toLowerCase();
+    if (cityRaw.includes('hyderabad') || cityRaw.includes('secunderabad')) activeCityId = 'hyderabad';
+    else if (cityRaw.includes('delhi') || cityRaw.includes('ncr')) activeCityId = 'delhi';
+    else if (cityRaw.includes('mumbai') || cityRaw.includes('bombay')) activeCityId = 'mumbai';
+    else if (cityRaw.includes('bangalore') || cityRaw.includes('bengaluru')) activeCityId = 'bangalore';
+    else if (cityRaw.includes('vijayawada') || cityRaw.includes('amaravati') || cityRaw.includes('klef')) activeCityId = 'vijayawada';
+    else if (cityRaw.includes('jaipur')) activeCityId = 'jaipur';
+    else if (cityRaw.includes('goa')) activeCityId = 'goa';
+    else if (cityRaw.includes('london')) activeCityId = 'london';
+    else if (cityRaw.includes('kyoto')) activeCityId = 'kyoto';
 
     // 1. Identify which curated region the user is currently located in
     const regionalMarkets = CURATED_MARKETS.filter(m => {
-      // Check city ID match
-      if (m.cityId === activeCityId) return true;
-      // Check city name string inclusion
-      if (cityRaw.includes(m.cityId || '')) return true;
-      if (cityRaw.includes(m.city.toLowerCase())) return true;
-      if (m.city.toLowerCase().includes(activeCityId)) return true;
+      // Direct cityId match
+      if (m.cityId && activeCityId && m.cityId === activeCityId) return true;
 
-      // Distance check: within 75 km of the market cluster
+      // Geodesic distance check (within 55 km of market location)
       const dist = getDistance(
         { latitude: userLat, longitude: userLon },
         { latitude: m.location.latitude, longitude: m.location.longitude }
       );
-      return dist <= 75000;
+      return dist <= 55000;
     });
 
     let results: LocalMarket[] = [];
 
     if (regionalMarkets.length > 0) {
-      // User is in a known hub city (Delhi, Mumbai, Bangalore, Hyderabad, Jaipur, Goa, Vijayawada, London, Kyoto)
+      // User is in a known hub city (Hyderabad, Delhi, Mumbai, Bangalore, Jaipur, Goa, Vijayawada, London, Kyoto)
       results = [...regionalMarkets];
     } else {
       // 2. Dynamic Live OSM Marketplace Discovery for any custom or uncurated city/coordinates
@@ -669,21 +833,51 @@ class MarketService {
       results = results.filter(m => m.specialty === specialtyFilter);
     }
 
-    // 5. Filter by search query
+    // 5. Intelligent Fuzzy Search using Fuse.js library
     if (searchQuery && searchQuery.trim().length > 0) {
-      const q = searchQuery.toLowerCase().trim();
-      results = results.filter(m => 
-        m.name.toLowerCase().includes(q) ||
-        m.famousFor.toLowerCase().includes(q) ||
-        m.specialtyLabel.toLowerCase().includes(q) ||
-        m.address.toLowerCase().includes(q) ||
-        m.whatToBuy.some(item => item.toLowerCase().includes(q)) ||
-        m.tags.some(tag => tag.toLowerCase().includes(q))
-      );
+      const q = searchQuery.trim();
+      const fuseOptions = {
+        keys: [
+          { name: 'name', weight: 0.35 },
+          { name: 'specialtyLabel', weight: 0.20 },
+          { name: 'whatToBuy', weight: 0.20 },
+          { name: 'famousFor', weight: 0.15 },
+          { name: 'tags', weight: 0.15 },
+          { name: 'famousLandmarkOrFood', weight: 0.10 },
+          { name: 'address', weight: 0.05 },
+          { name: 'city', weight: 0.05 }
+        ],
+        threshold: 0.4,
+        ignoreLocation: true,
+        includeScore: true,
+        minMatchCharLength: 2,
+      };
+
+      // Search within currently filtered local city markets
+      const localFuse = new Fuse(results, fuseOptions);
+      const localMatches = localFuse.search(q);
+
+      if (localMatches.length > 0) {
+        results = localMatches.map(m => m.item);
+      } else {
+        // If not found in current city, search across all global/national markets with distance
+        const allWithDist = CURATED_MARKETS.map(market => ({
+          ...market,
+          distanceMeters: getDistance(
+            { latitude: userLat, longitude: userLon },
+            { latitude: market.location.latitude, longitude: market.location.longitude }
+          )
+        }));
+        const globalFuse = new Fuse(allWithDist, fuseOptions);
+        const globalMatches = globalFuse.search(q);
+        results = globalMatches.map(m => m.item);
+      }
     }
 
-    // 6. Sort by shortest distance first
-    results.sort((a, b) => (a.distanceMeters || 0) - (b.distanceMeters || 0));
+    // 6. Sort by shortest distance first (unless fuzzy search already ranked items)
+    if (!searchQuery || !searchQuery.trim()) {
+      results.sort((a, b) => (a.distanceMeters || 0) - (b.distanceMeters || 0));
+    }
 
     return results;
   }

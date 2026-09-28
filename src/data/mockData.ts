@@ -1,9 +1,15 @@
 import { Place, EmergencyDossier, CountryBriefing, CurrencyRates, WeatherReport, OfflinePack, RouteResponse } from '../types';
 
 export const CITIES = [
+  { id: 'hyderabad', name: 'Hyderabad', country: 'India', countryCode: 'IN', lat: 17.3850, lng: 78.4867 },
+  { id: 'delhi', name: 'New Delhi & NCR', country: 'India', countryCode: 'IN', lat: 28.6139, lng: 77.2090 },
+  { id: 'mumbai', name: 'South Mumbai', country: 'India', countryCode: 'IN', lat: 18.9322, lng: 72.8311 },
+  { id: 'bangalore', name: 'Bengaluru (Bangalore)', country: 'India', countryCode: 'IN', lat: 12.9716, lng: 77.5946 },
+  { id: 'vijayawada', name: 'Vijayawada / Amaravati (KLEF)', country: 'India', countryCode: 'IN', lat: 16.4422, lng: 80.6253 },
+  { id: 'jaipur', name: 'Jaipur (Pink City)', country: 'India', countryCode: 'IN', lat: 26.9124, lng: 75.7873 },
+  { id: 'goa', name: 'Goa Coast', country: 'India', countryCode: 'IN', lat: 15.4909, lng: 73.8278 },
   { id: 'kyoto', name: 'Gion, Kyoto', country: 'Japan', countryCode: 'JP', lat: 35.0037, lng: 135.7772 },
   { id: 'london', name: 'Central London', country: 'United Kingdom', countryCode: 'GB', lat: 51.5074, lng: -0.1278 },
-  { id: 'mumbai', name: 'South Mumbai', country: 'India', countryCode: 'IN', lat: 18.9322, lng: 72.8311 },
   { id: 'newyork', name: 'Manhattan, New York', country: 'United States', countryCode: 'US', lat: 40.7128, lng: -74.0060 },
   { id: 'sydney', name: 'Sydney CBD', country: 'Australia', countryCode: 'AU', lat: -33.8688, lng: 151.2093 },
   { id: 'montreal', name: 'Old Montreal', country: 'Canada', countryCode: 'CA', lat: 45.5017, lng: -73.5673 },

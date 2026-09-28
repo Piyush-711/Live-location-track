@@ -18,6 +18,7 @@ import { Place, RouteResponse, WeatherReport } from './types';
 import { storage } from './services/storage';
 import { api } from './services/api';
 import { useLiveLocation } from './hooks/useLiveLocation';
+import { CITIES } from './data/mockData';
 
 export const App: React.FC = () => {
   // Navigation tabs
@@ -55,6 +56,30 @@ export const App: React.FC = () => {
   const handleSelectCity = (cityId: string) => {
     setActiveCityId(cityId);
     storage.setActiveCityId(cityId);
+    const targetCity = CITIES.find(c => c.id === cityId);
+    if (targetCity) {
+      setCustomLocation({
+        latitude: targetCity.lat,
+        longitude: targetCity.lng,
+        cityName: targetCity.name,
+        countryCode: targetCity.countryCode
+      });
+    }
+  };
+
+  // Switch Custom Location (e.g. searched "Hyderabad" or custom address)
+  const handleSelectCustomLocation = (custom: {
+    latitude: number;
+    longitude: number;
+    cityName: string;
+    countryCode?: string;
+  }) => {
+    const norm = custom.cityName.toLowerCase();
+    const matched = CITIES.find(c => norm.includes(c.id) || norm.includes(c.name.toLowerCase().split(' ')[0]));
+    const resolvedCityId = matched ? matched.id : custom.cityName.split(',')[0].trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    setActiveCityId(resolvedCityId);
+    storage.setActiveCityId(resolvedCityId);
+    setCustomLocation(custom);
   };
 
   // Start route preview flow
@@ -196,7 +221,7 @@ export const App: React.FC = () => {
             activeCityId={activeCityId}
             currentLocationName={location.cityName}
             onSelectCity={handleSelectCity}
-            onSelectCustomLocation={(custom) => setCustomLocation(custom)}
+            onSelectCustomLocation={handleSelectCustomLocation}
             onRequestLiveGPS={requestLiveGPS}
             onClose={() => setShowCityPicker(false)}
           />

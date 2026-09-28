@@ -28,14 +28,24 @@ interface RecentLocationItem {
 
 const POPULAR_HUBS = [
   {
-    id: 'vijayawada',
-    name: 'Vijayawada / Amaravati (KLEF)',
-    desc: 'Undavalli Caves, Kondapalli Fort, Bhavani Island',
+    id: 'hyderabad',
+    name: 'Hyderabad',
+    desc: 'Charminar, Golconda Fort, Hitec City, Hussain Sagar',
     country: 'India',
     countryCode: 'IN',
-    lat: 16.4422,
-    lng: 80.6253,
-    icon: 'castle'
+    lat: 17.3850,
+    lng: 78.4867,
+    icon: 'mosque'
+  },
+  {
+    id: 'delhi',
+    name: 'New Delhi & NCR',
+    desc: 'Red Fort, Qutub Minar, India Gate',
+    country: 'India',
+    countryCode: 'IN',
+    lat: 28.6139,
+    lng: 77.2090,
+    icon: 'account_balance'
   },
   {
     id: 'mumbai',
@@ -46,6 +56,46 @@ const POPULAR_HUBS = [
     lat: 18.9220,
     lng: 72.8347,
     icon: 'location_city'
+  },
+  {
+    id: 'bangalore',
+    name: 'Bengaluru (Bangalore)',
+    desc: 'MG Road, Lalbagh, Cubbon Park, Vidhana Soudha',
+    country: 'India',
+    countryCode: 'IN',
+    lat: 12.9716,
+    lng: 77.5946,
+    icon: 'park'
+  },
+  {
+    id: 'vijayawada',
+    name: 'Vijayawada / Amaravati (KLEF)',
+    desc: 'Undavalli Caves, Kondapalli Fort, Bhavani Island',
+    country: 'India',
+    countryCode: 'IN',
+    lat: 16.4422,
+    lng: 80.6253,
+    icon: 'castle'
+  },
+  {
+    id: 'jaipur',
+    name: 'Jaipur (Pink City)',
+    desc: 'Hawa Mahal, Amber Fort, City Palace, Johari Bazaar',
+    country: 'India',
+    countryCode: 'IN',
+    lat: 26.9124,
+    lng: 75.7873,
+    icon: 'fort'
+  },
+  {
+    id: 'goa',
+    name: 'Goa Coast',
+    desc: 'Baga & Calangute Beaches, Aguada Fort',
+    country: 'India',
+    countryCode: 'IN',
+    lat: 15.4909,
+    lng: 73.8278,
+    icon: 'beach_access'
   },
   {
     id: 'kyoto',
@@ -86,26 +136,6 @@ const POPULAR_HUBS = [
     lat: 48.8566,
     lng: 2.3522,
     icon: 'tour'
-  },
-  {
-    id: 'goa',
-    name: 'Goa Coast',
-    desc: 'Baga & Calangute Beaches, Aguada Fort',
-    country: 'India',
-    countryCode: 'IN',
-    lat: 15.4909,
-    lng: 73.8278,
-    icon: 'beach_access'
-  },
-  {
-    id: 'delhi',
-    name: 'New Delhi & NCR',
-    desc: 'Red Fort, Qutub Minar, India Gate',
-    country: 'India',
-    countryCode: 'IN',
-    lat: 28.6139,
-    lng: 77.2090,
-    icon: 'account_balance'
   }
 ];
 
@@ -495,7 +525,21 @@ export const CityPickerModal: React.FC<CityPickerModalProps> = ({
               </span>
               <div className="grid grid-cols-1 gap-2">
                 {POPULAR_HUBS.map((hub) => {
-                  const isSelected = activeCityId === hub.id || hub.name.toLowerCase().includes(currentLocationName.toLowerCase());
+                  const isSelected = (() => {
+                    const cur = (currentLocationName || '').toLowerCase().trim();
+                    if (hub.id === 'mumbai') return cur.includes('mumbai') || cur.includes('bombay');
+                    if (hub.id === 'hyderabad') return cur.includes('hyderabad') || cur.includes('secunderabad');
+                    if (hub.id === 'delhi') return cur.includes('delhi') || cur.includes('ncr') || cur.includes('new delhi');
+                    if (hub.id === 'bangalore') return cur.includes('bangalore') || cur.includes('bengaluru');
+                    if (hub.id === 'vijayawada') return cur.includes('vijayawada') || cur.includes('amaravati') || cur.includes('klef');
+                    if (hub.id === 'jaipur') return cur.includes('jaipur');
+                    if (hub.id === 'goa') return cur.includes('goa');
+                    if (hub.id === 'kyoto') return cur.includes('kyoto');
+                    if (hub.id === 'london') return cur.includes('london');
+                    if (hub.id === 'newyork') return cur.includes('new york') || cur.includes('manhattan');
+                    if (hub.id === 'paris') return cur.includes('paris');
+                    return activeCityId === hub.id && cur.includes(hub.id);
+                  })();
                   return (
                     <button
                       key={hub.id}

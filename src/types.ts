@@ -80,6 +80,12 @@ export interface LocalMarket {
   bargainingTip: string;
   imageUrl?: string;
   tags: string[];
+  priceRange?: string;
+  bestTimeToVisit?: string;
+  paymentMethods?: string[];
+  parkingTip?: string;
+  famousLandmarkOrFood?: string;
+  bargainingLevel?: 'High (Quote 40-50% less)' | 'Medium (15-25% discount)' | 'Fixed / Wholesale trade rate';
 }
 
 export type RouteMode = 'walking' | 'driving';

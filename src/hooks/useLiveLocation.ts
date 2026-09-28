@@ -43,8 +43,20 @@ export function calculateDistanceMeters(
 }
 
 // Find closest supported pilot city node
-export function findClosestCity(lat: number, lng: number) {
-  let closest = CITIES[0];
+export function findClosestCity(lat: number, lng: number, cityName?: string) {
+  if (cityName) {
+    const norm = cityName.toLowerCase();
+    const nameMatch = CITIES.find(c => 
+      norm.includes(c.id) || 
+      norm.includes(c.name.toLowerCase().split(' ')[0]) ||
+      c.name.toLowerCase().includes(norm)
+    );
+    if (nameMatch) {
+      return { city: nameMatch, distance: 0 };
+    }
+  }
+
+  let closest: typeof CITIES[0] | null = null;
   let minDistance = Infinity;
 
   for (const city of CITIES) {
@@ -54,6 +66,12 @@ export function findClosestCity(lat: number, lng: number) {
       closest = city;
     }
   }
+
+  // If user is more than 60km away from any pilot hub, return null (custom location)
+  if (minDistance > 60000) {
+    return { city: null, distance: minDistance };
+  }
+
   return { city: closest, distance: minDistance };
 }
 
@@ -65,7 +83,7 @@ export function useLiveLocation(selectedCityId: string) {
       const saved = localStorage.getItem('local_app_custom_location');
       if (saved) {
         const payload: CustomLocationPayload = JSON.parse(saved);
-        const { city } = findClosestCity(payload.latitude, payload.longitude);
+        const { city } = findClosestCity(payload.latitude, payload.longitude, payload.cityName);
         return {
           coords: { latitude: payload.latitude, longitude: payload.longitude },
           accuracyMeters: 5,
@@ -108,7 +126,7 @@ export function useLiveLocation(selectedCityId: string) {
       localStorage.setItem('local_app_custom_location', JSON.stringify(custom));
     } catch {}
 
-    const { city } = findClosestCity(custom.latitude, custom.longitude);
+    const { city } = findClosestCity(custom.latitude, custom.longitude, custom.cityName);
 
     setLocation({
       coords: { latitude: custom.latitude, longitude: custom.longitude },
@@ -160,8 +178,8 @@ export function useLiveLocation(selectedCityId: string) {
           speed: speed ? Math.round(speed * 3.6) : null,
           status: 'fixed',
           cityName: prev.cityName && prev.cityName !== selectedCity.name ? prev.cityName : (city ? city.name : `${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`),
-          countryCode: prev.countryCode || (city ? city.countryCode : 'JP'),
-          matchedCityId: city ? city.id : selectedCityId,
+          countryCode: prev.countryCode || (city ? city.countryCode : 'IN'),
+          matchedCityId: city ? city.id : 'custom',
           lastUpdated: new Date(pos.timestamp).toISOString(),
           isSimulated: false,
           isCustom: false
