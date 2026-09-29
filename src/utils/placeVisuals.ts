@@ -103,11 +103,11 @@ const CURATED_IMAGE_COLLECTIONS: Record<string, string[]> = {
  * for a place or category. If no image is available, this provides the requested
  * "hospital icon, shop icon, cafe icon, or location mark" representation.
  */
-export function getCategoryVisualMeta(category: Category, placeName?: string): CategoryVisualMeta {
-  const name = (placeName || '').toLowerCase();
+export function getCategoryVisualMeta(category: Category, _placeName?: string): CategoryVisualMeta {
+  // A provider's explicit category takes precedence over ambiguous name fragments.
 
   // 1. Café / Coffee (e.g. Starbucks)
-  if (name.includes('starbucks') || name.includes('coffee') || name.includes('cafe') || name.includes('café') || name.includes('bakery') || category === 'cafe') {
+  if (category === 'cafe') {
     return {
       icon: 'local_cafe',
       label: 'Café',
@@ -122,7 +122,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 2. Shops, Supermarkets, Grocers, Malls, Stores
-  if (name.includes('supermarket') || name.includes('grocer') || name.includes('mart') || name.includes('shop') || name.includes('store') || name.includes('bazaar') || name.includes('retail') || category === 'supermarket') {
+  if (category === 'supermarket') {
     return {
       icon: 'storefront',
       label: 'Shop',
@@ -137,7 +137,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 3. Hospitals, Emergency Rooms, Clinics, Healthcare
-  if (name.includes('hospital') || name.includes('clinic') || name.includes('aiims') || name.includes('manipal') || name.includes('casualty') || name.includes('trauma') || name.includes('health') || category === 'hospital') {
+  if (category === 'hospital') {
     return {
       icon: 'local_hospital',
       label: 'Hospital',
@@ -152,7 +152,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 4. Pharmacy & Dispensary
-  if (name.includes('pharmacy') || name.includes('chemist') || name.includes('med') || name.includes('druggist') || category === 'pharmacy') {
+  if (category === 'pharmacy') {
     return {
       icon: 'medication',
       label: 'Pharmacy',
@@ -167,7 +167,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 5. ATMs & Banks
-  if (name.includes('atm') || name.includes('cash') || name.includes('bank') || name.includes('sbi') || category === 'atm') {
+  if (category === 'atm') {
     return {
       icon: 'atm',
       label: 'ATM',
@@ -182,7 +182,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 6. Raj Mahal, Palaces, Forts, Ancient Caves, Heritage Sites
-  if (name.includes('raj mahal') || name.includes('palace') || name.includes('mahal') || name.includes('fort') || name.includes('caves') || name.includes('monument') || name.includes('heritage') || category === 'historic') {
+  if (category === 'historic') {
     return {
       icon: 'castle',
       label: 'Heritage',
@@ -197,7 +197,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 7. Museums & Art Galleries
-  if (name.includes('museum') || name.includes('gallery') || name.includes('art') || name.includes('exhibit') || category === 'museum') {
+  if (category === 'museum') {
     return {
       icon: 'museum',
       label: 'Museum',
@@ -212,7 +212,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 8. Beaches, Coastal Waterfronts, Islands
-  if (name.includes('beach') || name.includes('sea') || name.includes('shore') || name.includes('coast') || name.includes('ocean') || category === 'beach') {
+  if (category === 'beach') {
     return {
       icon: 'beach_access',
       label: 'Beach',
@@ -227,7 +227,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 9. Police Stations & Outposts
-  if (name.includes('police') || name.includes('koban') || name.includes('station') && category === 'police' || category === 'police') {
+  if (category === 'police') {
     return {
       icon: 'local_police',
       label: 'Police',
@@ -242,7 +242,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 10. Transit Stops, Metro, Railway Stations, Bus Terminals
-  if (name.includes('bus') || name.includes('train') || name.includes('metro') || name.includes('railway') || category === 'transit_stop') {
+  if (category === 'transit_stop') {
     return {
       icon: 'train',
       label: 'Transit',
@@ -257,7 +257,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 11. Restaurant & Dining
-  if (category === 'restaurant' || name.includes('restaurant') || name.includes('diner') || name.includes('bistro')) {
+  if (category === 'restaurant') {
     return {
       icon: 'restaurant',
       label: 'Dining',
@@ -272,7 +272,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 12. Hotel & Lodging
-  if (category === 'hotel' || name.includes('hotel') || name.includes('resort') || name.includes('lodge')) {
+  if (category === 'hotel') {
     return {
       icon: 'hotel',
       label: 'Hotel',
@@ -287,7 +287,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 13. Tourist Attractions & Viewpoints
-  if (category === 'attraction' || name.includes('attraction') || name.includes('viewpoint') || name.includes('sight')) {
+  if (category === 'attraction') {
     return {
       icon: 'attractions',
       label: 'Attraction',
@@ -302,7 +302,7 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   }
 
   // 14. Fuel & Gas Stations
-  if (category === 'fuel' || name.includes('petrol') || name.includes('gas') || name.includes('fuel')) {
+  if (category === 'fuel') {
     return {
       icon: 'local_gas_station',
       label: 'Fuel',
@@ -330,102 +330,21 @@ export function getCategoryVisualMeta(category: Category, placeName?: string): C
   };
 }
 
-/**
- * Dynamically resolves an authentic, high-quality image URL for any place.
- * Returns the place's explicit `imageUrl` if provided, or deterministically
- * selects a curated high-resolution photo based on brand name or place category.
- */
+/** Category imagery is illustrative and does not verify a photograph of a business. */
 export function getDynamicPlaceImage(place: {
   name: string;
   category: Category;
   imageUrl?: string;
   tags?: string[];
 }): string | undefined {
-  // If explicitly assigned, respect it
-  if (place.imageUrl && place.imageUrl.trim().length > 10) {
-    return place.imageUrl;
+  if (place.imageUrl) {
+    try {
+      const url = new URL(place.imageUrl);
+      if (url.protocol === 'https:' && !url.username && !url.password) return url.href;
+    } catch { /* Ignore invalid or unsafe external image URLs. */ }
   }
-
   const name = (place.name || '').toLowerCase();
-  const seed = `${place.name}_${place.category}`;
-  const hash = hashString(seed);
-
-  // 1. Brand match: Starbucks
-  if (name.includes('starbucks')) {
-    const list = CURATED_IMAGE_COLLECTIONS.starbucks;
-    return list[hash % list.length];
-  }
-
-  // 2. Category match or keyword match
-  if (name.includes('cafe') || name.includes('coffee') || name.includes('bakery') || place.category === 'cafe') {
-    const list = CURATED_IMAGE_COLLECTIONS.cafe;
-    return list[hash % list.length];
-  }
-
-  if (name.includes('supermarket') || name.includes('grocer') || name.includes('mart') || name.includes('shop') || name.includes('store') || place.category === 'supermarket') {
-    const list = CURATED_IMAGE_COLLECTIONS.supermarket;
-    return list[hash % list.length];
-  }
-
-  if (name.includes('hospital') || name.includes('clinic') || name.includes('aiims') || name.includes('manipal') || place.category === 'hospital') {
-    const list = CURATED_IMAGE_COLLECTIONS.hospital;
-    return list[hash % list.length];
-  }
-
-  if (name.includes('pharmacy') || name.includes('chemist') || place.category === 'pharmacy') {
-    const list = CURATED_IMAGE_COLLECTIONS.pharmacy;
-    return list[hash % list.length];
-  }
-
-  if (name.includes('raj mahal') || name.includes('palace') || name.includes('fort') || name.includes('caves') || place.category === 'historic') {
-    const list = CURATED_IMAGE_COLLECTIONS.historic;
-    return list[hash % list.length];
-  }
-
-  if (name.includes('museum') || name.includes('gallery') || place.category === 'museum') {
-    const list = CURATED_IMAGE_COLLECTIONS.museum;
-    return list[hash % list.length];
-  }
-
-  if (name.includes('beach') || name.includes('sea') || place.category === 'beach') {
-    const list = CURATED_IMAGE_COLLECTIONS.beach;
-    return list[hash % list.length];
-  }
-
-  if (place.category === 'attraction' || name.includes('attraction')) {
-    const list = CURATED_IMAGE_COLLECTIONS.attraction;
-    return list[hash % list.length];
-  }
-
-  if (place.category === 'atm' || name.includes('atm') || name.includes('bank')) {
-    const list = CURATED_IMAGE_COLLECTIONS.atm;
-    return list[hash % list.length];
-  }
-
-  if (place.category === 'transit_stop' || name.includes('station') || name.includes('bus') || name.includes('train')) {
-    const list = CURATED_IMAGE_COLLECTIONS.transit_stop;
-    return list[hash % list.length];
-  }
-
-  if (place.category === 'police' || name.includes('police')) {
-    const list = CURATED_IMAGE_COLLECTIONS.police;
-    return list[hash % list.length];
-  }
-
-  if (place.category === 'restaurant') {
-    const list = CURATED_IMAGE_COLLECTIONS.restaurant;
-    return list[hash % list.length];
-  }
-
-  if (place.category === 'hotel') {
-    const list = CURATED_IMAGE_COLLECTIONS.hotel;
-    return list[hash % list.length];
-  }
-
-  if (place.category === 'fuel') {
-    const list = CURATED_IMAGE_COLLECTIONS.fuel;
-    return list[hash % list.length];
-  }
-
-  return undefined;
+  const collection = place.category === 'cafe' && name.includes('starbucks') ?
+    CURATED_IMAGE_COLLECTIONS.starbucks : CURATED_IMAGE_COLLECTIONS[place.category];
+  return collection?.[hashString(`${place.name}_${place.category}`) % collection.length];
 }

@@ -12,12 +12,14 @@ export const ReportCorrectionModal: React.FC<ReportCorrectionModalProps> = ({ pl
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [receipt, setReceipt] = useState<{ reportId: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description.trim()) return;
+    if (!description.trim() || submitting) return;
 
     setSubmitting(true);
+    setError(null);
     try {
       const res = await api.submitReport({
         placeId: place.id,
@@ -26,7 +28,7 @@ export const ReportCorrectionModal: React.FC<ReportCorrectionModalProps> = ({ pl
       });
       setReceipt({ reportId: res.reportId });
     } catch (err) {
-      console.error('Failed to submit report', err);
+      setError(err instanceof Error ? err.message : 'Unable to submit the report. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -57,7 +59,7 @@ export const ReportCorrectionModal: React.FC<ReportCorrectionModalProps> = ({ pl
             </div>
             <h3 className="text-base font-bold text-emerald-950">Thank you for your feedback</h3>
             <p className="text-xs text-emerald-800 leading-relaxed max-w-xs">
-              Your edit report has been logged and queued for OpenStreetMap community review.
+              Your edit report has been received for review.
             </p>
             <span className="px-3 py-1 rounded-full bg-white font-mono text-xs font-semibold text-emerald-800 border border-emerald-200 mt-1">
               Ticket #{receipt.reportId}
@@ -71,6 +73,7 @@ export const ReportCorrectionModal: React.FC<ReportCorrectionModalProps> = ({ pl
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+            {error && <p role="alert" className="text-xs text-rose-700">{error}</p>}
             <p className="text-xs text-slate-500 font-medium">
               Reporting an update for <strong className="text-slate-900">{place.name}</strong>
             </p>

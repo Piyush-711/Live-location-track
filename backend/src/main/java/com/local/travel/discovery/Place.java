@@ -22,5 +22,9 @@ public record Place(
         String triageInfo,
         String imageUrl
 ) {
+    public Place withDistance(int distance) {
+        return new Place(id, name, localizedName, category, distance, location, countryCode, city, address,
+                hours, source, sourceUpdatedAt, freshness, emergencyCapable, phone, tags, triageInfo, imageUrl);
+    }
     public record Hours(String status, String raw, String formatted) {}
 }

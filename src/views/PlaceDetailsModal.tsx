@@ -25,17 +25,20 @@ export const PlaceDetailsModal: React.FC<PlaceDetailsModalProps> = ({
   const dynamicImg = getDynamicPlaceImage(place);
 
   useEffect(() => {
-    setIsSaved(storage.isPlaceSaved(place.id));
+    const refresh = () => setIsSaved(storage.isPlaceSaved(place.id));
+    refresh();
+    setImgError(false);
+    return storage.subscribeSavedPlaces(refresh);
   }, [place.id]);
 
-  const handleToggleSave = () => {
-    const res = storage.toggleSavePlace(place);
-    setIsSaved(res.saved);
-    setNotification(res.saved ? 'Saved to local encrypted offline list' : 'Removed from offline list');
-    setTimeout(() => setNotification(null), 3000);
+  const handleToggleSave = async () => {
+    try {
+      const res = await storage.toggleSavePlace(place);
+      setNotification(res.saved ? 'Saved in this browser' : 'Removed from saved places');
+    } catch (err) { setNotification(err instanceof Error ? err.message : 'Unable to save this place.'); }
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (navigator.share) {
       navigator.share({
         title: place.name,
@@ -43,9 +46,10 @@ export const PlaceDetailsModal: React.FC<PlaceDetailsModalProps> = ({
         url: window.location.href
       }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(`${place.name} - ${place.address}`);
-      setNotification('Place coordinates & address copied to clipboard');
-      setTimeout(() => setNotification(null), 2500);
+      try {
+        await navigator.clipboard.writeText(`${place.name} - ${place.address} (${place.location.latitude}, ${place.location.longitude})`);
+        setNotification('Place coordinates & address copied to clipboard');
+      } catch { setNotification('Clipboard access is unavailable.'); }
     }
   };
 
@@ -126,7 +130,7 @@ export const PlaceDetailsModal: React.FC<PlaceDetailsModalProps> = ({
             {/* Floating Badges */}
             <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
               <span className="px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-sky-700 text-xs font-bold border border-sky-100 shadow-sm">
-                {place.hours.formatted || (place.hours.status === 'open' ? 'Open 24/7' : 'Hours Stated')}
+                {place.hours.formatted || (place.hours.status === 'open' ? 'Open now' : place.hours.status === 'closed' ? 'Closed' : 'Hours not confirmed')}
               </span>
               {place.emergencyCapable && (
                 <span className="px-3 py-1 rounded-full bg-rose-500/95 backdrop-blur-md text-white text-xs font-bold shadow-sm flex items-center gap-1">
@@ -221,15 +225,13 @@ export const PlaceDetailsModal: React.FC<PlaceDetailsModalProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-900">Operating Schedule</span>
               <span className="text-[11px] px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold">
-                Verified
+                Listed hours
               </span>
             </div>
 
             <div className="flex flex-col gap-2 pt-1 divide-y divide-slate-100">
-              {(place.operatingSchedule || [
-                { day: 'Monday - Friday', hours: '08:30 - 20:00', isOpenNow: true },
-                { day: 'Saturday - Sunday', hours: '09:00 - 18:00', isOpenNow: false }
-              ]).map((sched, idx) => (
+              {!place.operatingSchedule?.length && <p className="text-xs text-slate-500">{place.hours.raw || 'Opening hours are unavailable. Confirm with the place before travelling.'}</p>}
+              {(place.operatingSchedule || []).map((sched, idx) => (
                 <div key={idx} className="flex items-center justify-between pt-2 text-xs">
                   <span className="font-semibold text-slate-700">{sched.day}</span>
                   <span className="font-mono font-medium text-slate-500 flex items-center gap-1.5">
@@ -262,7 +264,7 @@ export const PlaceDetailsModal: React.FC<PlaceDetailsModalProps> = ({
           <div className="rounded-xl bg-slate-50 p-3 text-xs text-slate-500 flex flex-col gap-1 border border-slate-200/80">
             <div className="flex items-center justify-between">
               <span className="font-semibold">Source:</span>
-              <span className="text-slate-700">{place.source === 'CURATED_REGISTRY' ? 'Verified Travel Registry' : 'OpenStreetMap'}</span>
+              <span className="text-slate-700">{place.source === 'CURATED_REGISTRY' ? 'Local directory' : 'OpenStreetMap'}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="font-semibold">Coordinates:</span>

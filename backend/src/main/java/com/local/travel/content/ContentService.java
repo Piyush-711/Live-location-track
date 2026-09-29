@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
+import com.local.travel.common.error.AppException;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -20,11 +22,19 @@ public class ContentService {
     }
 
     public EmergencyDossier getEmergencyDossier(String countryCode) {
-        return dossiers.getOrDefault(countryCode.toUpperCase(), dossiers.get("JP"));
+        EmergencyDossier dossier = dossiers.get(countryCode.toUpperCase(Locale.ROOT));
+        if (dossier == null) throw unsupported();
+        return dossier;
     }
 
     public CountryBriefing getCountryBriefing(String countryCode) {
-        return briefings.getOrDefault(countryCode.toUpperCase(), briefings.get("JP"));
+        CountryBriefing briefing = briefings.get(countryCode.toUpperCase(Locale.ROOT));
+        if (briefing == null) throw unsupported();
+        return briefing;
+    }
+
+    private AppException unsupported() {
+        return new AppException("COVERAGE_UNSUPPORTED", "Coverage Not Supported", 422, "No country content is available for this country.");
     }
 
     private void seedContent() {

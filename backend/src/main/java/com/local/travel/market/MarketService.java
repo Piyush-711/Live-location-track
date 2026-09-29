@@ -36,10 +36,6 @@ public class MarketService {
 
         if (areaId != null && !areaId.isBlank() && !areaId.equalsIgnoreCase("all")) {
             baseList = repository.findByCityId(areaId);
-            // If none found by strict cityId, fallback to searching all if coordinates or query are present
-            if (baseList.isEmpty() && (userLat != null || (query != null && !query.isBlank()))) {
-                baseList = repository.findAll();
-            }
         } else {
             baseList = repository.findAll();
         }
@@ -77,9 +73,10 @@ public class MarketService {
         // Sort by distance if coordinates provided, otherwise by name
         if (userLat != null && userLon != null) {
             result = new ArrayList<>(result);
-            result.sort(Comparator.comparing(
-                    m -> m.distanceMeters() != null ? m.distanceMeters() : Integer.MAX_VALUE
-            ));
+            result.sort(Comparator.comparingInt((LocalMarket m) -> m.distanceMeters() != null ? m.distanceMeters() : Integer.MAX_VALUE).thenComparing(LocalMarket::id));
+        } else {
+            result = new ArrayList<>(result);
+            result.sort(Comparator.comparing(LocalMarket::name).thenComparing(LocalMarket::id));
         }
 
         return result;
@@ -127,6 +124,7 @@ public class MarketService {
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
                 * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        a = Math.max(0, Math.min(1, a));
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return (int) Math.round(R * c);
     }

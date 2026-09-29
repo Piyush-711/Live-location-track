@@ -20,11 +20,15 @@ export const RoutePreviewModal: React.FC<RoutePreviewModalProps> = ({
 }) => {
   const [route, setRoute] = useState<RouteResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [origin] = useState(userLocation);
 
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
-    api.getRoute('live', mode, userLocation, place.location)
+    setRoute(null);
+    setError(null);
+    api.getRoute('live', mode, origin, place.location)
       .then(res => {
         if (isMounted) {
           setRoute(res);
@@ -32,26 +36,19 @@ export const RoutePreviewModal: React.FC<RoutePreviewModalProps> = ({
         }
       })
       .catch(err => {
-        console.warn('Failed to fetch route, using fallback:', err);
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setError(err instanceof Error ? err.message : 'No route is available. Try again when the routing service is reachable.');
+          setLoading(false);
+        }
       });
 
     return () => { isMounted = false; };
-  }, [place, mode, userLocation]);
+  }, [place.id, place.location.latitude, place.location.longitude, mode, origin]);
 
-  const durationSeconds = route?.durationSeconds || (mode === 'walking' ? Math.round(place.distanceMeters / 1.2) : Math.round(place.distanceMeters / 6));
-  const distanceMeters = route?.distanceMeters || place.distanceMeters;
+  const durationSeconds = route?.durationSeconds ?? 0;
+  const distanceMeters = route?.distanceMeters ?? 0;
   const minutes = Math.max(1, Math.round(durationSeconds / 60));
-  const steps = route?.steps || [
-    {
-      id: 'step-1',
-      instruction: `Head directly toward ${place.name}`,
-      distanceMeters,
-      durationSeconds,
-      maneuver: 'depart' as const,
-      landmark: place.address
-    }
-  ];
+  const steps = route?.steps || [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-md animate-fadeIn">
@@ -87,14 +84,14 @@ export const RoutePreviewModal: React.FC<RoutePreviewModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-black text-slate-900 text-lg">
-                  {loading ? 'Calculating...' : `${minutes} min`}
+                  {loading ? 'Calculating...' : route ? `${minutes} min` : 'Route unavailable'}
                 </span>
                 <span className="text-xs text-slate-500 font-semibold">
-                  • {distanceMeters}m
+                  {route ? `• ${distanceMeters}m` : ''}
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
-                {mode === 'walking' ? 'Pedestrian Route' : 'Driving Route'} via OpenStreetMap
+                {mode === 'walking' ? 'Pedestrian route' : 'Driving route'} from the selected starting point
               </p>
             </div>
           </div>
@@ -120,6 +117,8 @@ export const RoutePreviewModal: React.FC<RoutePreviewModalProps> = ({
 
         {/* Route Steps Header */}
         <div className="p-5 flex-1 flex flex-col gap-3">
+          {error && <p role="alert" className="rounded-xl p-3 bg-amber-50 text-amber-900 text-sm">{error}</p>}
+          {route && <p className="text-xs text-slate-500">This is a route guide. Steps advance manually; automatic GPS guidance and rerouting are unavailable.</p>}
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-900">
               Turn-by-Turn Guidance ({steps.length} Steps)
@@ -188,33 +187,12 @@ export const RoutePreviewModal: React.FC<RoutePreviewModalProps> = ({
         {/* Sticky Bottom Actions */}
         <div className="sticky bottom-0 z-20 bg-white/95 backdrop-blur-md p-5 border-t border-slate-100 flex flex-col gap-2">
           <button
-            onClick={() => {
-              if (route) {
-                onStartLiveNavigation(route);
-              } else {
-                onStartLiveNavigation({
-                  graphVersion: 'osrm-fallback',
-                  profileVersion: 'walking-1.0',
-                  mode,
-                  distanceMeters,
-                  durationSeconds,
-                  geometry: {
-                    type: 'LineString',
-                    coordinates: [
-                      [userLocation.longitude, userLocation.latitude],
-                      [place.location.longitude, place.location.latitude]
-                    ]
-                  },
-                  steps,
-                  sourceUpdatedAt: new Date().toISOString(),
-                  coverageAreaId: 'live'
-                });
-              }
-            }}
-            className="w-full h-11 rounded-xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center gap-2 text-xs font-bold shadow-sm active:scale-98 transition-all cursor-pointer"
+            disabled={loading || !route || route.steps.length === 0}
+            onClick={() => { if (!loading && route?.steps.length) onStartLiveNavigation(route); }}
+            className="w-full h-11 rounded-xl bg-sky-600 hover:bg-sky-700 text-white flex items-center justify-center gap-2 text-xs font-bold shadow-sm active:scale-98 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">play_arrow</span>
-            <span>Start Live Navigation</span>
+            <span>Open Route Guide</span>
           </button>
 
           <button

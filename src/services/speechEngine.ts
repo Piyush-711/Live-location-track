@@ -4,6 +4,8 @@ import { storage } from './storage';
 class SpeechEngineService {
   private audioCtx: AudioContext | null = null;
   private volumeMultiplier: number = 0.8;
+  private scheduledSpeech: ReturnType<typeof setTimeout> | undefined;
+  private generation = 0;
 
   constructor() {
     const settings = storage.getVoiceSettings();
@@ -19,7 +21,7 @@ class SpeechEngineService {
       }
     }
     if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume();
+      void this.audioCtx.resume().catch(() => undefined);
     }
     return this.audioCtx;
   }
@@ -49,6 +51,7 @@ class SpeechEngineService {
 
       osc.connect(gain);
       gain.connect(ctx.destination);
+      osc.onended = () => { osc.disconnect(); gain.disconnect(); };
 
       const now = ctx.currentTime;
 
@@ -95,34 +98,39 @@ class SpeechEngineService {
     }
 
     try {
-      window.speechSynthesis.cancel(); // Cancel any lingering utterances
+      this.stop();
+      const generation = this.generation;
 
       const utterance = new SpeechSynthesisUtterance(text);
       const settings = storage.getVoiceSettings();
 
-      utterance.rate = settings.speechRate || 1.0;
+      utterance.rate = Number.isFinite(settings.speechRate) ? Math.min(2, Math.max(0.5, settings.speechRate)) : 1;
+      this.updateVolume(settings.volumeMode);
       utterance.volume = this.volumeMultiplier;
       utterance.lang = settings.language || 'en-US';
 
       // Pick high quality voice if available
       const voices = window.speechSynthesis.getVoices();
-      const preferred = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Google') || v.name.includes('Enhanced')));
+      const language = utterance.lang.toLowerCase().split('-')[0];
+      const matchingVoices = voices.filter(v => v.lang.toLowerCase().split('-')[0] === language);
+      const preferred = matchingVoices.find(v => /Natural|Neural|Google|Enhanced/.test(v.name)) || matchingVoices[0];
       if (preferred) {
         utterance.voice = preferred;
       }
 
-      utterance.onend = () => {
-        if (onEnd) onEnd();
+      let ended = false;
+      const finish = () => {
+        if (!ended && generation === this.generation) { ended = true; onEnd?.(); }
       };
-      utterance.onerror = () => {
-        if (onEnd) onEnd();
-      };
+      utterance.onend = finish;
+      utterance.onerror = finish;
 
       // Play subtle pre-speech notification chime
       if (settings.chimesEnabled) {
         this.playAcousticChime('turn');
-        setTimeout(() => {
-          window.speechSynthesis.speak(utterance);
+        this.scheduledSpeech = setTimeout(() => {
+          this.scheduledSpeech = undefined;
+          if (generation === this.generation) window.speechSynthesis.speak(utterance);
         }, 150);
       } else {
         window.speechSynthesis.speak(utterance);
@@ -134,6 +142,9 @@ class SpeechEngineService {
   }
 
   public stop(): void {
+    this.generation++;
+    if (this.scheduledSpeech !== undefined) clearTimeout(this.scheduledSpeech);
+    this.scheduledSpeech = undefined;
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }

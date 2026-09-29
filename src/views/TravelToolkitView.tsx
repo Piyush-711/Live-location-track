@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CountryBriefing, CurrencyRates, WeatherReport } from '../types';
 import { api } from '../services/api';
 import { CITIES } from '../data/mockData';
@@ -64,7 +64,7 @@ const PAYMENT_GUIDES: Record<string, {
 
 export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCityId, liveCountryCode, location }) => {
   const activeCity = CITIES.find(c => c.id === activeCityId) || CITIES[0];
-  const effectiveCountry = liveCountryCode || (location?.countryCode) || activeCity.countryCode;
+  const effectiveCountry = location ? location.countryCode : liveCountryCode || activeCity.countryCode;
   const effectiveCityName = location?.cityName || activeCity.name;
   const effectiveCoords = location?.coords;
 
@@ -90,70 +90,66 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
   );
   const [inputAmount, setInputAmount] = useState('100');
 
-  // Google Maps / Places Engine settings
-  const [googleApiKey, setGoogleApiKey] = useState(() => {
-    return typeof window !== 'undefined' ? localStorage.getItem('google_places_api_key') || '' : '';
-  });
-  const [keySavedFeedback, setKeySavedFeedback] = useState(false);
+  const mountedRef = useRef(false);
+  const weatherRequestRef = useRef(0);
+  const ratesPendingRef = useRef(false);
+  const weatherLat = effectiveCoords ? Number(effectiveCoords.latitude.toFixed(2)) : undefined;
+  const weatherLng = effectiveCoords ? Number(effectiveCoords.longitude.toFixed(2)) : undefined;
+  const [briefingError, setBriefingError] = useState<string | null>(null);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; weatherRequestRef.current += 1; };
+  }, []);
 
-  const handleSaveGoogleKey = (e: React.FormEvent) => {
-    e.preventDefault();
-    localStorage.setItem('google_places_api_key', googleApiKey.trim());
-    setKeySavedFeedback(true);
-    setTimeout(() => setKeySavedFeedback(false), 2500);
-  };
-
-  // Load rates and briefing
   const loadRates = useCallback(async (force = false) => {
+    if (ratesPendingRef.current) return;
+    ratesPendingRef.current = true;
+    if (force) setIsRefreshingRates(true);
     try {
-      if (force) setIsRefreshingRates(true);
       const data = await api.getFXRates(force);
+      if (!mountedRef.current) return;
       setRates(data);
-      if (force) {
-        setSyncFeedback('Rates synced with live market! Next 12h update scheduled.');
-        setTimeout(() => setSyncFeedback(null), 3500);
-      }
-    } catch (e) {
-      console.warn('Failed to load rates', e);
-      if (force) {
-        setSyncFeedback('Unable to reach live rates. Retaining cached data.');
-        setTimeout(() => setSyncFeedback(null), 3500);
-      }
+      if (force) setSyncFeedback(data.isLive ? 'Exchange rates updated.' : 'Showing cached or reference rates; live rates are unavailable.');
+    } catch {
+      if (mountedRef.current) setSyncFeedback('Unable to reach exchange rates. Retaining any cached data.');
     } finally {
-      if (force) setIsRefreshingRates(false);
+      ratesPendingRef.current = false;
+      if (mountedRef.current) setIsRefreshingRates(false);
     }
   }, []);
 
   const loadWeather = useCallback(async (force = false) => {
+    const request = ++weatherRequestRef.current;
+    if (force) setIsRefreshingWeather(true);
+    setWeatherFeedback(null);
     try {
-      if (force) setIsRefreshingWeather(true);
-      const data = await api.getWeather(activeCityId, effectiveCoords, effectiveCityName, force);
+      const data = await api.getWeather(activeCityId, weatherLat === undefined || weatherLng === undefined ? undefined : { latitude: weatherLat, longitude: weatherLng }, effectiveCityName, force);
+      if (!mountedRef.current || request !== weatherRequestRef.current) return;
       setWeather(data);
-      if (force) {
-        setWeatherFeedback('Weather updated with live atmospheric station data!');
-        setTimeout(() => setWeatherFeedback(null), 3000);
-      }
-    } catch (e) {
-      console.warn('Failed to load live weather', e);
+      if (force) setWeatherFeedback('Weather request completed.');
+    } catch {
+      if (mountedRef.current && request === weatherRequestRef.current) setWeatherFeedback('Weather is unavailable for this location.');
     } finally {
-      if (force) setIsRefreshingWeather(false);
+      if (mountedRef.current && request === weatherRequestRef.current) setIsRefreshingWeather(false);
     }
-  }, [activeCityId, effectiveCoords, effectiveCityName]);
+  }, [activeCityId, weatherLat, weatherLng, effectiveCityName]);
 
+  useEffect(() => { void loadRates(); }, [loadRates]);
   useEffect(() => {
-    api.getCountryBriefing(effectiveCountry).then(setBriefing);
-    loadRates(false);
-    loadWeather(false);
-
-    // Update target currency to match country
-    if (effectiveCountry === 'JP') setToCurrency('JPY');
-    else if (effectiveCountry === 'GB') setToCurrency('GBP');
-    else if (effectiveCountry === 'IN') setToCurrency('INR');
-    else if (effectiveCountry === 'AU') setToCurrency('AUD');
-    else if (effectiveCountry === 'CA') setToCurrency('CAD');
-    else setToCurrency('EUR');
-  }, [activeCityId, effectiveCountry, loadRates, loadWeather]);
-
+    setWeather(null);
+    void loadWeather();
+    return () => { weatherRequestRef.current += 1; };
+  }, [loadWeather]);
+  useEffect(() => {
+    let current = true;
+    setBriefing(null);
+    setBriefingError(null);
+    api.getCountryBriefing(effectiveCountry).then(data => { if (current) setBriefing(data); })
+      .catch(() => { if (current) setBriefingError('Travel facts are unavailable for the selected country.'); });
+    const currencies: Record<string, string> = { JP: 'JPY', GB: 'GBP', IN: 'INR', AU: 'AUD', CA: 'CAD', US: 'USD' };
+    setToCurrency(currencies[effectiveCountry] || 'EUR');
+    return () => { current = false; };
+  }, [effectiveCountry]);
   // Periodic 12-hour timer update and auto-sync check
   useEffect(() => {
     const updateCountdown = () => {
@@ -235,7 +231,7 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-sky-700 font-semibold text-xs border border-sky-100">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Live Sync Active</span>
+            <span>Travel information</span>
           </span>
         </div>
       </div>
@@ -256,7 +252,7 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
                   <span>Currency Converter</span>
                 </h2>
                 <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium mt-1">
-                  <span>{rates?.isLive ? 'Live Market Rates' : 'Standard Baseline'}</span>
+                  <span>{rates?.isLive ? 'Live Market Rates' : 'Cached / reference rates'}</span>
                   <span>•</span>
                   <span>Updates in {countdownText || '12 hours'}</span>
                 </div>
@@ -443,6 +439,8 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
 
         {/* Right Column: Country Info, Weather & Map Engine (5 Cols) */}
         <div className="flex flex-col gap-6 md:col-span-5">
+          {briefingError && <p role="status" className="text-sm text-slate-600">{briefingError}</p>}
+          {!weather && weatherFeedback && <p role="status" className="text-sm text-slate-600">{weatherFeedback}</p>}
           {/* Live Weather Card */}
           {weather && (
             <div className="rounded-2xl bg-white p-5 sm:p-6 shadow-sm border border-slate-200/80 flex flex-col gap-4">
@@ -511,7 +509,7 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
                   <span className="material-symbols-outlined text-sky-600 text-[18px]">public</span>
                   <span>{briefing.countryName} Travel Facts</span>
                 </h3>
-                <span className="text-xs font-semibold text-slate-400">Verified</span>
+                <span className="text-xs font-semibold text-slate-400">Reference</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5 text-xs">
@@ -553,29 +551,7 @@ export const TravelToolkitView: React.FC<TravelToolkitViewProps> = ({ activeCity
               Real-world places, hospitals, transit hubs, and tourist attractions are retrieved live using OpenStreetMap and Photon geocoding.
             </p>
 
-            <form onSubmit={handleSaveGoogleKey} className="flex flex-col gap-2 pt-2 border-t border-slate-100">
-              <label className="text-xs font-semibold text-slate-700 flex items-center justify-between">
-                <span>Optional Google Places API Key:</span>
-                {keySavedFeedback && (
-                  <span className="text-emerald-600 font-bold text-[11px] animate-pulse">Saved!</span>
-                )}
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="password"
-                  placeholder="AIzaSy... (optional)"
-                  value={googleApiKey}
-                  onChange={(e) => setGoogleApiKey(e.target.value)}
-                  className="flex-1 px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-sky-500 font-mono"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-colors cursor-pointer"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
+
           </div>
         </div>
       </div>

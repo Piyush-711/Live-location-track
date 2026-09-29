@@ -1,139 +1,202 @@
 openapi: 3.0.3
 info:
-  title: Local Worldwide Travel Companion API
-  version: 8.0.0-final
-  description: >
-    Normative API field and wire contracts for Local, an offline-first,
-    high-reliability worldwide travel application. Adheres to RFC 9457 problem
-    details, strict validation, deterministic proximity ranking, and JWS ES256
-    signed offline packs.
+  title: Local Travel API
+  version: 8.1.0
+  description: |
+    Public browsing uses bundled demonstration datasets. Saved places are private,
+    durable records scoped to the validated JWT issuer and subject. JSON bodies are
+    limited to 64 KiB. Routing, signed packs, weather and FX return 503 until real
+    server providers are configured; the browser may use its independent providers.
+    Idempotency-Key replay is not implemented. Saved writes use conditional ETags.
 servers:
-  - url: https://api.localapp.internal/v1
-    description: Production Regional Gateway
-
+  - url: /v1
 paths:
   /coverage:
     get:
-      summary: Retrieve published capabilities and dataset version for selected area
+      summary: List actual capabilities for a bundled area
       parameters:
-        - name: areaId
-          in: query
-          required: true
-          schema:
-            type: string
-            example: kyoto
+        - { name: areaId, in: query, schema: { type: string, default: kyoto, pattern: '^[A-Za-z0-9_-]{1,80}$' } }
       responses:
         '200':
-          description: Coverage and dataset version metadata
-          headers:
-            ETag:
-              schema:
-                type: string
+          description: Only discovery is currently published as a server capability
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CoverageResponse'
-        '422':
-          description: Coverage unsupported for requested area
-          content:
-            application/problem+json:
-              schema:
-                $ref: '#/components/schemas/RFC9457Error'
-
+                type: object
+                properties:
+                  datasetVersion: { type: string }
+                  coverage:
+                    type: object
+                    properties:
+                      areaId: { type: string }
+                      countryCode: { type: string }
+                      supported: { type: boolean }
+                      capabilities: { type: array, items: { type: string, enum: [discovery] } }
+        '422': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
   /places/nearby:
     post:
-      summary: Nearby essentials search ranked deterministically by distance then ID
+      summary: Search bundled places by actual distance from the supplied origin
+      description: Results are ordered by distance, then ID. Reuse nextCursor with the same query.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/NearbyRequest' }
+      responses:
+        '200':
+          description: A bounded page of matching places
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NearbyResponse' }
+        default: { $ref: '#/components/responses/Problem' }
+  /places/search:
+    post:
+      summary: Search names, addresses and tags within one bundled area
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NearbyRequest'
+              type: object
+              required: [areaId, query]
+              properties:
+                areaId: { type: string, pattern: '^[A-Za-z0-9_-]{1,80}$' }
+                query: { type: string, minLength: 1, maxLength: 200 }
+                origin: { $ref: '#/components/schemas/Coordinates' }
+                limit: { type: integer, minimum: 1, maximum: 50, default: 20 }
       responses:
         '200':
-          description: Proximity-ranked places
+          description: Matching places, with partial true when more results exist
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/NearbyResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '422':
-          $ref: '#/components/responses/CoverageUnsupported'
-
+              schema: { $ref: '#/components/schemas/NearbyResponse' }
+        default: { $ref: '#/components/responses/Problem' }
   /places/{id}:
     get:
-      summary: Retrieve place details and provenance
+      summary: Retrieve a bundled place
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - { name: id, in: path, required: true, schema: { type: string } }
       responses:
         '200':
+          description: Place details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Place' }
+        default: { $ref: '#/components/responses/Problem' }
+  /markets:
+    get:
+      summary: List markets within the requested area
+      parameters:
+        - { name: areaId, in: query, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,80}$' } }
+        - { name: lat, in: query, description: Must be supplied together with lon, schema: { type: number, minimum: -90, maximum: 90 } }
+        - { name: lon, in: query, description: Must be supplied together with lat, schema: { type: number, minimum: -180, maximum: 180 } }
+        - { name: specialty, in: query, schema: { type: string, enum: [all, electronics, clothes, automobile, spices_food, jewelry, antiques_handicrafts, wholesale] } }
+        - { name: q, in: query, schema: { type: string, maxLength: 200 } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200':
+          description: Markets ordered by distance then ID when coordinates exist, otherwise name then ID
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Market' } }
+        default: { $ref: '#/components/responses/Problem' }
+  /markets/specialties:
+    get:
+      summary: List market specialties
+      responses:
+        '200':
+          description: Display metadata for market categories
+          content:
+            application/json:
+              schema: { type: array, items: { type: object } }
+        default: { $ref: '#/components/responses/Problem' }
+  /markets/{id}:
+    get:
+      summary: Retrieve one market
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Market details
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Market' }
+        default: { $ref: '#/components/responses/Problem' }
+  /content/{country}/{locale}:
+    get:
+      summary: Retrieve bundled emergency information for a supported country
+      description: Unsupported countries return 422 and never fall back to another country.
+      parameters:
+        - { $ref: '#/components/parameters/Country' }
+        - { name: locale, in: path, required: true, schema: { type: string, enum: [en-US] } }
+      responses:
+        '200':
+          description: Bundled country information; verify before production use
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlaceResponse'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-
+                type: object
+                properties:
+                  countryCode: { type: string }
+                  countryName: { type: string }
+                  city: { type: string }
+                  nationalHotlines: { type: array, items: { type: object } }
+                  emergencyPhrases: { type: array, items: { type: object } }
+                  verifiedER: { $ref: '#/components/schemas/Place' }
+        default: { $ref: '#/components/responses/Problem' }
+  /briefing/{country}:
+    get:
+      summary: Retrieve bundled travel information for a supported country
+      parameters:
+        - { $ref: '#/components/parameters/Country' }
+      responses:
+        '200':
+          description: Country briefing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  countryCode: { type: string }
+                  countryName: { type: string }
+                  city: { type: string }
+                  callingCode: { type: string }
+                  timezone: { type: string }
+                  currency: { type: string }
+                  currencySymbol: { type: string }
+                  powerPlugs: { type: string }
+                  voltage: { type: string }
+                  transitTip: { type: string }
+                  culturalEtiquette: { type: array, items: { type: string } }
+        default: { $ref: '#/components/responses/Problem' }
   /routes:
     post:
-      summary: Point-to-point route computation
+      summary: Route computation is currently unavailable on the server
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RouteRequest'
+              type: object
+              required: [areaId, origin, destination, mode]
+              properties:
+                areaId: { type: string, pattern: '^[A-Za-z0-9_-]{1,80}$' }
+                origin: { $ref: '#/components/schemas/Coordinates' }
+                destination: { $ref: '#/components/schemas/Coordinates' }
+                mode: { type: string, enum: [walking, driving] }
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RouteResponse'
-        '422':
-          $ref: '#/components/responses/CoverageUnsupported'
-
-  /content/{country}/{locale}:
-    get:
-      summary: Emergency numbers and verified facilities
-      parameters:
-        - name: country
-          in: path
-          required: true
-          schema:
-            type: string
-            example: JP
-        - name: locale
-          in: path
-          required: true
-          schema:
-            type: string
-            example: en-US
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ContentResponse'
-
+        '503': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
   /fx:
     get:
-      summary: Latest approved foreign exchange baseline rates
+      summary: Server exchange-rate provider is currently unavailable
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CurrencyRatesResponse'
-
+        '503': { $ref: '#/components/responses/Problem' }
   /weather:
     post:
-      summary: Coarse area weather snapshot
+      summary: Server weather provider is currently unavailable
       requestBody:
         required: true
         content:
@@ -142,325 +205,223 @@ paths:
               type: object
               required: [areaId]
               properties:
-                areaId:
-                  type: string
+                areaId: { type: string, pattern: '^[A-Za-z0-9_-]{1,80}$' }
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WeatherResponse'
-
+        '503': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
   /packs/{area}/manifest:
     get:
-      summary: Active signed offline pack pointer and manifest
+      summary: Signed pack artifacts have not been published
       parameters:
-        - name: area
-          in: path
-          required: true
-          schema:
-            type: string
+        - { name: area, in: path, required: true, schema: { type: string } }
       responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PackManifestResponse'
-
+        '503': { $ref: '#/components/responses/Problem' }
   /reports:
     post:
-      summary: Submit correction report
+      summary: Persist a correction report
+      description: Public intake is limited to 10 accepted reports per minute per source IP per instance. Configure shared rate limiting at ingress for multiple instances.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CorrectionReport'
+              type: object
+              required: [placeId, issueCategory, description]
+              properties:
+                placeId: { type: string, pattern: '^[A-Za-z0-9_:-]{1,128}$' }
+                issueCategory: { type: string, enum: [hours, closed, location, phone, safety] }
+                description: { type: string, minLength: 1, maxLength: 2000 }
+                reporterEmail: { type: string, format: email, maxLength: 254 }
       responses:
         '202':
-          description: Accepted for two-person review queue
+          description: Persisted successfully; this does not claim editorial review or publication
           content:
             application/json:
               schema:
                 type: object
+                required: [reportId, receivedAt, status]
                 properties:
-                  reportId:
-                    type: string
-                  receivedAt:
-                    type: string
-                    format: date-time
-
+                  reportId: { type: string, format: uuid }
+                  receivedAt: { type: string, format: date-time }
+                  status: { type: string, enum: [RECEIVED] }
+        '429':
+          description: Rate limit reached
+          headers:
+            Retry-After: { schema: { type: integer }, description: Retry delay in seconds }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+  /me/saved:
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: List only the authenticated account's active saves
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 100 } }
+        - { $ref: '#/components/parameters/Offset' }
+      responses:
+        '200':
+          description: Active saves ordered by updatedAt descending then placeId; Cache-Control is no-store
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/SavedState' } }
+        default: { $ref: '#/components/responses/Problem' }
+  /me/saved/{placeId}:
+    parameters:
+      - { name: placeId, in: path, required: true, schema: { type: string, pattern: '^[A-Za-z0-9_-]{1,128}$' } }
+    get:
+      security: [{ bearerAuth: [] }]
+      summary: Read the account's current saved state, including a deletion tombstone
+      responses:
+        '200': { $ref: '#/components/responses/SavedState' }
+        default: { $ref: '#/components/responses/Problem' }
+    put:
+      security: [{ bearerAuth: [] }]
+      summary: Create or restore a save without overwriting a concurrent change
+      description: |
+        For a new record send If-None-Match with value *. For an existing record,
+        including a tombstone, send exactly the ETag read from GET in If-Match.
+        Missing preconditions return 428; stale versions or creation races return 412.
+        Supplying both headers returns 400. Repeating the existing desired state
+        with its current ETag returns it unchanged. Read the current state after
+        an ambiguous network failure before deciding whether to retry.
+      parameters:
+        - { $ref: '#/components/parameters/IfMatch' }
+        - { name: If-None-Match, in: header, schema: { type: string, enum: ['*'] } }
+      responses:
+        '200': { $ref: '#/components/responses/SavedState' }
+        '412': { $ref: '#/components/responses/Problem' }
+        '428': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
+    delete:
+      security: [{ bearerAuth: [] }]
+      summary: Write an account-scoped tombstone using the current ETag
+      parameters:
+        - { $ref: '#/components/parameters/IfMatch' }
+      responses:
+        '200': { $ref: '#/components/responses/SavedState' }
+        '412': { $ref: '#/components/responses/Problem' }
+        '428': { $ref: '#/components/responses/Problem' }
+        default: { $ref: '#/components/responses/Problem' }
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: RS256 signature, HTTPS issuer, expiration, audience and nonempty subject are validated; no cookies or client account headers are accepted.
+  parameters:
+    Country:
+      name: country
+      in: path
+      required: true
+      schema: { type: string, pattern: '^[A-Za-z]{2}$' }
+    Offset:
+      name: offset
+      in: query
+      schema: { type: integer, minimum: 0, maximum: 10000, default: 0 }
+    IfMatch:
+      name: If-Match
+      in: header
+      description: Exact quoted ETag from the current saved record
+      schema: { type: string, maxLength: 256 }
   responses:
-    ValidationError:
-      description: RFC 9457 Validation Failure
+    Problem:
+      description: RFC 9457 error; validation is 400, unauthenticated is 401, missing objects are 404, stale versions are 412, excessive bodies are 413, unsupported coverage is 422, missing conditions are 428, unavailable providers are 503.
       content:
         application/problem+json:
-          schema:
-            $ref: '#/components/schemas/RFC9457Error'
-    NotFoundError:
-      description: RFC 9457 Resource Not Found
+          schema: { $ref: '#/components/schemas/Problem' }
+    SavedState:
+      description: Current saved state; Cache-Control is no-store
+      headers:
+        ETag: { description: Strong conditional-write token, schema: { type: string } }
       content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/RFC9457Error'
-    CoverageUnsupported:
-      description: Area outside supported coverage
-      content:
-        application/problem+json:
-          schema:
-            $ref: '#/components/schemas/RFC9457Error'
-
+        application/json:
+          schema: { $ref: '#/components/schemas/SavedState' }
   schemas:
-    RFC9457Error:
+    Problem:
       type: object
       required: [type, title, status, detail, instance, code]
       properties:
-        type:
-          type: string
-        title:
-          type: string
-        status:
-          type: integer
-        detail:
-          type: string
-        instance:
-          type: string
-        code:
-          type: string
-          enum:
-            - VALIDATION_FAILED
-            - AUTH_REQUIRED
-            - ACCESS_DENIED
-            - OBJECT_NOT_FOUND
-            - VERSION_CONFLICT
-            - IDEMPOTENCY_MISMATCH
-            - SYNC_RESET_REQUIRED
-            - COVERAGE_UNSUPPORTED
-            - ROUTE_TOO_COMPLEX
-            - RATE_LIMITED
-            - DEPENDENCY_UNAVAILABLE
-
-    CoverageResponse:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code: { type: string }
+    Coordinates:
       type: object
-      required: [datasetVersion, coverage]
+      required: [latitude, longitude]
       properties:
-        datasetVersion:
-          type: string
-        coverage:
-          type: object
-          properties:
-            areaId:
-              type: string
-            countryCode:
-              type: string
-            supported:
-              type: boolean
-            capabilities:
-              type: array
-              items:
-                type: string
-
+        latitude: { type: number, minimum: -90, maximum: 90 }
+        longitude: { type: number, minimum: -180, maximum: 180 }
     NearbyRequest:
       type: object
-      required: [areaId, origin, category, radiusMeters]
+      required: [areaId, origin]
       properties:
-        areaId:
-          type: string
-        origin:
-          type: object
-          required: [latitude, longitude]
-          properties:
-            latitude:
-              type: number
-            longitude:
-              type: number
-        category:
-          type: string
-          enum: [hospital, pharmacy, police, atm, restaurant, cafe, hotel, transit_stop, supermarket, fuel]
-        radiusMeters:
-          type: integer
-          minimum: 100
-          maximum: 10000
-        limit:
-          type: integer
-          default: 20
-          maximum: 50
-        cursor:
-          type: string
-
+        areaId: { type: string, pattern: '^[A-Za-z0-9_-]{1,80}$' }
+        origin: { $ref: '#/components/schemas/Coordinates' }
+        category: { type: string, enum: [all, hospital, pharmacy, police, atm, restaurant, cafe, hotel, transit_stop, supermarket, fuel] }
+        radiusMeters: { type: integer, minimum: 100, maximum: 10000, default: 2000 }
+        limit: { type: integer, minimum: 1, maximum: 50, default: 20 }
+        cursor: { type: string, pattern: '^[0-9]{1,6}$', description: Offset token from the same nearby query }
     NearbyResponse:
       type: object
       required: [items, datasetVersion, coverage, generatedAt, freshness, partial, nextCursor]
       properties:
-        datasetVersion:
-          type: string
-        coverage:
-          type: object
-        generatedAt:
-          type: string
-          format: date-time
-        freshness:
-          type: string
-          enum: [fresh, stale, unknown]
-        partial:
-          type: boolean
-        nextCursor:
-          type: string
-          nullable: true
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/PlaceResponse'
-
-    PlaceResponse:
+        items: { type: array, items: { $ref: '#/components/schemas/Place' } }
+        datasetVersion: { type: string }
+        coverage: { type: object }
+        generatedAt: { type: string, format: date-time }
+        freshness: { type: string }
+        partial: { type: boolean }
+        nextCursor: { type: string, nullable: true }
+    Place:
       type: object
-      required: [id, category, name, location, countryCode, datasetVersion, sourceUpdatedAt, freshness]
+      required: [id, name, category, location, distanceMeters, countryCode]
       properties:
-        id:
-          type: string
-        name:
-          type: string
-        localizedName:
-          type: string
-        category:
-          type: string
-        distanceMeters:
-          type: integer
-        location:
-          type: object
-          properties:
-            latitude:
-              type: number
-            longitude:
-              type: number
-        countryCode:
-          type: string
-        hours:
-          type: object
-          properties:
-            status:
-              type: string
-              enum: [open, closed, unknown]
-            raw:
-              type: string
-              nullable: true
-        source:
-          type: string
-        sourceUpdatedAt:
-          type: string
-          format: date-time
-        freshness:
-          type: string
-
-    RouteRequest:
+        id: { type: string }
+        name: { type: string }
+        localizedName: { type: string, nullable: true }
+        category: { type: string }
+        location: { $ref: '#/components/schemas/Coordinates' }
+        distanceMeters: { type: integer }
+        countryCode: { type: string }
+        city: { type: string }
+        address: { type: string }
+        phone: { type: string, nullable: true }
+        hours: { type: object }
+        source: { type: string }
+        sourceUpdatedAt: { type: string, format: date-time }
+        freshness: { type: string }
+        emergencyCapable: { type: boolean }
+        tags: { type: array, items: { type: string } }
+        triageInfo: { type: string, nullable: true }
+        imageUrl: { type: string, nullable: true }
+    Market:
       type: object
-      required: [areaId, origin, destination, mode]
+      required: [id, name, cityId, specialty, location]
       properties:
-        areaId:
-          type: string
-        origin:
-          type: object
-          properties:
-            latitude: { type: number }
-            longitude: { type: number }
-        destination:
-          type: object
-          properties:
-            latitude: { type: number }
-            longitude: { type: number }
-        mode:
-          type: string
-          enum: [walking, driving]
-
-    RouteResponse:
+        id: { type: string }
+        name: { type: string }
+        city: { type: string }
+        cityId: { type: string }
+        specialty: { type: string }
+        specialtyLabel: { type: string }
+        location: { $ref: '#/components/schemas/Coordinates' }
+        distanceMeters: { type: integer, nullable: true }
+        address: { type: string }
+        famousFor: { type: string }
+        whatToBuy: { type: array, items: { type: string } }
+        tags: { type: array, items: { type: string } }
+    SavedState:
       type: object
-      required: [graphVersion, profileVersion, mode, distanceMeters, durationSeconds, geometry, sourceUpdatedAt, coverageAreaId]
+      required: [placeId, saved, version, updatedAt, storeEpoch, generation, place]
       properties:
-        graphVersion:
-          type: string
-        profileVersion:
-          type: string
-        mode:
-          type: string
-        distanceMeters:
-          type: integer
-        durationSeconds:
-          type: integer
-        geometry:
-          type: object
-        sourceUpdatedAt:
-          type: string
-        coverageAreaId:
-          type: string
-
-    ContentResponse:
-      type: object
-      required: [countryCode, nationalHotlines, verifiedER]
-      properties:
-        countryCode:
-          type: string
-        nationalHotlines:
-          type: array
-          items:
-            type: object
-        verifiedER:
-          $ref: '#/components/schemas/PlaceResponse'
-
-    CurrencyRatesResponse:
-      type: object
-      required: [base, asOf, rates]
-      properties:
-        base:
-          type: string
-        asOf:
-          type: string
-        rates:
-          type: object
-          additionalProperties:
-            type: number
-
-    WeatherResponse:
-      type: object
-      required: [city, tempC, condition, observedAt]
-      properties:
-        city:
-          type: string
-        tempC:
-          type: number
-        condition:
-          type: string
-        observedAt:
-          type: string
-
-    PackManifestResponse:
-      type: object
-      required: [packId, areaId, version, schemaVersion, hashes, lengths, signature]
-      properties:
-        packId:
-          type: string
-        areaId:
-          type: string
-        version:
-          type: string
-        schemaVersion:
-          type: string
-        hashes:
-          type: object
-        lengths:
-          type: object
-        signature:
-          type: string
-
-    CorrectionReport:
-      type: object
-      required: [placeId, issueCategory, description]
-      properties:
-        placeId:
-          type: string
-        issueCategory:
-          type: string
-          enum: [hours, closed, location, phone, safety]
-        description:
-          type: string
-          maxLength: 2000
+        placeId: { type: string }
+        saved: { type: boolean }
+        version: { type: string, pattern: '^[0-9]+$' }
+        updatedAt: { type: string, format: date-time }
+        storeEpoch: { type: string, format: uuid }
+        generation: { type: string, enum: ['1'] }
+        place: { $ref: '#/components/schemas/Place' }

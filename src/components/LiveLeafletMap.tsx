@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Place, LocationCoordinates } from '../types';
-import { getCategoryVisualMeta, getDynamicPlaceImage } from '../utils/placeVisuals';
+import { createPlaceMarker } from './mapMarker';
+import { validCoordinates } from '../hooks/useLiveLocation';
 
 export type MapTileProvider = 'google_streets' | 'google_satellite' | 'google_terrain' | 'osm';
 
@@ -84,8 +85,10 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
 
   const [currentProvider, setCurrentProvider] = useState<MapTileProvider>(() => {
     if (defaultTileProvider) return defaultTileProvider;
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('app_map_provider') : null;
-    return (saved === 'google_satellite' || saved === 'osm' || saved === 'google_terrain') ? saved : 'google_streets';
+    try {
+      const saved = localStorage.getItem('app_map_provider');
+      return (saved === 'google_satellite' || saved === 'google_streets' || saved === 'google_terrain') ? saved : 'osm';
+    } catch { return 'osm'; }
   });
 
   // Initialize Map
@@ -106,7 +109,7 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
         center: [initialLat, initialLng],
         zoom: 15,
         zoomControl: false,
-        attributionControl: false
+        attributionControl: true
       });
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -123,6 +126,10 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
         if (mapInstanceRef.current) {
           mapInstanceRef.current.remove();
           mapInstanceRef.current = null;
+          userMarkerRef.current = null;
+          routeLayerRef.current = null;
+          currentTileLayerRef.current = null;
+          markersLayerRef.current = null;
         }
       } catch (err) {
         console.warn('Leaflet map remove warning:', err);
@@ -161,7 +168,7 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
   // Update User Marker and Relocate Map Dynamically on Location Change
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || !userLocation || typeof userLocation.latitude !== 'number' || typeof userLocation.longitude !== 'number' || isNaN(userLocation.latitude) || isNaN(userLocation.longitude)) return;
+    if (!map || !userLocation || !validCoordinates(userLocation.latitude, userLocation.longitude)) return;
 
     try {
       const userIcon = L.divIcon({
@@ -238,7 +245,7 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
         const timer = setTimeout(() => {
           try {
             map.invalidateSize();
-            if (userLocation && typeof userLocation.latitude === 'number' && !isNaN(userLocation.latitude)) {
+            if (!routeGeometry && !selectedPlace && validCoordinates(userLocation.latitude, userLocation.longitude)) {
               map.panTo([userLocation.latitude, userLocation.longitude]);
             }
           } catch {}
@@ -277,7 +284,7 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !selectedPlace || !selectedPlace.location) return;
-    if (typeof selectedPlace.location.latitude !== 'number' || isNaN(selectedPlace.location.latitude)) return;
+    if (!validCoordinates(selectedPlace.location.latitude, selectedPlace.location.longitude)) return;
 
     try {
       if (isMapVisible) {
@@ -303,73 +310,18 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
       const validPlaces = (places || []).filter(p =>
         p &&
         p.location &&
-        typeof p.location.latitude === 'number' &&
-        !isNaN(p.location.latitude) &&
-        typeof p.location.longitude === 'number' &&
-        !isNaN(p.location.longitude)
+        validCoordinates(p.location.latitude, p.location.longitude)
       );
 
       validPlaces.forEach((place) => {
         try {
           const isSelected = selectedPlace?.id === place.id;
-          const visualMeta = getCategoryVisualMeta(place.category, place.name);
-          const dynamicImg = getDynamicPlaceImage(place);
-
-          const bg = isSelected ? '#0284c7' : (
-            place.emergencyCapable ? '#ba1a1a' : visualMeta.hex
-          );
-
-          // Render circular photo if available, otherwise category emoji/icon
-          const iconOrPhoto = dynamicImg ? `
-            <img 
-              src="${dynamicImg}" 
-              alt=""
-              style="
-                width: 20px; 
-                height: 20px; 
-                border-radius: 9999px; 
-                object-fit: cover; 
-                border: 1.5px solid #ffffff; 
-                flex-shrink: 0;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.25);
-              " 
-            />
-          ` : `
-            <span style="font-size: 13px; line-height: 1; flex-shrink: 0;">${visualMeta.emoji}</span>
-          `;
-
-          const placeName = place.name || 'Place';
-          const shortName = placeName.split(/[\s,(-]/)[0] || placeName;
-          const distStr = typeof place.distanceMeters === 'number' ? `${place.distanceMeters}m` : '';
-
           const customIcon = L.divIcon({
             className: 'custom-poi-marker',
-            html: `
-              <div style="
-                background: ${bg};
-                color: #ffffff;
-                font-size: 11px;
-                font-weight: 800;
-                padding: 2px 8px 2px 3px;
-                border-radius: 9999px;
-                box-shadow: 0 3px 8px rgba(0,0,0,0.28);
-                border: 2px solid #ffffff;
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                white-space: nowrap;
-                transform: translate(-50%, -50%);
-                cursor: pointer;
-              ">
-                ${iconOrPhoto}
-                <span style="max-width: 90px; overflow: hidden; text-overflow: ellipsis; font-weight: 700;">${shortName}</span>
-                ${distStr ? `<span style="opacity: 0.85; font-size: 10px; font-weight: 600;">${distStr}</span>` : ''}
-              </div>
-            `,
+            html: createPlaceMarker(place, isSelected),
             iconSize: [95, 26],
             iconAnchor: [0, 0]
           });
-
           const marker = L.marker([place.location.latitude, place.location.longitude], {
             icon: customIcon
           });
@@ -402,8 +354,7 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
       if (routeGeometry && routeGeometry.coordinates && routeGeometry.coordinates.length > 0) {
         const validCoords = routeGeometry.coordinates.filter(c =>
           Array.isArray(c) &&
-          typeof c[0] === 'number' && !isNaN(c[0]) &&
-          typeof c[1] === 'number' && !isNaN(c[1])
+          validCoordinates(c[1], c[0])
         );
 
         if (validCoords.length > 0) {
@@ -437,7 +388,7 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            if (mapInstanceRef.current && userLocation) {
+            if (mapInstanceRef.current && validCoordinates(userLocation.latitude, userLocation.longitude)) {
               mapInstanceRef.current.flyTo([userLocation.latitude, userLocation.longitude], 15, {
                 animate: true,
                 duration: 0.8
@@ -482,4 +433,3 @@ export const LiveLeafletMap: React.FC<LiveLeafletMapProps> = ({
     </div>
   );
 };
-

@@ -19,7 +19,7 @@ export const LiveNavigationHUD: React.FC<LiveNavigationHUDProps> = ({
   onOpenEmergency
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [distanceRemaining, setDistanceRemaining] = useState(route.steps[0]?.distanceMeters || 45);
+  const [distanceRemaining, setDistanceRemaining] = useState(route.steps[0]?.distanceMeters || 0);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showStepsDrawer, setShowStepsDrawer] = useState(false);
 
@@ -36,7 +36,7 @@ export const LiveNavigationHUD: React.FC<LiveNavigationHUDProps> = ({
     return () => {
       speechEngine.stop();
     };
-  }, [currentStepIndex]);
+  }, [currentStepIndex, route]);
 
   // Simulate walking step advancement
   const handleAdvanceStep = () => {
@@ -47,7 +47,7 @@ export const LiveNavigationHUD: React.FC<LiveNavigationHUDProps> = ({
     } else {
       // Arrived!
       speechEngine.playAcousticChime('arrive');
-      speechEngine.speak("You have arrived at your destination.");
+      speechEngine.speak("End of the route guide. Check your location before proceeding.");
     }
   };
 
@@ -59,6 +59,8 @@ export const LiveNavigationHUD: React.FC<LiveNavigationHUDProps> = ({
     }
   };
 
+  if (!currentStep) return <div role="alert" className="fixed inset-0 z-50 bg-white p-6">This route has no directions. <button onClick={onEndNavigation}>Close route guide</button></div>;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-0 md:p-6 overflow-hidden">
       <div className="w-full h-full md:max-w-md md:h-[92vh] md:max-h-[880px] rounded-none md:rounded-3xl bg-white flex flex-col overflow-hidden shadow-2xl border-0 md:border md:border-slate-200">
@@ -67,11 +69,11 @@ export const LiveNavigationHUD: React.FC<LiveNavigationHUDProps> = ({
           <div className="flex items-center gap-2">
             <div className="px-2.5 py-1 rounded-full bg-slate-100 flex items-center gap-1.5 text-xs font-semibold text-slate-700">
               <span className={`w-1.5 h-1.5 rounded-full ${location.status === 'fixed' ? 'bg-emerald-500 animate-ping' : 'bg-sky-500'}`}></span>
-              <span>GPS ±{location.accuracyMeters}m</span>
+              <span>{location.status === 'fixed' && !location.isCustom && !location.isSimulated ? `GPS ±${location.accuracyMeters}m` : 'Selected location'}</span>
             </div>
             <div className="px-2.5 py-1 rounded-full bg-slate-100 flex items-center gap-1 text-xs font-semibold text-slate-600">
               <span className="material-symbols-outlined text-[14px] text-sky-600">cloud_off</span>
-              <span>Offline Guide</span>
+              <span>Manual Route Guide</span>
             </div>
           </div>
 
@@ -90,7 +92,7 @@ export const LiveNavigationHUD: React.FC<LiveNavigationHUDProps> = ({
             <span className={`material-symbols-outlined text-[16px] text-sky-600 ${isSpeaking ? 'animate-bounce' : ''}`}>
               volume_up
             </span>
-            <span>Spoken Instructions Active</span>
+            <span>Steps advance manually</span>
           </span>
           <button
             onClick={handleReplayVoice}
@@ -115,7 +117,7 @@ export const LiveNavigationHUD: React.FC<LiveNavigationHUDProps> = ({
                 </div>
                 <div className="text-right">
                   <span className="text-xs font-bold uppercase tracking-wider text-sky-700 block">
-                    Next Turn In
+                    Step distance
                   </span>
                   <span className="text-3xl font-black text-slate-900 leading-none">
                     {distanceRemaining}m
@@ -234,7 +236,7 @@ export const LiveNavigationHUD: React.FC<LiveNavigationHUDProps> = ({
               {route.steps.map((st, idx) => (
                 <div 
                   key={st.id} 
-                  onClick={() => { setCurrentStepIndex(idx); setShowStepsDrawer(false); }}
+                  onClick={() => { setCurrentStepIndex(idx); setDistanceRemaining(st.distanceMeters); setShowStepsDrawer(false); }}
                   className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-colors ${
                     idx === currentStepIndex 
                       ? 'bg-sky-50 border-sky-200 text-sky-900 font-bold' 

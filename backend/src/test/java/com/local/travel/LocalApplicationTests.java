@@ -51,9 +51,8 @@ class LocalApplicationTests {
     @Test
     void testFXEndpoint() throws Exception {
         mockMvc.perform(get("/v1/fx"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.base").value("USD"))
-                .andExpect(jsonPath("$.rates.JPY").value(152.42));
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.code").value("DEPENDENCY_UNAVAILABLE"));
     }
 
     @Test

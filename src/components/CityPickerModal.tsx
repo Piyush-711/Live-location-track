@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CITIES } from '../data/mockData';
 import { osmService, GeocodingResult } from '../services/osmService';
+import { validCoordinates } from '../hooks/useLiveLocation';
 
 interface CityPickerModalProps {
   activeCityId: string;
@@ -158,7 +159,8 @@ export const CityPickerModal: React.FC<CityPickerModalProps> = ({
   const [recentLocations, setRecentLocations] = useState<RecentLocationItem[]>(() => {
     try {
       const saved = localStorage.getItem('local_app_recent_locations');
-      return saved ? JSON.parse(saved) : [];
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed.filter(item => item && typeof item.name === 'string' && typeof item.id === 'string' && validCoordinates(item.latitude, item.longitude)).slice(0, 5) : [];
     } catch {
       return [];
     }
@@ -168,6 +170,7 @@ export const CityPickerModal: React.FC<CityPickerModalProps> = ({
 
   // Debounced forward geocoding search
   useEffect(() => {
+    let current = true;
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
@@ -180,18 +183,20 @@ export const CityPickerModal: React.FC<CityPickerModalProps> = ({
     }
 
     setIsSearching(true);
+    setSearchResults([]);
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         const results = await osmService.searchLocations(trimmed);
-        setSearchResults(results);
+        if (current) setSearchResults(results);
       } catch (e) {
         console.warn('Geocoding search failed:', e);
       } finally {
-        setIsSearching(false);
+        if (current) setIsSearching(false);
       }
     }, 280);
 
     return () => {
+      current = false;
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
@@ -277,7 +282,7 @@ export const CityPickerModal: React.FC<CityPickerModalProps> = ({
       address: `Latitude: ${lat.toFixed(5)}, Longitude: ${lng.toFixed(5)}`,
       latitude: lat,
       longitude: lng,
-      countryCode: 'IN',
+      countryCode: '',
       timestamp: Date.now()
     });
 
@@ -285,7 +290,7 @@ export const CityPickerModal: React.FC<CityPickerModalProps> = ({
       latitude: lat,
       longitude: lng,
       cityName: name,
-      countryCode: 'IN'
+      countryCode: ''
     });
     onClose();
   };

@@ -9,20 +9,19 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PlaceRepository {
 
     private final Map<String, List<Place>> cityPlaces = new ConcurrentHashMap<>();
+    private final Map<String, Place> placesById = new HashMap<>();
 
     public PlaceRepository() {
         seedInitialData();
+        cityPlaces.values().forEach(places -> places.forEach(place -> placesById.put(place.id(), place)));
     }
 
     public List<Place> findByArea(String areaId) {
-        return cityPlaces.getOrDefault(areaId.toLowerCase(), cityPlaces.get("kyoto"));
+        return cityPlaces.getOrDefault(areaId.toLowerCase(Locale.ROOT), List.of());
     }
 
     public Optional<Place> findById(String id) {
-        return cityPlaces.values().stream()
-                .flatMap(List::stream)
-                .filter(p -> p.id().equals(id))
-                .findFirst();
+        return Optional.ofNullable(placesById.get(id));
     }
 
     private void seedInitialData() {

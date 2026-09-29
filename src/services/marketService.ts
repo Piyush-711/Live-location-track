@@ -4,6 +4,7 @@ import { LiveLocationState } from '../hooks/useLiveLocation';
 import { getDynamicPlaceImage } from '../utils/placeVisuals';
 import Fuse from 'fuse.js';
 import { api } from './api';
+import { RequestCache, assertCoordinates, validCoordinates, fetchProviderJson, photonBaseUrl } from './providerRequest';
 
 export interface SpecialtyMeta {
   id: LocalMarketSpecialty | 'all';
@@ -760,7 +761,7 @@ const CURATED_MARKETS: LocalMarket[] = [
 ];
 
 class MarketService {
-  private osmCache = new Map<string, { timestamp: number; markets: LocalMarket[] }>();
+  private readonly osmCache = new RequestCache<LocalMarket[]>(64, 180_000);
 
   /**
    * Retrieves local markets dynamically for the user's active location.
@@ -774,6 +775,7 @@ class MarketService {
   ): Promise<LocalMarket[]> {
     const userLat = location.coords.latitude;
     const userLon = location.coords.longitude;
+    assertCoordinates(userLat, userLon);
     const cityRaw = (location.cityName || '').toLowerCase();
     
     // Resolve matched city ID with strict city name mapping
@@ -791,9 +793,6 @@ class MarketService {
     const fallbackLocalExecution = async (): Promise<LocalMarket[]> => {
       // 1. Identify which curated region the user is currently located in
       const regionalMarkets = CURATED_MARKETS.filter(m => {
-        // Direct cityId match
-        if (m.cityId && activeCityId && m.cityId === activeCityId) return true;
-
         // Geodesic distance check (within 55 km of market location)
         const dist = getDistance(
           { latitude: userLat, longitude: userLon },
@@ -813,8 +812,7 @@ class MarketService {
         if (liveOsmMarkets.length > 0) {
           results = liveOsmMarkets;
         } else {
-          // Fallback: Show nearest global/regional markets sorted by proximity
-          results = [...CURATED_MARKETS];
+          results = [];
         }
       }
 
@@ -859,33 +857,18 @@ class MarketService {
         const localFuse = new Fuse(results, fuseOptions);
         const localMatches = localFuse.search(q);
 
-        if (localMatches.length > 0) {
-          results = localMatches.map(m => m.item);
-        } else {
-          // If not found in current city, search across all global/national markets with distance
-          const allWithDist = CURATED_MARKETS.map(market => ({
-            ...market,
-            distanceMeters: getDistance(
-              { latitude: userLat, longitude: userLon },
-              { latitude: market.location.latitude, longitude: market.location.longitude }
-            )
-          }));
-          const globalFuse = new Fuse(allWithDist, fuseOptions);
-          const globalMatches = globalFuse.search(q);
-          results = globalMatches.map(m => m.item);
-        }
+        results = localMatches.map(m => m.item);
       }
 
       // 6. Sort by shortest distance first (unless fuzzy search already ranked items)
       if (!searchQuery || !searchQuery.trim()) {
-        results.sort((a, b) => (a.distanceMeters || 0) - (b.distanceMeters || 0));
+        results.sort((a, b) => (a.distanceMeters || 0) - (b.distanceMeters || 0) || a.id.localeCompare(b.id));
       }
 
       return results;
     };
 
-    try {
-      const backendResults = await api.getMarkets(
+    return api.getMarkets(
         {
           areaId: activeCityId,
           lat: userLat,
@@ -895,26 +878,14 @@ class MarketService {
         },
         fallbackLocalExecution
       );
-
-      if (backendResults && backendResults.length > 0) {
-        return backendResults;
-      }
-      return await fallbackLocalExecution();
-    } catch {
-      return await fallbackLocalExecution();
-    }
   }
 
   public async getMarketById(id: string): Promise<LocalMarket | undefined> {
     const local = CURATED_MARKETS.find(m => m.id === id);
-    try {
-      return await api.getMarketById(id, () => {
+    return api.getMarketById(id, () => {
         if (!local) throw new Error(`Market not found: ${id}`);
         return local;
       });
-    } catch {
-      return local;
-    }
   }
 
   /**
@@ -922,11 +893,8 @@ class MarketService {
    * (via Photon and Nominatim) when in any custom or international city.
    */
   private async fetchLiveOsmMarkets(lat: number, lon: number, cityName: string): Promise<LocalMarket[]> {
-    const cacheKey = `${lat.toFixed(2)},${lon.toFixed(2)}`;
-    const cached = this.osmCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < 180000) {
-      return cached.markets;
-    }
+    const cacheKey = `${lat.toFixed(3)},${lon.toFixed(3)}:${cityName}`;
+    return this.osmCache.load(cacheKey, async () => {
 
     const discovered: LocalMarket[] = [];
     const seen = new Set<string>();
@@ -936,24 +904,23 @@ class MarketService {
     await Promise.allSettled(
       searchTerms.map(async (term) => {
         try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 3500);
+          const url = `${photonBaseUrl()}/api/?q=${encodeURIComponent(term)}&lat=${lat}&lon=${lon}&limit=6`;
+          const data = await fetchProviderJson<{ features?: Array<{
+            geometry?: { coordinates?: unknown[] }; properties?: Record<string, unknown>
+          }> }>(url, 3500);
 
-          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(term)}&lat=${lat}&lon=${lon}&limit=6`;
-          const res = await fetch(url, { signal: controller.signal });
-          clearTimeout(timeout);
-
-          if (!res.ok) return;
-          const data = await res.json();
-
-          for (const feat of (data && data.features) || []) {
+          for (const feat of Array.isArray(data?.features) ? data.features.slice(0, 30) : []) {
             if (!feat || !feat.geometry || !Array.isArray(feat.geometry.coordinates)) continue;
             const coords = feat.geometry.coordinates;
             const fLon = coords[0];
             const fLat = coords[1];
-            if (typeof fLat !== 'number' || typeof fLon !== 'number' || isNaN(fLat) || isNaN(fLon)) continue;
-
-            const key = `${fLat.toFixed(3)},${fLon.toFixed(3)}`;
+            if (typeof fLat !== 'number' || typeof fLon !== 'number' || !validCoordinates(fLat, fLon)) continue;
+            const props = feat.properties || {};
+            const rawName = typeof props.name === 'string' ? props.name.trim() : '';
+            if (rawName.length < 3) continue;
+            if (props.osm_key !== 'shop' && !(props.osm_key === 'amenity' && props.osm_value === 'marketplace')) continue;
+            const osmId = typeof props.osm_id === 'number' || typeof props.osm_id === 'string' ? String(props.osm_id) : '';
+            const key = osmId ? `${String(props.osm_type || 'unknown')}-${osmId}` : `${fLat.toFixed(6)},${fLon.toFixed(6)}:${rawName}`;
             if (seen.has(key)) continue;
 
             let dist = 999999;
@@ -966,9 +933,6 @@ class MarketService {
             if (dist > 40000) continue;
 
             seen.add(key);
-            const props = feat.properties || {};
-            const rawName = props.name || props.street;
-            if (!rawName || rawName.length < 3) continue;
 
             // Classify specialty based on keywords
             const lower = `${rawName} ${props.osm_value || ''} ${props.type || ''}`.toLowerCase();
@@ -996,23 +960,22 @@ class MarketService {
             }
 
             const cleanCityName = (cityName || 'Regional Area').split(',')[0].trim() || 'Regional Area';
-            const addr = [props.street, props.district, props.city || cleanCityName, props.state, props.country].filter(Boolean).join(', ');
+            const city = typeof props.city === 'string' ? props.city : cleanCityName;
+            const addr = [props.street, props.district, city, props.state, props.country].filter(v => typeof v === 'string' && v).join(', ');
 
             discovered.push({
-              id: `osm-market-${props.osm_id || Math.random().toString(36).substring(7)}`,
+              id: `osm-market-${key}`,
               name: rawName,
-              city: props.city || cleanCityName,
+              city,
               specialty,
               specialtyLabel,
-              famousFor: `Popular regional trading and retail hub in ${props.city || cleanCityName} for local goods, retail and shopping.`,
-              whatToBuy: ['Local Commodities', 'Daily Essentials', 'Regional Specialties'],
+              famousFor: 'OpenStreetMap listing. Products and services have not been verified.',
+              whatToBuy: [],
               address: addr || `Near ${cleanCityName}`,
               location: { latitude: fLat, longitude: fLon },
               distanceMeters: dist,
-              metroStation: props.city ? `Transit access via ${props.city} central line` : undefined,
-              closedOn: 'Varies by local shopkeepers',
-              timings: '10:00 AM - 08:30 PM',
-              bargainingTip: 'Polite bargaining is customary with independent stall holders.',
+              timings: 'Hours unavailable',
+              bargainingTip: 'Confirm prices and payment methods with the seller.',
               imageUrl: getDynamicPlaceImage({ name: rawName, category: 'supermarket' }),
               tags: ['market', specialty, rawName.toLowerCase()]
             });
@@ -1023,8 +986,8 @@ class MarketService {
       })
     );
 
-    this.osmCache.set(cacheKey, { timestamp: Date.now(), markets: discovered });
-    return discovered;
+    return discovered.sort((a, b) => (a.distanceMeters || 0) - (b.distanceMeters || 0) || a.id.localeCompare(b.id));
+    });
   }
 
   /**
@@ -1041,17 +1004,17 @@ class MarketService {
                 market.specialty === 'spices_food' ? 'cafe' : 'attraction',
       distanceMeters: market.distanceMeters || 0,
       location: market.location,
-      countryCode: 'IN',
+      countryCode: market.cityId === 'london' ? 'GB' : market.cityId === 'kyoto' ? 'JP' : market.cityId ? 'IN' : '',
       city: market.city,
       address: market.address,
       hours: {
-        status: 'open',
+        status: 'unknown',
         raw: market.timings,
-        formatted: `${market.timings} • ${market.closedOn || 'Open Daily'}`
+        formatted: [market.timings, market.closedOn].filter(Boolean).join(' • ')
       },
-      source: 'CURATED_REGISTRY',
-      sourceUpdatedAt: new Date().toISOString(),
-      freshness: 'fresh',
+      source: market.id.startsWith('osm-market-') ? 'OSM' : 'CURATED_REGISTRY',
+      sourceUpdatedAt: '',
+      freshness: 'unknown',
       emergencyCapable: false,
       tags: [...market.tags, market.specialtyLabel, ...market.whatToBuy],
       triageInfo: `Famous For: ${market.famousFor.substring(0, 100)}...`,

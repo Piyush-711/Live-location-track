@@ -4,6 +4,7 @@ import { marketService, MARKET_SPECIALTIES } from '../services/marketService';
 import { LiveLocationState } from '../hooks/useLiveLocation';
 import { LiveLeafletMap } from '../components/LiveLeafletMap';
 import { MarketDetailsModal } from '../components/MarketDetailsModal';
+import { useDesktopMap } from '../hooks/useDesktopMap';
 
 interface LocalMarketsViewProps {
   location: LiveLocationState;
@@ -25,6 +26,7 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
   const [mobileViewMode, setMobileViewMode] = useState<'list' | 'map'>('list');
   const [selectedMarketId, setSelectedMarketId] = useState<string | null>(null);
   const [activeDetailMarket, setActiveDetailMarket] = useState<LocalMarket | null>(null);
+  const desktopMap = useDesktopMap();
 
   // Focus map coordinates when user taps "View on Map"
   const [focusedLocation, setFocusedLocation] = useState<LocationCoordinates>(location.coords);
@@ -40,7 +42,7 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
     let isMounted = true;
     setLoading(true);
 
-    marketService.getLocalMarkets(location, searchQuery, selectedSpecialty)
+    const timer = setTimeout(() => { marketService.getLocalMarkets(location, searchQuery, selectedSpecialty)
       .then(res => {
         if (isMounted) {
           setMarkets(res);
@@ -50,9 +52,9 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
       .catch(err => {
         console.warn('Failed to load local markets:', err);
         if (isMounted) setLoading(false);
-      });
+      }); }, 300);
 
-    return () => { isMounted = false; };
+    return () => { isMounted = false; clearTimeout(timer); };
   }, [location.coords.latitude, location.coords.longitude, location.cityName, location.matchedCityId, activeCityId, selectedSpecialty, searchQuery]);
 
   // Convert markets to places for Leaflet Map
@@ -406,17 +408,18 @@ export const LocalMarketsView: React.FC<LocalMarketsViewProps> = ({
 
             <div className="relative w-full h-80 sm:h-96 md:h-[calc(100vh-140px)] md:min-h-[560px] rounded-xl overflow-hidden border border-slate-100">
               <LiveLeafletMap
-                userLocation={focusedLocation}
+                userLocation={location.coords}
                 places={mapPlaces}
+                selectedPlace={mapPlaces.find(p => p.id === `market-${selectedMarketId}`)}
                 onSelectPlace={(p) => {
                   const m = markets.find(m => `market-${m.id}` === p.id);
                   if (m) {
                     setSelectedMarketId(m.id);
                     setActiveDetailMarket(m);
                   }
-                  onSelectPlace(p);
+                  else onSelectPlace(p);
                 }}
-                isMapVisible={mobileViewMode === 'map'}
+                isMapVisible={desktopMap || mobileViewMode === 'map'}
                 className="w-full h-full"
               />
             </div>

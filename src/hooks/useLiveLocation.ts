@@ -5,7 +5,6 @@ import { osmService } from '../services/osmService';
 import { getDistance } from 'geolib';
 
 export type GeolocationStatus = 'acquiring' | 'fixed' | 'denied' | 'unsupported' | 'fallback';
-
 export interface LiveLocationState {
   coords: LocationCoordinates;
   accuracyMeters: number;
@@ -21,261 +20,123 @@ export interface LiveLocationState {
   isSimulated: boolean;
   isCustom?: boolean;
 }
+export interface CustomLocationPayload extends LocationCoordinates { cityName: string; countryCode?: string; }
 
-export interface CustomLocationPayload {
-  latitude: number;
-  longitude: number;
-  cityName: string;
-  countryCode?: string;
+export function validCoordinates(latitude: unknown, longitude: unknown): boolean {
+  return typeof latitude === 'number' && Number.isFinite(latitude) && Math.abs(latitude) <= 90
+    && typeof longitude === 'number' && Number.isFinite(longitude) && Math.abs(longitude) <= 180;
 }
-
-// Calculate millimetric geodesic distance on WGS-84 ellipsoid using geolib safely
-export function calculateDistanceMeters(
-  lat1?: number | null,
-  lon1?: number | null,
-  lat2?: number | null,
-  lon2?: number | null
-): number {
-  if (
-    lat1 === undefined || lat1 === null || isNaN(lat1) ||
-    lon1 === undefined || lon1 === null || isNaN(lon1) ||
-    lat2 === undefined || lat2 === null || isNaN(lat2) ||
-    lon2 === undefined || lon2 === null || isNaN(lon2)
-  ) {
-    return 999999;
-  }
-  try {
-    return getDistance(
-      { latitude: lat1, longitude: lon1 },
-      { latitude: lat2, longitude: lon2 }
-    );
-  } catch {
-    return 999999;
-  }
+export function calculateDistanceMeters(lat1?: number | null, lon1?: number | null, lat2?: number | null, lon2?: number | null): number {
+  if (!validCoordinates(lat1, lon1) || !validCoordinates(lat2, lon2)) return 999999;
+  return getDistance({ latitude: lat1!, longitude: lon1! }, { latitude: lat2!, longitude: lon2! });
 }
-
-// Find closest supported pilot city node
-export function findClosestCity(lat: number, lng: number, cityName?: string) {
-  if (cityName) {
-    const norm = cityName.toLowerCase();
-    const nameMatch = CITIES.find(c => 
-      norm.includes(c.id) || 
-      norm.includes(c.name.toLowerCase().split(' ')[0]) ||
-      c.name.toLowerCase().includes(norm)
-    );
-    if (nameMatch) {
-      return { city: nameMatch, distance: 0 };
-    }
-  }
-
-  let closest: typeof CITIES[0] | null = null;
+export function findClosestCity(lat: number, lng: number, _cityName?: string) {
+  let closest: typeof CITIES[number] | null = null;
   let minDistance = Infinity;
-
   for (const city of CITIES) {
-    const dist = calculateDistanceMeters(lat, lng, city.lat, city.lng);
-    if (dist < minDistance) {
-      minDistance = dist;
-      closest = city;
-    }
+    const distance = calculateDistanceMeters(lat, lng, city.lat, city.lng);
+    if (distance < minDistance) { minDistance = distance; closest = city; }
   }
-
-  // If user is more than 60km away from any pilot hub, return null (custom location)
-  if (minDistance > 60000) {
-    return { city: null, distance: minDistance };
-  }
-
-  return { city: closest, distance: minDistance };
+  return { city: minDistance <= 60000 ? closest : null, distance: minDistance };
 }
-
+function readCustomLocation(): CustomLocationPayload | null {
+  try {
+    const payload = JSON.parse(localStorage.getItem('local_app_custom_location') || 'null');
+    return payload && validCoordinates(payload.latitude, payload.longitude)
+      && typeof payload.cityName === 'string' && payload.cityName.trim() ? payload : null;
+  } catch { return null; }
+}
+function customState(custom: CustomLocationPayload): LiveLocationState {
+  const { city } = findClosestCity(custom.latitude, custom.longitude);
+  return {
+    coords: { latitude: custom.latitude, longitude: custom.longitude },
+    accuracyMeters: 0, altitudeMeters: null, heading: null, speed: null,
+    status: 'fixed', cityName: custom.cityName.trim().slice(0, 200),
+    countryCode: /^[A-Z]{2}$/.test(custom.countryCode || '') ? custom.countryCode! : city?.countryCode || '',
+    matchedCityId: city?.id || 'custom', lastUpdated: new Date().toISOString(),
+    isSimulated: false, isCustom: true
+  };
+}
 export function useLiveLocation(selectedCityId: string) {
   const selectedCity = CITIES.find(c => c.id === selectedCityId) || CITIES[0];
-
+  const selectedCityRef = useRef(selectedCity);
+  selectedCityRef.current = selectedCity;
   const [location, setLocation] = useState<LiveLocationState>(() => {
-    try {
-      const saved = localStorage.getItem('local_app_custom_location');
-      if (saved) {
-        const payload: CustomLocationPayload = JSON.parse(saved);
-        const { city } = findClosestCity(payload.latitude, payload.longitude, payload.cityName);
-        return {
-          coords: { latitude: payload.latitude, longitude: payload.longitude },
-          accuracyMeters: 5,
-          altitudeMeters: null,
-          heading: 350,
-          speed: null,
-          status: 'fixed',
-          cityName: payload.cityName,
-          countryCode: payload.countryCode || (city ? city.countryCode : 'IN'),
-          matchedCityId: city ? city.id : 'custom',
-          lastUpdated: new Date().toISOString(),
-          isSimulated: false,
-          isCustom: true
-        };
-      }
-    } catch {}
-
-    return {
+    const custom = readCustomLocation();
+    return custom ? customState(custom) : {
       coords: { latitude: selectedCity.lat, longitude: selectedCity.lng },
-      accuracyMeters: 3,
-      altitudeMeters: null,
-      heading: 350,
-      speed: null,
-      status: 'acquiring',
-      cityName: selectedCity.name,
-      countryCode: selectedCity.countryCode,
-      matchedCityId: selectedCity.id,
-      lastUpdated: new Date().toISOString(),
-      isSimulated: true,
-      isCustom: false
+      accuracyMeters: 0, altitudeMeters: null, heading: null, speed: null,
+      status: 'acquiring', cityName: selectedCity.name, countryCode: selectedCity.countryCode,
+      matchedCityId: selectedCity.id, lastUpdated: new Date().toISOString(),
+      isSimulated: true, isCustom: false
     };
   });
-
-  const lastGeocodedRef = useRef<{ lat: number; lon: number } | null>(null);
-  const isCustomRef = useRef<boolean>(location.isCustom || false);
-
-  const setCustomLocation = useCallback((custom: CustomLocationPayload) => {
-    isCustomRef.current = true;
-    try {
-      localStorage.setItem('local_app_custom_location', JSON.stringify(custom));
-    } catch {}
-
-    const { city } = findClosestCity(custom.latitude, custom.longitude, custom.cityName);
-
-    setLocation({
-      coords: { latitude: custom.latitude, longitude: custom.longitude },
-      accuracyMeters: 5,
-      altitudeMeters: null,
-      heading: 350,
-      speed: null,
-      status: 'fixed',
-      cityName: custom.cityName,
-      countryCode: custom.countryCode || (city ? city.countryCode : 'IN'),
-      matchedCityId: city ? city.id : 'custom',
-      lastUpdated: new Date().toISOString(),
-      isSimulated: false,
-      isCustom: true
-    });
+  const watchRef = useRef<number | null>(null);
+  const generationRef = useRef(0);
+  const geocodeRef = useRef(0);
+  const lastGeocodedRef = useRef<LocationCoordinates | null>(null);
+  // All callers share one watcher; invalidated callbacks cannot overwrite a newer location.
+  const stopWatch = useCallback(() => {
+    generationRef.current += 1;
+    geocodeRef.current += 1;
+    if (watchRef.current !== null) navigator.geolocation?.clearWatch(watchRef.current);
+    watchRef.current = null;
   }, []);
-
+  const setCustomLocation = useCallback((custom: CustomLocationPayload) => {
+    if (!validCoordinates(custom.latitude, custom.longitude) || !custom.cityName.trim()) return;
+    stopWatch();
+    try { localStorage.setItem('local_app_custom_location', JSON.stringify(custom)); } catch {}
+    setLocation(customState(custom));
+  }, [stopWatch]);
   const requestLiveGPS = useCallback(() => {
-    isCustomRef.current = false;
-    try {
-      localStorage.removeItem('local_app_custom_location');
-    } catch {}
-
-    if (!('geolocation' in navigator)) {
-      setLocation(prev => ({
-        ...prev,
-        status: 'unsupported',
-        errorMessage: 'Geolocation is not supported by your browser.'
-      }));
+    stopWatch();
+    const generation = generationRef.current;
+    lastGeocodedRef.current = null;
+    try { localStorage.removeItem('local_app_custom_location'); } catch {}
+    if (!navigator.geolocation) {
+      setLocation(prev => ({ ...prev, status: 'unsupported', isCustom: false, isSimulated: true, accuracyMeters: 0, errorMessage: 'Geolocation is not supported by your browser.' }));
       return;
     }
-
-    setLocation(prev => ({ ...prev, status: 'acquiring', isCustom: false }));
-
-    const watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        // If user manually chose a custom location in the meantime, ignore background GPS tick
-        if (isCustomRef.current) return;
-
-        const { latitude, longitude, accuracy, altitude, heading, speed } = pos.coords;
-        const { city } = findClosestCity(latitude, longitude);
-
-        setLocation(prev => ({
-          ...prev,
-          coords: { latitude, longitude },
-          accuracyMeters: Math.round(accuracy || 5),
-          altitudeMeters: altitude ? Math.round(altitude) : null,
-          heading: heading ? Math.round(heading) : 350,
-          speed: speed ? Math.round(speed * 3.6) : null,
-          status: 'fixed',
-          cityName: prev.cityName && prev.cityName !== selectedCity.name ? prev.cityName : (city ? city.name : `${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°`),
-          countryCode: prev.countryCode || (city ? city.countryCode : 'IN'),
-          matchedCityId: city ? city.id : 'custom',
-          lastUpdated: new Date(pos.timestamp).toISOString(),
-          isSimulated: false,
-          isCustom: false
-        }));
-
-        const shouldGeocode = !lastGeocodedRef.current || 
-          calculateDistanceMeters(latitude, longitude, lastGeocodedRef.current.lat, lastGeocodedRef.current.lon) > 500;
-
-        if (shouldGeocode) {
-          lastGeocodedRef.current = { lat: latitude, lon: longitude };
-          osmService.reverseGeocode(latitude, longitude).then(geo => {
-            if (isCustomRef.current) return;
-            setLocation(prev => ({
-              ...prev,
-              cityName: geo.cityName,
-              countryCode: geo.countryCode,
-              lastUpdated: new Date().toISOString()
-            }));
-          }).catch(e => console.warn('Live geocode background warn:', e));
-        }
-      },
-      (err) => {
-        console.warn('Geolocation error or permission denied:', err.message);
-        if (isCustomRef.current) return;
-
-        setLocation(prev => ({
-          ...prev,
-          coords: { latitude: selectedCity.lat, longitude: selectedCity.lng },
-          accuracyMeters: 3,
-          status: err.code === 1 ? 'denied' : 'fallback',
-          cityName: selectedCity.name,
-          countryCode: selectedCity.countryCode,
-          matchedCityId: selectedCity.id,
-          lastUpdated: new Date().toISOString(),
-          isSimulated: true,
-          isCustom: false,
-          errorMessage: err.message
-        }));
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 10000
-      }
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [selectedCityId, selectedCity]);
-
-  useEffect(() => {
-    // If no custom location saved, trigger live GPS on start
-    try {
-      const saved = localStorage.getItem('local_app_custom_location');
-      if (!saved) {
-        const cleanup = requestLiveGPS();
-        return () => {
-          if (cleanup) cleanup();
-        };
-      }
-    } catch {
-      const cleanup = requestLiveGPS();
-      return () => {
-        if (cleanup) cleanup();
-      };
-    }
-  }, [requestLiveGPS]);
-
-  // If user selects a predefined city from the list while not in custom mode
-  useEffect(() => {
-    if (location.isSimulated && !location.isCustom) {
+    setLocation(prev => ({ ...prev, status: 'acquiring', isCustom: false, isSimulated: true, accuracyMeters: 0, errorMessage: undefined }));
+    watchRef.current = navigator.geolocation.watchPosition(pos => {
+      if (generation !== generationRef.current) return;
+      const { latitude, longitude, accuracy, altitude, heading, speed } = pos.coords;
+      if (!validCoordinates(latitude, longitude)) return;
+      const { city } = findClosestCity(latitude, longitude);
+      const last = lastGeocodedRef.current;
+      const shouldGeocode = !last || calculateDistanceMeters(latitude, longitude, last.latitude, last.longitude) > 500;
       setLocation(prev => ({
-        ...prev,
-        coords: { latitude: selectedCity.lat, longitude: selectedCity.lng },
-        cityName: selectedCity.name,
-        countryCode: selectedCity.countryCode,
-        matchedCityId: selectedCity.id,
-        lastUpdated: new Date().toISOString()
+        ...prev, coords: { latitude, longitude }, accuracyMeters: Math.max(0, Math.round(accuracy || 0)),
+        altitudeMeters: altitude === null ? null : Math.round(altitude),
+        heading: heading === null ? null : Math.round(heading), speed: speed === null ? null : Math.round(speed * 3.6),
+        status: 'fixed', cityName: shouldGeocode ? city?.name || latitude.toFixed(2) + '°, ' + longitude.toFixed(2) + '°' : prev.cityName,
+        countryCode: shouldGeocode ? city?.countryCode || '' : prev.countryCode,
+        matchedCityId: city?.id || 'custom', lastUpdated: new Date(pos.timestamp).toISOString(),
+        isSimulated: false, isCustom: false, errorMessage: undefined
       }));
-    }
-  }, [selectedCityId, selectedCity, location.isSimulated, location.isCustom]);
-
-  return {
-    location,
-    requestLiveGPS,
-    setCustomLocation
-  };
+      if (shouldGeocode) {
+        lastGeocodedRef.current = { latitude, longitude };
+        const request = ++geocodeRef.current;
+        osmService.reverseGeocode(latitude, longitude).then(geo => {
+          if (generation !== generationRef.current || request !== geocodeRef.current) return;
+          setLocation(prev => ({ ...prev, cityName: geo.cityName, countryCode: geo.countryCode }));
+        }).catch(() => {
+          if (generation === generationRef.current && request === geocodeRef.current) lastGeocodedRef.current = null;
+        });
+      }
+    }, err => {
+      if (generation !== generationRef.current) return;
+      const city = selectedCityRef.current;
+      geocodeRef.current += 1;
+      lastGeocodedRef.current = null;
+      setLocation(prev => ({ ...prev, coords: { latitude: city.lat, longitude: city.lng }, accuracyMeters: 0,
+        status: err.code === 1 ? 'denied' : 'fallback', cityName: city.name, countryCode: city.countryCode,
+        matchedCityId: city.id, isSimulated: true, isCustom: false, errorMessage: err.message }));
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 });
+  }, [stopWatch]);
+  useEffect(() => {
+    if (!readCustomLocation()) requestLiveGPS();
+    return stopWatch;
+  }, [requestLiveGPS, stopWatch]);
+  return { location, requestLiveGPS, setCustomLocation };
 }

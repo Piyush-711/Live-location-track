@@ -15,22 +15,20 @@ import {
   MOCK_PLACES, 
   EMERGENCY_DOSSIERS, 
   COUNTRY_BRIEFINGS, 
-  MOCK_KYOTO_ROUTE,
   CITIES 
 } from '../data/mockData';
-import { storage } from './storage';
+import { getDistance } from 'geolib';
 import { osmService } from './osmService';
 import { fxService } from './fxService';
 import { weatherService } from './weatherService';
 
-class ApiService {
-  private baseUrl: string = '/v1';
+export class ApiService {
+  private baseUrl: string = (import.meta.env.VITE_API_BASE_URL || '/v1').replace(/\/$/, '');
 
   // Helper fetch with timeout and fallback
   private async safeFetch<T>(endpoint: string, options?: RequestInit, fallback?: () => T | Promise<T>): Promise<T> {
-    // If running on a static host (like GitHub Pages) where Spring Boot backend is not mounted, use certified fallback
     const isStaticDeploy = typeof window !== 'undefined' && (
-      window.location.hostname.includes('github.io') ||
+      (!import.meta.env.VITE_API_BASE_URL && window.location.hostname.endsWith('.github.io')) ||
       window.location.protocol === 'file:'
     );
 
@@ -38,34 +36,48 @@ class ApiService {
       return await fallback();
     }
 
+    const controller = new AbortController();
+    const abort = () => controller.abort();
+    options?.signal?.addEventListener('abort', abort, { once: true });
+    if (options?.signal?.aborted) controller.abort();
+    const timeoutId = setTimeout(abort, 8000);
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1200); // 1.2s timeout for local Spring server
-
+      const headers = new Headers(options?.headers);
+      headers.set('Accept', 'application/json');
+      if (options?.body) headers.set('Content-Type', 'application/json');
       const res = await fetch(`${this.baseUrl}${endpoint}`, {
         ...options,
         signal: controller.signal,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(options?.headers || {})
-        }
+        headers,
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
       });
-      clearTimeout(timeoutId);
-
       if (res.ok) {
         return await res.json();
       }
-      throw new Error(`HTTP error ${res.status}`);
-    } catch {
-      // Offline / Network fail-over to local certified vault
+      const problem = await res.json().catch(() => null);
+      throw this.buildRFC9457Error(
+        typeof problem?.code === 'string' ? problem.code : 'REQUEST_FAILED',
+        typeof problem?.title === 'string' ? problem.title : 'Request Failed',
+        res.status,
+        typeof problem?.detail === 'string' ? problem.detail : `The server returned HTTP ${res.status}.`,
+      );
+    } catch (error) {
+      if (options?.signal?.aborted) throw error;
+      const status = (error as Partial<RFC9457Error>)?.status;
+      // A rejected write or invalid request must never become a local success.
+      if (status && status < 500) throw error;
       if (fallback) return await fallback();
-      throw this.buildRFC9457Error('DEPENDENCY_UNAVAILABLE', 'Backend Unreachable', 503, 'Falling back to local offline storage.');
+      throw error && status ? error : this.buildRFC9457Error('DEPENDENCY_UNAVAILABLE', 'Service Unavailable', 503, 'The service could not be reached. Please try again.');
+    } finally {
+      clearTimeout(timeoutId);
+      options?.signal?.removeEventListener('abort', abort);
     }
   }
 
   // GET /v1/coverage
   public async getCoverage(areaId: string) {
-    return this.safeFetch(`/coverage?areaId=${areaId}`, { method: 'GET' }, () => {
+    return this.safeFetch(`/coverage?areaId=${encodeURIComponent(areaId)}`, { method: 'GET' }, () => {
       const city = CITIES.find(c => c.id === areaId);
       if (!city) {
         throw this.buildRFC9457Error(
@@ -81,7 +93,7 @@ class ApiService {
           areaId: city.id,
           countryCode: city.countryCode,
           supported: true,
-          capabilities: ['discovery', 'offline_packs', 'walking_routes', 'driving_routes', 'emergency']
+          capabilities: ['sample_discovery']
         }
       };
     });
@@ -92,10 +104,15 @@ class ApiService {
     areaId: string, 
     category?: Category | 'all',
     searchQuery?: string,
-    radiusMeters: number = 12000,
+    radiusMeters: number = 10000,
     coords?: LocationCoordinates
   ): Promise<{ items: Place[]; datasetVersion: string; coverageArea: string }> {
-    // 1. If live coordinates are provided, query live OpenStreetMap Overpass/Photon nodes
+    if (!Number.isFinite(radiusMeters) || radiusMeters < 100 || radiusMeters > 50000
+      || (coords && (!Number.isFinite(coords.latitude) || !Number.isFinite(coords.longitude)
+        || Math.abs(coords.latitude) > 90 || Math.abs(coords.longitude) > 180))) {
+      throw this.buildRFC9457Error('VALIDATION_FAILED', 'Invalid Search', 400, 'Provide valid coordinates and a radius between 100 and 50000 metres.');
+    }
+    // When the provider succeeds, an empty result is authoritative too.
     if (coords && typeof coords.latitude === 'number' && typeof coords.longitude === 'number') {
       try {
         const osmPlaces = await osmService.fetchNearbyPOIs(
@@ -106,7 +123,7 @@ class ApiService {
           searchQuery
         );
 
-        if (osmPlaces && osmPlaces.length > 0) {
+        if (osmPlaces) {
           return {
             items: osmPlaces,
             datasetVersion: `osm-live-${coords.latitude.toFixed(2)}-${coords.longitude.toFixed(2)}`,
@@ -119,18 +136,23 @@ class ApiService {
     }
 
     // 2. Safe fetch against Spring Boot backend / certified local vault
-    const lat = coords?.latitude || 28.6139;
-    const lon = coords?.longitude || 77.2090;
+    const city = CITIES.find(c => c.id === areaId);
+    const lat = coords?.latitude ?? city?.lat;
+    const lon = coords?.longitude ?? city?.lng;
+    if (lat === undefined || lon === undefined) {
+      throw this.buildRFC9457Error('COVERAGE_UNSUPPORTED', 'Area Unavailable', 422, 'Choose a supported city or provide coordinates.');
+    }
 
     return this.safeFetch(
-      '/places/nearby',
+      searchQuery?.trim() ? '/places/search' : '/places/nearby',
       {
         method: 'POST',
         body: JSON.stringify({
           areaId,
           origin: { latitude: lat, longitude: lon },
           category: category || 'all',
-          radiusMeters,
+          radiusMeters: Math.min(radiusMeters, 10000),
+          query: searchQuery?.trim(),
           limit: 50
         })
       },
@@ -142,11 +164,15 @@ class ApiService {
           if (matched && MOCK_PLACES[matched.id]) {
             closestCityId = matched.id;
           } else {
-            closestCityId = 'delhi';
+            return { items: [], datasetVersion: 'unavailable', coverageArea: areaId };
           }
         }
 
-        let places = [...(MOCK_PLACES[closestCityId] || MOCK_PLACES['delhi'] || [])];
+        let places = (MOCK_PLACES[closestCityId] || []).map(place => ({
+          ...place,
+          distanceMeters: getDistance({ latitude: lat, longitude: lon }, place.location),
+          freshness: 'unknown' as const,
+        })).filter(place => place.distanceMeters <= radiusMeters);
 
         if (category && category !== 'all') {
           places = places.filter(p => p.category === category);
@@ -171,8 +197,8 @@ class ApiService {
         });
 
         return {
-          items: places,
-          datasetVersion: `city-release-${areaId}-20260924`,
+          items: places.slice(0, 50),
+          datasetVersion: `sample-${areaId}`,
           coverageArea: areaId
         };
       }
@@ -181,7 +207,7 @@ class ApiService {
 
   // GET /v1/places/{id}
   public async getPlaceById(id: string): Promise<Place> {
-    return this.safeFetch(`/places/${id}`, { method: 'GET' }, () => {
+    return this.safeFetch(`/places/${encodeURIComponent(id)}`, { method: 'GET' }, () => {
       for (const cityList of Object.values(MOCK_PLACES)) {
         const found = cityList.find(p => p.id === id);
         if (found) return found;
@@ -202,6 +228,9 @@ class ApiService {
     origin?: LocationCoordinates,
     destination?: LocationCoordinates
   ): Promise<RouteResponse> {
+    if (!origin || !destination) {
+      throw this.buildRFC9457Error('VALIDATION_FAILED', 'Missing Route Coordinates', 400, 'Both origin and destination are required.');
+    }
     // 1. If real origin and destination coordinates are available, query live OSRM
     if (origin && destination) {
       try {
@@ -220,20 +249,10 @@ class ApiService {
         method: 'POST',
         body: JSON.stringify({
           areaId,
-          origin: origin || { latitude: 35.0037, longitude: 135.7772 },
-          destination: destination || { latitude: 35.0045, longitude: 135.7785 },
+          origin,
+          destination,
           mode
         })
-      },
-      () => {
-        const baseRoute = { ...MOCK_KYOTO_ROUTE };
-        baseRoute.mode = mode;
-        baseRoute.coverageAreaId = areaId;
-        if (mode === 'driving') {
-          baseRoute.distanceMeters = 650;
-          baseRoute.durationSeconds = 120;
-        }
-        return baseRoute;
       }
     );
   }
@@ -241,11 +260,13 @@ class ApiService {
   // GET /v1/content/{country}/{locale}
   public async getEmergencyDossier(countryCode: string): Promise<EmergencyDossier> {
     return this.safeFetch(
-      `/content/${countryCode.toUpperCase()}/en-US`,
+      `/content/${encodeURIComponent(countryCode.toUpperCase())}/en-US`,
       { method: 'GET' },
       () => {
         const code = countryCode.toUpperCase();
-        return EMERGENCY_DOSSIERS[code] || EMERGENCY_DOSSIERS['JP'];
+        const dossier = EMERGENCY_DOSSIERS[code];
+        if (!dossier) throw this.buildRFC9457Error('COVERAGE_UNSUPPORTED', 'Emergency Information Unavailable', 422, 'Emergency information is unavailable for the selected country.');
+        return dossier;
       }
     );
   }
@@ -253,11 +274,13 @@ class ApiService {
   // GET /v1/briefing/{country}
   public async getCountryBriefing(countryCode: string): Promise<CountryBriefing> {
     return this.safeFetch(
-      `/briefing/${countryCode.toUpperCase()}`,
+      `/briefing/${encodeURIComponent(countryCode.toUpperCase())}`,
       { method: 'GET' },
       () => {
         const code = countryCode.toUpperCase();
-        return COUNTRY_BRIEFINGS[code] || COUNTRY_BRIEFINGS['JP'];
+        const briefing = COUNTRY_BRIEFINGS[code];
+        if (!briefing) throw this.buildRFC9457Error('COVERAGE_UNSUPPORTED', 'Country Information Unavailable', 422, 'Information is unavailable for the selected country.');
+        return briefing;
       }
     );
   }
@@ -288,7 +311,8 @@ class ApiService {
         if (coords) {
           return await weatherService.getLiveWeather(coords.latitude, coords.longitude, cityName, forceRefresh);
         }
-        const city = CITIES.find(c => c.id === areaId) || CITIES[0];
+        const city = CITIES.find(c => c.id === areaId);
+        if (!city) throw this.buildRFC9457Error('COVERAGE_UNSUPPORTED', 'Weather Unavailable', 422, 'Coordinates are required for this location.');
         return await weatherService.getLiveWeather(city.lat, city.lng, cityName || city.name, forceRefresh);
       }
     );
@@ -301,10 +325,6 @@ class ApiService {
       {
         method: 'POST',
         body: JSON.stringify(report)
-      },
-      () => {
-        const reportId = storage.saveCorrectionReport(report);
-        return { reportId, status: 'RECEIVED_202' };
       }
     );
   }
@@ -335,7 +355,11 @@ class ApiService {
 
   // GET /v1/markets/{id}
   public async getMarketById(id: string, fallback?: () => LocalMarket | undefined | Promise<LocalMarket | undefined>): Promise<LocalMarket> {
-    return this.safeFetch<LocalMarket>(`/markets/${id}`, { method: 'GET' }, fallback as () => LocalMarket | Promise<LocalMarket>);
+    return this.safeFetch<LocalMarket>(`/markets/${encodeURIComponent(id)}`, { method: 'GET' }, fallback ? async () => {
+      const market = await fallback();
+      if (!market) throw this.buildRFC9457Error('OBJECT_NOT_FOUND', 'Market Not Found', 404, 'The requested market is unavailable.');
+      return market;
+    } : undefined);
   }
 
   private buildRFC9457Error(code: string, title: string, status: number, detail: string): RFC9457Error {

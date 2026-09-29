@@ -15,6 +15,7 @@ export const SavedPlacesDrawer: React.FC<SavedPlacesDrawerProps> = ({
   onStartRoute
 }) => {
   const [savedPlaces, setSavedPlaces] = useState<SavedPlace[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const reload = () => {
     setSavedPlaces(storage.getSavedPlaces());
@@ -22,12 +23,15 @@ export const SavedPlacesDrawer: React.FC<SavedPlacesDrawerProps> = ({
 
   useEffect(() => {
     reload();
+    return storage.subscribeSavedPlaces(reload);
   }, []);
 
-  const handleRemove = (e: React.MouseEvent, place: Place) => {
+  const handleRemove = async (e: React.MouseEvent, place: Place) => {
     e.stopPropagation();
-    storage.toggleSavePlace(place);
-    reload();
+    try {
+      if (storage.isPlaceSaved(place.id)) await storage.toggleSavePlace(place);
+      setError(null);
+    } catch (err) { setError(err instanceof Error ? err.message : 'Unable to remove this saved place.'); }
   };
 
   return (
@@ -55,6 +59,7 @@ export const SavedPlacesDrawer: React.FC<SavedPlacesDrawerProps> = ({
           <span>Saved to local browser storage</span>
         </div>
 
+        {error && <p role="alert" className="text-xs text-rose-700">{error}</p>}
         <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pr-1">
           {savedPlaces.length === 0 ? (
             <div className="py-12 text-center flex flex-col items-center gap-2">

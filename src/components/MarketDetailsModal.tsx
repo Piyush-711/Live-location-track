@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LocalMarket, Place } from '../types';
 import { marketService, MARKET_SPECIALTIES } from '../services/marketService';
 import { storage } from '../services/storage';
@@ -18,6 +18,12 @@ export const MarketDetailsModal: React.FC<MarketDetailsModalProps> = ({
 }) => {
   const [copiedCoord, setCopiedCoord] = useState(false);
   const [isSaved, setIsSaved] = useState(() => storage.isPlaceSaved(`market-${market.id}`));
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    const refresh = () => setIsSaved(storage.isPlaceSaved(`market-${market.id}`));
+    refresh();
+    return storage.subscribeSavedPlaces(refresh);
+  }, [market.id]);
 
   const specMeta = MARKET_SPECIALTIES.find(s => s.id === market.specialty) || MARKET_SPECIALTIES[0];
   const place = marketService.marketToPlace(market);
@@ -29,15 +35,16 @@ export const MarketDetailsModal: React.FC<MarketDetailsModalProps> = ({
     : '';
   const driveMins = market.distanceMeters ? Math.max(1, Math.round(market.distanceMeters / 400)) : null;
 
-  const handleCopyCoordinates = () => {
-    navigator.clipboard.writeText(`${market.location.latitude.toFixed(6)}, ${market.location.longitude.toFixed(6)}`);
-    setCopiedCoord(true);
-    setTimeout(() => setCopiedCoord(false), 2000);
+  const handleCopyCoordinates = async () => {
+    try {
+      await navigator.clipboard.writeText(`${market.location.latitude.toFixed(6)}, ${market.location.longitude.toFixed(6)}`);
+      setCopiedCoord(true);
+    } catch { setError('Clipboard access is unavailable.'); }
   };
 
-  const handleToggleSave = () => {
-    const res = storage.toggleSavePlace(place);
-    setIsSaved(res.saved);
+  const handleToggleSave = async () => {
+    try { await storage.toggleSavePlace(place); setError(null); }
+    catch (err) { setError(err instanceof Error ? err.message : 'Unable to save this market.'); }
   };
 
   return (
@@ -119,6 +126,7 @@ export const MarketDetailsModal: React.FC<MarketDetailsModalProps> = ({
 
         {/* Scrollable Body Content */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 flex flex-col gap-5">
+          {error && <p role="alert" className="text-xs text-rose-700">{error}</p>}
           
           {/* Address & Quick Coordinates */}
           <div className="flex items-start justify-between gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">

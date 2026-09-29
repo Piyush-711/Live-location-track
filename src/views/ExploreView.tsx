@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Place, Category, WeatherReport } from '../types';
 import { api } from '../services/api';
 import { storage } from '../services/storage';
@@ -6,6 +6,7 @@ import { LiveLocationState, calculateDistanceMeters } from '../hooks/useLiveLoca
 import { LiveLeafletMap } from '../components/LiveLeafletMap';
 import { fxService } from '../services/fxService';
 import { PlaceThumbnail } from '../components/PlaceThumbnail';
+import { useDesktopMap } from '../hooks/useDesktopMap';
 
 interface ExploreViewProps {
   location: LiveLocationState;
@@ -58,7 +59,7 @@ function getLocalTimeInfo(countryCode: string): { timeStr: string; tzCode: strin
 }
 
 function getRibbonFXText(countryCode: string, rates: Record<string, number> | null): string {
-  if (!rates) return '$1 = ₹95.9';
+  if (!rates) return 'Rates unavailable';
   const code = (countryCode || 'IN').toUpperCase();
 
   if (code === 'JP' && rates.JPY) {
@@ -82,7 +83,7 @@ function getRibbonFXText(countryCode: string, rates: Record<string, number> | nu
   if (rates.INR) {
     return `$1 = ₹${rates.INR.toFixed(1)}`;
   }
-  return '$1 = ₹95.9';
+  return 'Rates unavailable';
 }
 
 const CATEGORY_PILLS: { id: Category | 'all'; label: string; icon: string }[] = [
@@ -116,7 +117,9 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [mobileViewMode, setMobileViewMode] = useState<'list' | 'map'>('list');
 
-  const lastCoordsRef = useRef<{ lat: number; lon: number } | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const desktopMap = useDesktopMap();
 
   // Ribbon live telemetry: weather, currency, local clock
   const [ribbonWeather, setRibbonWeather] = useState<{
@@ -124,6 +127,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
     condition: string;
     icon: string;
   } | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
   const [ribbonRates, setRibbonRates] = useState<Record<string, number> | null>(null);
   const [localTimeInfo, setLocalTimeInfo] = useState<{ timeStr: string; tzCode: string }>(() =>
     getLocalTimeInfo(location.countryCode)
@@ -140,6 +144,8 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   // Real-time live temperature and weather for current location
   useEffect(() => {
     let isCurrent = true;
+    setRibbonWeather(null);
+    setWeatherLoading(true);
     api.getWeather(activeCityId, location.coords, location.cityName)
       .then((w: WeatherReport) => {
         if (isCurrent && w && typeof w.tempC === 'number') {
@@ -151,7 +157,8 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
           });
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => { if (isCurrent) setWeatherLoading(false); });
 
     return () => { isCurrent = false; };
   }, [location.coords.latitude, location.coords.longitude, location.cityName, activeCityId]);
@@ -168,75 +175,31 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
     return () => { isCurrent = false; };
   }, []);
 
-  // Load places pool based on city or live GPS coordinates
+  // One request owns the visible pool. Rounded coordinates avoid a new search for every GPS tick.
+  const requestLatitude = Number(location.coords.latitude.toFixed(3));
+  const requestLongitude = Number(location.coords.longitude.toFixed(3));
   useEffect(() => {
-    let isMounted = true;
-    const currentLat = location.coords.latitude;
-    const currentLon = location.coords.longitude;
-    const last = lastCoordsRef.current;
-
-    // Check if user has moved > 200m or if first load
-    if (last && places.length > 0) {
-      const movedDistance = calculateDistanceMeters(currentLat, currentLon, last.lat, last.lon);
-      if (movedDistance < 200) {
-        return;
-      }
-    }
-
-    lastCoordsRef.current = { lat: currentLat, lon: currentLon };
+    let current = true;
     setLoading(true);
-
-    api.getNearbyPlaces(activeCityId, 'all', undefined, 12000, location.coords)
-      .then(res => {
-        if (isMounted) {
-          setPlaces(res.items);
-          setLoading(false);
-        }
-      })
-      .catch(err => {
-        console.error('Failed to fetch places:', err);
-        if (isMounted) setLoading(false);
-      });
-
-    return () => { isMounted = false; };
-  }, [activeCityId, location.coords.latitude, location.coords.longitude]);
-
-  // Dynamic live search on user typing
-  useEffect(() => {
-    if (!searchQuery || searchQuery.trim().length < 2) return;
-
-    let isCurrent = true;
+    setLoadError(null);
+    setPlaces([]);
     const timer = setTimeout(() => {
-      setLoading(true);
-      api.getNearbyPlaces(activeCityId, 'all', searchQuery.trim(), 25000, location.coords)
-        .then(res => {
-          if (isCurrent && res.items) {
-            setPlaces(prev => {
-              const newIds = new Set(res.items.map(p => p.id));
-              const remainder = prev.filter(p => !newIds.has(p.id));
-              return [...res.items, ...remainder];
-            });
-            setLoading(false);
-          }
-        })
-        .catch(() => {
-          if (isCurrent) setLoading(false);
-        });
-    }, 250);
-
-    return () => {
-      isCurrent = false;
-      clearTimeout(timer);
-    };
-  }, [searchQuery, activeCityId, location.coords.latitude, location.coords.longitude]);
-
+      const query = searchQuery.trim();
+      api.getNearbyPlaces(activeCityId, selectedCategory, query.length >= 2 ? query : undefined, query.length >= 2 ? 25000 : 12000,
+        { latitude: requestLatitude, longitude: requestLongitude })
+        .then(result => { if (current) setPlaces(result.items); })
+        .catch(() => { if (current) setLoadError('Places could not be loaded. Check your connection or try another search.'); })
+        .finally(() => { if (current) setLoading(false); });
+    }, 300);
+    return () => { current = false; clearTimeout(timer); };
+  }, [activeCityId, requestLatitude, requestLongitude, searchQuery, selectedCategory]);
   // Dynamically compute real-time distance and instant search filtering with semantic matching
   const dynamicPlaces = useMemo(() => {
     let filtered = places || [];
     const hasSearch = Boolean(searchQuery && searchQuery.trim().length >= 1);
 
     // If NO search query, filter strictly by selected category pill
-    if (!hasSearch && selectedCategory !== 'all') {
+    if (selectedCategory !== 'all') {
       filtered = filtered.filter(p => p && p.category === selectedCategory);
     }
 
@@ -325,16 +288,21 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 
   useEffect(() => {
     refreshSavedState();
+    return storage.subscribeSavedPlaces(refreshSavedState);
   }, []);
 
-  const handleToggleSave = (e: React.MouseEvent, place: Place) => {
+  const handleToggleSave = async (e: React.MouseEvent, place: Place) => {
     e.stopPropagation();
-    storage.toggleSavePlace(place);
-    refreshSavedState();
+    try {
+      await storage.toggleSavePlace(place);
+      setSaveError(null);
+    } catch (error) { setSaveError(error instanceof Error ? error.message : 'Unable to save this place.'); }
   };
 
   return (
     <div className="flex-1 w-full px-4 sm:px-6 lg:px-8 xl:px-10 pb-28 pt-2">
+      {saveError && <p role="alert" className="p-3 text-sm text-rose-700">{saveError}</p>}
+      {loadError && <p role="alert" className="p-3 text-sm text-rose-700">{loadError}</p>}
       {/* Human Editorial Destination Hero */}
       <section className="pt-2 pb-3">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-950 p-6 sm:p-7 text-white shadow-md">
@@ -353,7 +321,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                 Explore {displayCityName}
               </h1>
               <p className="text-xs sm:text-sm text-slate-300 mt-1 font-medium max-w-xl">
-                Historic forts, palaces, museums, scenic beaches, local cafes & 24/7 emergency care.
+                Historic forts, palaces, museums, scenic beaches, local cafes and nearby services.
               </p>
             </div>
 
@@ -364,7 +332,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                 <span className="material-symbols-outlined text-[17px] text-amber-400">
                   {ribbonWeather?.icon || 'wb_sunny'}
                 </span>
-                <span>{ribbonWeather ? `${ribbonWeather.tempC}°C • ${ribbonWeather.condition}` : 'Loading weather...'}</span>
+                <span>{ribbonWeather ? `${ribbonWeather.tempC}°C • ${ribbonWeather.condition}` : weatherLoading ? 'Loading weather...' : 'Weather unavailable'}</span>
               </div>
 
               {/* Currency Chip */}
@@ -461,7 +429,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
           {loading ? (
             <div className="p-12 text-center text-slate-500 text-sm font-medium flex items-center justify-center gap-2">
               <span className="material-symbols-outlined text-[20px] animate-spin text-sky-600">progress_activity</span>
-              <span>Discovering verified places near {displayCityName}...</span>
+              <span>Discovering places near {displayCityName}...</span>
             </div>
           ) : dynamicPlaces.length === 0 ? (
             <div className="p-10 text-center rounded-2xl bg-white shadow-sm border border-slate-200/80 flex flex-col items-center gap-2">
@@ -527,7 +495,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                           <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
                             place.hours.status === 'open' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'
                           }`}>
-                            {place.hours.status === 'open' ? 'Open now' : 'Hours not listed'}
+                            {place.hours.status === 'open' ? 'Open now' : place.hours.status === 'closed' ? 'Closed' : 'Hours not confirmed'}
                           </span>
                         </div>
 
@@ -563,7 +531,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                         </span>
                         <span className="text-slate-400 truncate">•</span>
                         <span className="text-slate-500 truncate text-[11px]">
-                          {place.address ? place.address.split(',')[0] : 'OpenStreetMap Verified'}
+                          {place.address ? place.address.split(',')[0] : 'OpenStreetMap listing'}
                         </span>
                       </div>
                     </div>
@@ -580,7 +548,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                       </span>
                       {place.emergencyCapable && (
                         <span className="text-[10px] text-red-600 font-bold px-1.5 py-0.5 rounded bg-red-50 flex-shrink-0">
-                          Emergency 24/7
+                          Emergency listed
                         </span>
                       )}
                     </div>
@@ -644,7 +612,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                     Emergency Directory • {displayCityName}
                   </span>
                   <span className="text-xs text-rose-100 font-medium">
-                    Local Police, Ambulance & English-Speaking Hospitals
+                    Emergency numbers and nearby hospital listings
                   </span>
                 </div>
               </div>
@@ -678,7 +646,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                 userLocation={location.coords}
                 places={dynamicPlaces}
                 onSelectPlace={onSelectPlace}
-                isMapVisible={mobileViewMode === 'map'}
+                isMapVisible={desktopMap || mobileViewMode === 'map'}
                 className="w-full h-full"
               />
             </div>

@@ -1,4 +1,4 @@
-import { Place, SavedPlace, OfflinePack, VoiceSettings } from '../types';
+import { Place, SavedPlace, OfflinePack, VoiceSettings, CorrectionReportRequest } from '../types';
 import { MOCK_OFFLINE_PACKS } from '../data/mockData';
 import { LiveLocationState } from '../hooks/useLiveLocation';
 
@@ -11,6 +11,18 @@ const STORAGE_KEYS = {
   ACTIVE_CITY: 'local_v8_active_city',
   CORRECTION_REPORTS: 'local_v8_correction_reports'
 };
+const SAVED_PREFIX = 'local_v9_saved_place:';
+const SAVED_EVENT = 'local:saved-places-changed';
+
+function isSavedPlace(value: unknown): value is SavedPlace {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as SavedPlace;
+  return typeof item.placeId === 'string' && !!item.place && item.place.id === item.placeId
+    && typeof item.place.name === 'string' && !!item.place.location
+    && Number.isFinite(item.place.location.latitude) && Number.isFinite(item.place.location.longitude)
+    && typeof item.version === 'string' && /^\d+$/.test(item.version)
+    && (item.deleted_at === null || typeof item.deleted_at === 'string');
+}
 
 // Generate UUID v4
 export function generateUUID(): string {
@@ -40,7 +52,7 @@ function safeSetItem(key: string, value: string): void {
   }
 }
 
-class StorageService {
+export class StorageService {
   private storeEpoch: string;
   private generation: string;
 
@@ -51,37 +63,7 @@ class StorageService {
     this.generation = safeGetItem(STORAGE_KEYS.SYNC_GENERATION) || '1';
     safeSetItem(STORAGE_KEYS.SYNC_GENERATION, this.generation);
 
-    // Initialize or migrate offline packs
-    const rawPacks = safeGetItem(STORAGE_KEYS.OFFLINE_PACKS);
-    if (!rawPacks) {
-      safeSetItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(MOCK_OFFLINE_PACKS));
-    } else {
-      try {
-        const stored: OfflinePack[] = JSON.parse(rawPacks);
-        // Merge missing certified packs
-        let modified = false;
-        for (const mockPack of MOCK_OFFLINE_PACKS) {
-          if (!stored.some(p => p.id === mockPack.id)) {
-            stored.push({ ...mockPack });
-            modified = true;
-          }
-        }
-        // If only Kyoto was installed from the legacy spec, enable Andhra Pradesh & Amaravati by default
-        const onlyKyotoInstalled = stored.filter(p => p.installed).length === 1 && stored.find(p => p.id === 'pack-kyoto-v42')?.installed;
-        if (onlyKyotoInstalled) {
-          const apPack = stored.find(p => p.id === 'pack-ap-amaravati-v10');
-          if (apPack) {
-            apPack.installed = true;
-            modified = true;
-          }
-        }
-        if (modified) {
-          safeSetItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(stored));
-        }
-      } catch {
-        safeSetItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(MOCK_OFFLINE_PACKS));
-      }
-    }
+    // Pack metadata is a preview; no downloaded or verified pack bytes exist yet.
   }
 
   public getStoreEpoch(): string {
@@ -94,25 +76,29 @@ class StorageService {
 
   // --- Saved Places (Section 12 & 22.4) ---
   public getSavedPlaces(): SavedPlace[] {
-    try {
-      const data = localStorage.getItem(STORAGE_KEYS.SAVED_PLACES);
-      if (!data) return [];
-      const list: SavedPlace[] = JSON.parse(data);
-      // Filter out tombstones for active presentation, but keep them internally for sync
-      return list.filter(item => !item.deleted_at);
-    } catch (e) {
-      console.error('Error reading saved places', e);
-      return [];
-    }
+    return this.getAllTombstonesAndSaves().filter(item => !item.deleted_at);
   }
 
   public getAllTombstonesAndSaves(): SavedPlace[] {
+    const records = new Map<string, SavedPlace>();
     try {
       const data = localStorage.getItem(STORAGE_KEYS.SAVED_PLACES);
-      return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
-    }
+      const legacy: unknown = data ? JSON.parse(data) : [];
+      if (Array.isArray(legacy)) {
+        for (const item of legacy.filter(isSavedPlace)) records.set(item.placeId, item);
+      }
+    } catch { /* Preserve readable per-place records even if legacy data is corrupt. */ }
+    try {
+      for (let index = 0; index < localStorage.length; index++) {
+        const key = localStorage.key(index);
+        if (!key?.startsWith(SAVED_PREFIX)) continue;
+        try {
+          const item: unknown = JSON.parse(localStorage.getItem(key) || 'null');
+          if (isSavedPlace(item) && key === this.savedKey(item.placeId)) records.set(item.placeId, item);
+        } catch { /* Ignore only the damaged entry. */ }
+      }
+    } catch { /* Storage may be disabled by the browser. */ }
+    return [...records.values()].sort((a, b) => a.placeId.localeCompare(b.placeId));
   }
 
   public isPlaceSaved(placeId: string): boolean {
@@ -120,72 +106,64 @@ class StorageService {
     return list.some(item => item.placeId === placeId);
   }
 
-  public toggleSavePlace(place: Place): { saved: boolean; eTag: string } {
-    const all = this.getAllTombstonesAndSaves();
-    const existingIndex = all.findIndex(item => item.placeId === place.id);
+  private savedKey(placeId: string): string {
+    return `${SAVED_PREFIX}${encodeURIComponent(placeId)}`;
+  }
 
-    const now = new Date().toISOString();
-    let isNowSaved = true;
-    let newVersion = '1';
+  public subscribeSavedPlaces(listener: () => void): () => void {
+    const onStorage = (event: StorageEvent) => {
+      if (!event.key || event.key.startsWith(SAVED_PREFIX) || event.key === STORAGE_KEYS.SAVED_PLACES) listener();
+    };
+    window.addEventListener('storage', onStorage);
+    window.addEventListener(SAVED_EVENT, listener);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener(SAVED_EVENT, listener);
+    };
+  }
 
-    if (existingIndex >= 0) {
-      const current = all[existingIndex];
-      if (current.deleted_at === null) {
-        // Tombstone it (delete)
-        current.deleted_at = now;
-        current.updated_at = now;
-        current.version = String(parseInt(current.version || '1', 10) + 1);
-        isNowSaved = false;
-        newVersion = current.version;
-      } else {
-        // Undelete / Re-save
-        current.deleted_at = null;
-        current.updated_at = now;
-        current.version = String(parseInt(current.version || '1', 10) + 1);
-        current.place = place;
-        isNowSaved = true;
-        newVersion = current.version;
-      }
-    } else {
-      // New save
-      const newSaved: SavedPlace = {
+  public async toggleSavePlace(place: Place): Promise<{ saved: boolean; eTag: string }> {
+    if (!navigator.locks) {
+      throw new Error('Saving requires a browser with Web Locks on HTTPS or localhost.');
+    }
+    return navigator.locks.request(this.savedKey(place.id), () => {
+      const current = this.getAllTombstonesAndSaves().find(item => item.placeId === place.id);
+      const now = new Date().toISOString();
+      const saved = !current || current.deleted_at !== null;
+      const version = String(BigInt(current?.version || '0') + 1n);
+      const epoch = safeGetItem(STORAGE_KEYS.STORE_EPOCH) || this.storeEpoch;
+      const eTag = `"${epoch}:${this.generation}:${place.id}:${version}"`;
+      const record: SavedPlace = {
         placeId: place.id,
-        account_id: 'acc-guest-local',
-        version: '1',
-        deleted_at: null,
+        account_id: `device:${epoch}`,
+        version,
+        deleted_at: saved ? null : now,
         updated_at: now,
         place,
-        eTag: `"${this.storeEpoch}:${this.generation}:${place.id}:1"`
+        eTag,
       };
-      all.push(newSaved);
-      isNowSaved = true;
-      newVersion = '1';
-    }
-
-    const strongETag = `"${this.storeEpoch}:${this.generation}:${place.id}:${newVersion}"`;
-    localStorage.setItem(STORAGE_KEYS.SAVED_PLACES, JSON.stringify(all));
-    return { saved: isNowSaved, eTag: strongETag };
+      // One key per place avoids overwriting other tabs' unrelated changes.
+      // Web Locks serialize changes to the same place across tabs.
+      try {
+        localStorage.setItem(this.savedKey(place.id), JSON.stringify(record));
+      } catch {
+        throw new Error('Could not save this place. Browser storage is full or unavailable.');
+      }
+      window.dispatchEvent(new Event(SAVED_EVENT));
+      return { saved, eTag };
+    });
   }
 
   // --- Offline Packs (Section 13) ---
   public getOfflinePacks(): OfflinePack[] {
-    try {
-      const data = localStorage.getItem(STORAGE_KEYS.OFFLINE_PACKS);
-      return data ? JSON.parse(data) : MOCK_OFFLINE_PACKS;
-    } catch {
-      return MOCK_OFFLINE_PACKS;
-    }
+    return MOCK_OFFLINE_PACKS.map(pack => ({
+      ...pack, installed: false, installing: false, progress: 0,
+      manifest: { ...pack.manifest, hashes: {}, lengths: {}, signature: '', keyId: '' },
+    }));
   }
 
-  public updatePackStatus(packId: string, installed: boolean): void {
-    const packs = this.getOfflinePacks();
-    const target = packs.find(p => p.id === packId);
-    if (target) {
-      target.installed = installed;
-      target.installing = false;
-      target.progress = installed ? 100 : 0;
-      localStorage.setItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(packs));
-    }
+  public updatePackStatus(_packId: string, installed: boolean): void {
+    if (installed) throw new Error('Offline pack downloads are not available.');
   }
 
   // --- Dynamic Location Matching & On-Demand Pack Generation ---
@@ -301,7 +279,7 @@ class StorageService {
     }
 
     // 2. Coordinate geographic proximity checks (within ~350 km)
-    if (coords && coords.latitude && coords.longitude) {
+    if (coords && Number.isFinite(coords.latitude) && Number.isFinite(coords.longitude)) {
       // Andhra Pradesh / Amaravati / Vijayawada (~16.4, 80.6)
       if (Math.abs(coords.latitude - 16.5) < 3.5 && Math.abs(coords.longitude - 80.6) < 3.5) {
         const p = packs.find(p => p.id === 'pack-ap-amaravati-v10');
@@ -379,8 +357,8 @@ class StorageService {
     const existing = allPacks.find(p => p.id === packId || p.areaId === slug);
     if (existing) return existing;
 
-    const lat = location?.coords?.latitude || 20;
-    const lng = location?.coords?.longitude || 78;
+    const lat = location?.coords?.latitude ?? 20;
+    const lng = location?.coords?.longitude ?? 78;
     const sizeMB = 680 + Math.abs(Math.round((lat * 19 + lng * 23) % 360));
     const sizeBytes = sizeMB * 1024 * 1024;
     const sizeFormatted = sizeMB >= 1000 ? `${(sizeMB / 1024).toFixed(2)} GB` : `${sizeMB} MB`;
@@ -400,25 +378,15 @@ class StorageService {
         areaId: slug,
         version: '1.0.0',
         schemaVersion: 'v8-2026',
-        hashes: {
-          'basemap.mbtiles': `mbtiles-${slug}-${Math.random().toString(36).substring(2, 10)}`,
-          'pois.sqlite': `sqlite-${slug}-${Math.random().toString(36).substring(2, 10)}`,
-          'routing.osrm': `osrm-${slug}-${Math.random().toString(36).substring(2, 10)}`
-        },
-        lengths: {
-          'basemap.mbtiles': Math.round(sizeBytes * 0.60),
-          'pois.sqlite': Math.round(sizeBytes * 0.25),
-          'routing.osrm': Math.round(sizeBytes * 0.15)
-        },
+        hashes: {},
+        lengths: {},
         issuedAt: new Date().toISOString(),
         expiresAt: new Date(Date.now() + 30 * 86400000).toISOString(),
-        keyId: `key-dynamic-${slug}-2026`,
-        signature: `eyJhbGciOiJFUzI1NiJ9.sig.${slug}`
+        keyId: '',
+        signature: ''
       }
     };
 
-    allPacks.push(dynamicPack);
-    safeSetItem(STORAGE_KEYS.OFFLINE_PACKS, JSON.stringify(allPacks));
     return dynamicPack;
   }
 
@@ -467,11 +435,11 @@ class StorageService {
   }
 
   // --- Correction Reports ---
-  public saveCorrectionReport(report: any): string {
-    const reports = JSON.parse(safeGetItem(STORAGE_KEYS.CORRECTION_REPORTS) || '[]');
-    const reportId = `rep-${generateUUID().substring(0, 8)}`;
-    reports.push({ ...report, reportId, receivedAt: new Date().toISOString(), status: 'RECEIVED_IN_TRIAGE' });
-    safeSetItem(STORAGE_KEYS.CORRECTION_REPORTS, JSON.stringify(reports));
+  public saveCorrectionReport(report: CorrectionReportRequest): string {
+    const reportId = `rep-${generateUUID()}`;
+    localStorage.setItem(`${STORAGE_KEYS.CORRECTION_REPORTS}:${reportId}`, JSON.stringify({
+      ...report, reportId, receivedAt: new Date().toISOString(), status: 'SAVED_ON_DEVICE',
+    }));
     return reportId;
   }
 }
