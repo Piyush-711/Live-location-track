@@ -1,0 +1,1 @@
+import{r as n}from"./index-pwCsuqUP.js";function r(){const[s,a]=n.useState(()=>window.matchMedia("(min-width: 768px)").matches);return n.useEffect(()=>{const e=window.matchMedia("(min-width: 768px)"),t=()=>a(e.matches);return e.addEventListener("change",t),()=>e.removeEventListener("change",t)},[]),s}export{r as u};
